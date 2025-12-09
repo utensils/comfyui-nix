@@ -10,14 +10,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Run application**: `nix run` (builds and runs the app with Nix)
 - **Run with browser**: `nix run -- --open` (automatically opens browser)
 - **Run with custom port**: `nix run -- --port=8080` (specify custom port)
+- **Run with network access**: `nix run -- --listen 0.0.0.0` (allow external connections)
 - **Run with debug logging**: `nix run -- --debug` or `nix run -- --verbose`
 - **Build with Nix**: `nix build` (builds the app without running)
-- **Build Docker image**: `nix run .#buildDocker` (creates `comfy-ui:latest` image)
-- **Build CUDA Docker**: `nix run .#buildDockerCuda` (creates `comfy-ui:cuda` image)
+- **Build Docker image**: `nix run .#buildDocker` (creates `comfy-ui:latest` image) ⚠️ Partially implemented
+- **Build CUDA Docker**: `nix run .#buildDockerCuda` (creates `comfy-ui:cuda` image) ⚠️ Partially implemented
 - **Run Docker container**: `docker run -p 8188:8188 -v $PWD/data:/data comfy-ui:latest`
 - **Run CUDA Docker**: `docker run --gpus all -p 8188:8188 -v $PWD/data:/data comfy-ui:cuda`
 - **Develop with Nix**: `nix develop` (opens development shell)
+- **Install to profile**: `nix profile install github:utensils/nix-comfyui`
 - **Lint**: `ruff check src/` (checks for code issues)
+
+## Version Management
+- Current ComfyUI version: v0.3.28 (pinned in `flake.nix`)
+- To update ComfyUI: modify `rev` and `hash` in `comfyui-src` fetchFromGitHub block
+- Frontend package version: 1.17.0 (update in `comfyui-frontend-package`)
 
 ## Project Architecture
 
@@ -36,6 +43,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Key Components
 - **Model Downloader**: Non-blocking async download system using aiohttp with WebSocket progress updates
+  - API endpoints: `POST /api/download_model`, `GET /api/download_progress/{id}`, `GET /api/list_downloads`
 - **Persistence Module**: Patches `folder_paths` module at runtime to redirect all model/data directories to `~/.config/comfy-ui/`
 - **Nix Integration**: Provides reproducible builds with Python 3.12 environment
 - **Modular Launcher**: Manages installation, configuration, and runtime with separated concerns
@@ -53,9 +61,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **macOS**: Detects Apple Silicon and configures MPS acceleration
 - **Library Paths**: Automatically includes `/run/opengl-driver/lib` on Linux for NVIDIA drivers
 
-### Persisted Model Directories
-The following directories are automatically persisted across runs:
-- checkpoints, loras, vae, controlnet, embeddings, upscale_models, clip, diffusers
+### Data Persistence Structure (`~/.config/comfy-ui/`)
+```
+app/           - ComfyUI application code (auto-updated when flake changes)
+models/        - Model files (checkpoints, loras, vae, controlnet, embeddings, upscale_models, clip, diffusers, etc.)
+output/        - Generated images and outputs
+user/          - User configuration and custom nodes
+input/         - Input files for processing
+custom_nodes/  - Persistent custom node installations
+venv/          - Python virtual environment
+```
 
 ## Code Style Guidelines
 
