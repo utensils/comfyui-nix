@@ -235,7 +235,40 @@ This structure ensures clear separation of concerns and makes the codebase easie
 
 This flake includes Docker support for running ComfyUI in a containerized environment while preserving all functionality. Both CPU and CUDA-enabled GPU images are available.
 
-### Building the Docker Image
+### Pre-built Images (GitHub Container Registry)
+
+Pre-built Docker images are automatically published to GitHub Container Registry on every release. This is the easiest way to get started:
+
+#### Pull and Run CPU Version
+
+```bash
+# Pull the latest CPU version
+docker pull ghcr.io/utensils/nix-comfyui:latest
+
+# Run the container
+docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/nix-comfyui:latest
+```
+
+#### Pull and Run CUDA (GPU) Version
+
+```bash
+# Pull the latest CUDA version
+docker pull ghcr.io/utensils/nix-comfyui:latest-cuda
+
+# Run with GPU support
+docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/nix-comfyui:latest-cuda
+```
+
+#### Available Tags
+
+- `latest` - Latest CPU version from main branch
+- `latest-cuda` - Latest CUDA version from main branch
+- `X.Y.Z` - Specific version (CPU)
+- `X.Y.Z-cuda` - Specific version (CUDA)
+
+Visit the [packages page](https://github.com/utensils/nix-comfyui/pkgs/container/nix-comfyui) to see all available versions.
+
+### Building the Docker Image Locally
 
 #### CPU Version
 
@@ -269,13 +302,16 @@ This creates a Docker image named `comfy-ui:cuda` with GPU acceleration support.
 
 #### CPU Version
 
-Run the container with:
+Run the container with either the pre-built or locally-built image:
 
 ```bash
 # Create a data directory for persistence
 mkdir -p ./data
 
-# Run the container
+# Run pre-built image from GitHub Container Registry
+docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/nix-comfyui:latest
+
+# Or run locally-built image
 docker run -p 8188:8188 -v "$PWD/data:/data" comfy-ui:latest
 ```
 
@@ -287,7 +323,10 @@ For GPU-accelerated execution:
 # Create a data directory for persistence
 mkdir -p ./data
 
-# Run with GPU support
+# Run pre-built CUDA image from GitHub Container Registry
+docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/nix-comfyui:latest-cuda
+
+# Or run locally-built CUDA image
 docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" comfy-ui:cuda
 ```
 
@@ -316,6 +355,21 @@ sudo systemctl restart docker
 - **GPU support**: CUDA version includes proper environment variables for NVIDIA GPU access
 
 The Docker image follows the same modular structure as the regular installation, ensuring consistency across deployment methods.
+
+### Automated Builds (CI/CD)
+
+Docker images are automatically built and published to GitHub Container Registry via GitHub Actions:
+
+- **Trigger events**: Push to main branch, version tags (v*), and pull requests
+- **Build matrix**: Both CPU and CUDA variants are built in parallel
+- **Tagging strategy**:
+  - Main branch pushes: `latest` and `X.Y.Z` (version from flake.nix)
+  - Version tags: `vX.Y.Z` and `latest`
+  - Pull requests: `pr-N` (for testing, not pushed to registry)
+- **Registry**: All images are publicly accessible at `ghcr.io/utensils/nix-comfyui`
+- **Build cache**: Nix builds are cached using Cachix for faster CI runs
+
+The workflow uses Nix to ensure reproducible builds and leverages the same build configuration as local builds, guaranteeing consistency between development and production environments.
 
 ## License
 

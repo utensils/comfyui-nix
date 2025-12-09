@@ -15,6 +15,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build with Nix**: `nix build` (builds the app without running)
 - **Build Docker image**: `nix run .#buildDocker` (creates `comfy-ui:latest` image)
 - **Build CUDA Docker**: `nix run .#buildDockerCuda` (creates `comfy-ui:cuda` image)
+- **Pull pre-built Docker**: `docker pull ghcr.io/utensils/nix-comfyui:latest`
+- **Pull pre-built CUDA**: `docker pull ghcr.io/utensils/nix-comfyui:latest-cuda`
 - **Run Docker container**: `docker run -p 8188:8188 -v $PWD/data:/data comfy-ui:latest`
 - **Run CUDA Docker**: `docker run --gpus all -p 8188:8188 -v $PWD/data:/data comfy-ui:cuda`
 - **Develop with Nix**: `nix develop` (opens development shell)
@@ -74,6 +76,37 @@ input/         - Input files for processing
 custom_nodes/  - Persistent custom node installations
 venv/          - Python virtual environment
 ```
+
+## CI/CD and Automation
+
+### GitHub Actions Workflows
+
+#### Docker Image Publishing (`.github/workflows/docker.yml`)
+- **Purpose**: Automatically build and publish Docker images to GitHub Container Registry
+- **Triggers**: Push to main, version tags (v*), pull requests
+- **Build Matrix**: Both CPU and CUDA variants built in parallel
+- **Outputs**: Images published to `ghcr.io/utensils/nix-comfyui`
+- **Tags**:
+  - Main branch: `latest`, `X.Y.Z` (from flake.nix)
+  - Version tags: `vX.Y.Z`, `latest`
+  - Pull requests: `pr-N` (build only, no push)
+- **Caching**: Uses Cachix for Nix build caching (requires `CACHIX_AUTH_TOKEN` secret)
+
+#### Claude Code Integration (`.github/workflows/claude.yml`, `.github/workflows/claude-code-review.yml`)
+- **Purpose**: AI-assisted code review and issue responses
+- **Trigger**: @claude mentions in issues, PRs, and comments
+- **Requirements**: `CLAUDE_CODE_OAUTH_TOKEN` secret
+
+### Secrets Required
+- `CACHIX_AUTH_TOKEN`: (Optional) For Nix build caching, speeds up CI
+- `CLAUDE_CODE_OAUTH_TOKEN`: For Claude Code GitHub integration
+- `GITHUB_TOKEN`: Automatically provided by GitHub for registry access
+
+### Container Registry
+- **Location**: GitHub Container Registry (ghcr.io)
+- **Public Access**: All images are publicly readable
+- **Namespace**: `ghcr.io/utensils/nix-comfyui`
+- **Variants**: CPU (`:latest`) and CUDA (`:latest-cuda`)
 
 ## Code Style Guidelines
 

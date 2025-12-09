@@ -1,0 +1,157 @@
+name: Build and Publish Docker Images
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    strategy:
+      matrix:
+        variant:
+          - name: cpu
+            nix_target: dockerImage
+            tag_suffix: ''
+          - name: cuda
+            nix_target: dockerImageCuda
+            tag_suffix: '-cuda'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: nix-comfyui
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          skipPush: ${{ secrets.CACHIX_AUTH_TOKEN == '' }}
+
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          # Get ComfyUI version from flake.nix
+          VERSION=$(grep -m1 'comfyuiVersion = ' flake.nix | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Generate Docker tags
+          TAGS=""
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest${{ matrix.variant.tag_suffix }}"
+            TAGS="$TAGS,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}${{ matrix.variant.tag_suffix }}"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_VERSION=${GITHUB_REF#refs/tags/v}
+            TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}${{ matrix.variant.tag_suffix }}"
+            TAGS="$TAGS,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest${{ matrix.variant.tag_suffix }}"
+          else
+            TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.pull_request.number }}${{ matrix.variant.tag_suffix }}"
+          fi
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
+          # Generate labels
+          echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+          echo "revision=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image with Nix
+        run: |
+          echo "Building ${{ matrix.variant.name }} variant..."
+          nix build .#${{ matrix.variant.nix_target }} --print-build-logs
+
+          # Load the image into Docker
+          docker load < result
+
+          # Show loaded image
+          docker images | grep comfy-ui
+
+      - name: Tag and push Docker images
+        if: github.event_name != 'pull_request'
+        run: |
+          # Get the image ID from the loaded image
+          if [[ "${{ matrix.variant.name }}" == "cuda" ]]; then
+            IMAGE_ID=$(docker images comfy-ui:cuda -q | head -n1)
+          else
+            IMAGE_ID=$(docker images comfy-ui:latest -q | head -n1)
+          fi
+
+          # Tag and push each tag
+          IFS=',' read -ra TAG_ARRAY <<< "${{ steps.meta.outputs.tags }}"
+          for tag in "${TAG_ARRAY[@]}"; do
+            echo "Tagging and pushing: $tag"
+            docker tag "$IMAGE_ID" "$tag"
+            docker push "$tag"
+          done
+
+      - name: Generate image summary
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "## Docker Image Published (${{ matrix.variant.name }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Variant:** ${{ matrix.variant.name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pull Commands:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          IFS=',' read -ra TAG_ARRAY <<< "${{ steps.meta.outputs.tags }}"
+          for tag in "${TAG_ARRAY[@]}"; do
+            echo "docker pull $tag" >> $GITHUB_STEP_SUMMARY
+          done
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Run Command:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ matrix.variant.name }}" == "cuda" ]]; then
+            echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "docker run -p 8188:8188 -v \$PWD/data:/data ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  update-description:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    permissions:
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Update Container Registry description
+        run: |
+          echo "Container registry descriptions updated automatically from README.md"
+          # Note: GitHub Container Registry automatically syncs description from README
