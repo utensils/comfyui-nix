@@ -13,7 +13,7 @@ debug_vars() {
     echo "BASE_DIR=$BASE_DIR"
     echo "CODE_DIR=$CODE_DIR"
     echo "COMFYUI_SRC=$COMFYUI_SRC"
-    echo "DIRECTORIES defined: ${DIRECTORIES[@]:-NONE}"
+    echo "DIRECTORIES defined: ${!DIRECTORIES[*]:-NONE}"
   fi
 }
 
@@ -21,7 +21,7 @@ debug_vars() {
 trap 'echo "ERROR in config.sh: Command failed with exit code $? at line $LINENO"' ERR
 
 # Version and port configuration
-COMFY_VERSION="0.3.76"
+COMFY_VERSION="0.4.0"
 COMFY_PORT="8188"
 
 # CUDA configuration (can be overridden via environment)
@@ -73,10 +73,10 @@ declare -A DIRECTORIES=(
   [downloader]="$MODEL_DOWNLOADER_PERSISTENT_DIR/js"
 )
 
-# Python packages to install
-BASE_PACKAGES="pyyaml pillow numpy requests"
-# Core packages needed for ComfyUI v0.3.76+
-ADDITIONAL_PACKAGES="spandrel av GitPython toml rich safetensors pydantic pydantic-settings alembic"
+# Python packages to install (as arrays for proper handling)
+BASE_PACKAGES=(pyyaml pillow numpy requests)
+# Core packages needed for ComfyUI v0.4.0+
+ADDITIONAL_PACKAGES=(spandrel av GitPython toml rich safetensors pydantic pydantic-settings alembic)
 
 # PyTorch installation will be determined dynamically based on GPU availability
 # This is set in install.sh based on platform detection
@@ -114,12 +114,12 @@ export_config() {
   export OPEN_BROWSER PYTHON_ENV
   export COMFYUI_SRC MODEL_DOWNLOADER_DIR
   export PERSISTENCE_SCRIPT PERSISTENCE_MAIN_SCRIPT
-  
-  # Export environment variables
+
+  # Export environment variables (eval is needed to properly export var=value pairs)
   for var in "${ENV_VARS[@]}"; do
-    export "${var}"
+    eval export "$var"
   done
-  
+
   # Add CODE_DIR to PYTHONPATH
   export PYTHONPATH="$CODE_DIR:${PYTHONPATH:-}"
 }

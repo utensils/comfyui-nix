@@ -21,14 +21,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Run CUDA Docker**: `docker run --gpus all -p 8188:8188 -v $PWD/data:/data comfy-ui:cuda`
 - **Develop with Nix**: `nix develop` (opens development shell)
 - **Install to profile**: `nix profile install github:utensils/nix-comfyui`
-- **Lint**: `ruff check src/` (checks for code issues)
+
+## Linting and Code Quality
+- **Run all checks**: `nix flake check` (runs all CI checks: build, lint, type-check, shellcheck)
+- **Lint code**: `nix run .#lint` (run ruff linter, check only)
+- **Format code**: `nix run .#format` (auto-format code with ruff)
+- **Fix linting issues**: `nix run .#lint-fix` (run ruff with auto-fix)
+- **Type check**: `nix run .#type-check` (run pyright type checker)
+- **Run all checks (verbose)**: `nix run .#check-all` (lint + type-check with output)
+- **Nix formatting**: `nix fmt` (format Nix files with nixfmt-rfc-style)
 
 ## Version Management
-- Current ComfyUI version: v0.3.76 (pinned in `flake.nix`)
+- Current ComfyUI version: v0.4.0 (pinned in `flake.nix`)
 - To update ComfyUI: modify `rev` and `hash` in `comfyui-src` fetchFromGitHub block
-- Frontend package version: 1.34.7 (update in `comfyui-frontend-package`)
+- Frontend package version: Managed by ComfyUI's requirements.txt (installed via pip in venv)
 - Python version: 3.12 (stable for ML workloads)
 - PyTorch: Stable releases (no nightly builds)
+- Note: The Nix pythonEnv only provides bootstrap tools (pip, setuptools, wheel). All runtime dependencies are installed via pip in the virtual environment.
 
 ## Project Architecture
 

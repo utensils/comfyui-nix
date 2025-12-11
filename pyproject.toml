@@ -1,0 +1,183 @@
+[project]
+name = "nix-comfyui"
+version = "0.4.0"
+description = "A Nix flake for ComfyUI with Python 3.12"
+requires-python = ">=3.12"
+
+[tool.ruff]
+# Set the target Python version
+target-version = "py312"
+
+# Set line length to 100 (common for Python projects)
+line-length = 100
+
+# Include Python source files
+include = ["src/**/*.py", "scripts/**/*.py"]
+
+# Exclude common directories
+exclude = [
+    ".git",
+    ".nix-comfyui",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "__pycache__",
+    "*.egg-info",
+]
+
+[tool.ruff.lint]
+# Enable specific rule sets
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort (import sorting)
+    "N",      # pep8-naming
+    "UP",     # pyupgrade (modern Python syntax)
+    "YTT",    # flake8-2020
+    "ASYNC",  # flake8-async
+    "B",      # flake8-bugbear
+    "A",      # flake8-builtins
+    "COM",    # flake8-commas
+    "C4",     # flake8-comprehensions
+    "DTZ",    # flake8-datetimez
+    "T10",    # flake8-debugger
+    "ISC",    # flake8-implicit-str-concat
+    "ICN",    # flake8-import-conventions
+    "G",      # flake8-logging-format
+    "PIE",    # flake8-pie
+    "T20",    # flake8-print
+    "PT",     # flake8-pytest-style
+    "Q",      # flake8-quotes
+    "RSE",    # flake8-raise
+    "RET",    # flake8-return
+    "SLF",    # flake8-self
+    "SIM",    # flake8-simplify
+    "TID",    # flake8-tidy-imports
+    "TCH",    # flake8-type-checking
+    "ARG",    # flake8-unused-arguments
+    "PTH",    # flake8-use-pathlib
+    "ERA",    # eradicate (commented-out code)
+    "PL",     # pylint
+    "TRY",    # tryceratops
+    "PERF",   # perflint
+    "RUF",    # Ruff-specific rules
+]
+
+# Ignore specific rules that are genuinely incompatible with ComfyUI patterns
+ignore = [
+    "T20",      # Allow print statements (ComfyUI uses prints for status updates)
+    "G004",     # Allow f-strings in logging (more readable than % formatting)
+    "COM812",   # Trailing comma conflicts with formatter
+    "ISC001",   # Implicit string concatenation conflicts with formatter
+    "ARG001",   # Allow unused function arguments (ComfyUI API requires specific signatures)
+    "TRY003",   # Allow long exception messages (descriptive errors are helpful)
+    "PTH",      # Allow os.path (ComfyUI codebase uses os.path extensively for compatibility)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Allow unused imports in __init__.py files
+"__init__.py" = ["F401", "F403"]
+# Allow star imports in custom node modules (ComfyUI convention)
+"src/custom_nodes/**/*.py" = ["F403", "F405"]
+# Model downloader: Allow module loading errors and complex download logic
+"src/custom_nodes/model_downloader/__init__.py" = [
+    "TRY301",   # Inline raise acceptable for module loading errors
+]
+"src/custom_nodes/model_downloader/model_downloader_patch.py" = [
+    "PLR0912",  # Complex download_model and download_file functions
+    "PLR0915",  # Many statements needed for download progress tracking
+    "TRY002",   # Generic Exception acceptable for HTTP errors
+    "TRY301",   # Inline raise acceptable for HTTP error handling
+    "ASYNC230", # Blocking file I/O acceptable (aiofiles would be extra dependency)
+]
+# Persistence: Allow complex setup function (would need architectural refactoring)
+"src/persistence/persistence.py" = [
+    "PLR0912",  # Complex persistence setup with many branches
+    "PLR0915",  # Many statements needed for comprehensive setup
+]
+
+[tool.ruff.lint.isort]
+# Configure import sorting
+known-first-party = ["src"]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
+[tool.ruff.lint.mccabe]
+# Maximum complexity for a function
+max-complexity = 15
+
+[tool.ruff.lint.pydocstyle]
+# Use Google-style docstrings
+convention = "google"
+
+[tool.ruff.format]
+# Use double quotes for strings
+quote-style = "double"
+
+# Indent with 4 spaces
+indent-style = "space"
+
+# Use Unix line endings
+line-ending = "lf"
+
+# Add trailing comma to multiline collections
+skip-magic-trailing-comma = false
+
+[tool.pyright]
+# Specify the Python version
+pythonVersion = "3.12"
+
+# Include source files
+include = ["src"]
+
+# Exclude directories
+exclude = [
+    "**/__pycache__",
+    "**/node_modules",
+    ".git",
+    ".nix-comfyui",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+]
+
+# Type checking mode
+typeCheckingMode = "basic"
+
+# Report settings - be lenient for ComfyUI custom nodes
+reportMissingImports = "warning"
+reportMissingTypeStubs = "none"
+reportUnknownParameterType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownLambdaType = "none"
+reportUnknownVariableType = "none"
+reportUnknownMemberType = "none"
+reportUntypedFunctionDecorator = "none"
+reportUntypedClassDecorator = "none"
+reportUntypedBaseClass = "none"
+reportGeneralTypeIssues = "warning"
+reportOptionalMemberAccess = "warning"
+reportOptionalSubscript = "warning"
+reportPrivateImportUsage = "none"
+
+# Allow implicit string concatenation
+reportImplicitStringConcatenation = "none"
+
+# Stub path (for ComfyUI types if we add them later)
+stubPath = "typings"
+
+# Use library code for inline type analysis
+useLibraryCodeForTypes = true
+
+[tool.pyright.defineConstant]
+# Define constants for conditional imports
+DEBUG = true

@@ -5,12 +5,9 @@ This module initializes and loads all custom nodes in the src/custom_nodes direc
 ensuring they are properly registered with ComfyUI.
 """
 
-import os
-import sys
-import importlib
-
 # Import the model_downloader module
 from . import model_downloader
+
 
 def initialize_custom_nodes():
     """
@@ -18,13 +15,16 @@ def initialize_custom_nodes():
     This ensures all nodes are properly registered with ComfyUI.
     """
     print("Initializing custom nodes from src/custom_nodes...")
-    
+
     # Initialize the model downloader
-    print(f"Model Downloader module initialized with web directory: {model_downloader.WEB_DIRECTORY}")
-    
+    print(
+        f"Model Downloader module initialized with web directory: {model_downloader.WEB_DIRECTORY}"
+    )
+
     # Here we could add initialization for other custom nodes in the future
-    
+
     print("Custom nodes initialization complete")
+
 
 # Run initialization when imported
 initialize_custom_nodes()

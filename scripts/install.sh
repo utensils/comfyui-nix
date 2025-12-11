@@ -188,7 +188,8 @@ setup_venv() {
         log_info "Using existing Python environment"
         # Check if ComfyUI version changed - if so, we need to update requirements
         if [ -f "$version_file" ]; then
-            local installed_version=$(cat "$version_file")
+            local installed_version
+            installed_version=$(cat "$version_file")
             if [ "$installed_version" != "$COMFY_VERSION" ]; then
                 log_info "ComfyUI version changed ($installed_version -> $COMFY_VERSION)"
                 needs_requirements_update=true
@@ -211,15 +212,16 @@ setup_venv() {
         }
 
         # Install base packages
-        "$COMFY_VENV/bin/pip" install $BASE_PACKAGES
+        "$COMFY_VENV/bin/pip" install "${BASE_PACKAGES[@]}"
 
         # Detect and install appropriate PyTorch version
-        local TORCH_INSTALL=$(detect_pytorch_version)
+        local TORCH_INSTALL
+        TORCH_INSTALL=$(detect_pytorch_version)
         log_info "Installing PyTorch: $TORCH_INSTALL"
-        "$COMFY_VENV/bin/pip" install $TORCH_INSTALL
+        "$COMFY_VENV/bin/pip" install "$TORCH_INSTALL"
 
         # Install additional packages (includes pydantic, alembic for v0.3.76+)
-        "$COMFY_VENV/bin/pip" install $ADDITIONAL_PACKAGES
+        "$COMFY_VENV/bin/pip" install "${ADDITIONAL_PACKAGES[@]}"
 
         # Record installed version
         echo "$COMFY_VERSION" > "$version_file"
@@ -243,9 +245,10 @@ setup_venv() {
         if [ $cuda_test_result -ne 0 ]; then
             log_warn "CUDA not available in current PyTorch installation"
             log_info "Reinstalling PyTorch with CUDA support..."
-            local TORCH_INSTALL=$(detect_pytorch_version)
+            local TORCH_INSTALL
+            TORCH_INSTALL=$(detect_pytorch_version)
             "$COMFY_VENV/bin/pip" uninstall -y torch torchvision torchaudio
-            "$COMFY_VENV/bin/pip" install $TORCH_INSTALL
+            "$COMFY_VENV/bin/pip" install "$TORCH_INSTALL"
             touch "$cuda_check_file"
         else
             log_info "PyTorch already has CUDA support"
