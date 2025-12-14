@@ -11,7 +11,7 @@ A Nix flake for installing and running [ComfyUI](https://github.com/comfyanonymo
 ## Quick Start
 
 ```bash
-nix run github:utensils/nix-comfyui -- --open
+nix run github:utensils/comfyui-nix -- --open
 ```
 
 ## Features
@@ -34,7 +34,7 @@ nix run github:utensils/nix-comfyui -- --open
 
 ```bash
 # Run a specific version using a commit hash
-nix run github:utensils/nix-comfyui/[commit-hash] -- --open
+nix run github:utensils/comfyui-nix/[commit-hash] -- --open
 ```
 
 ### Command Line Options
@@ -50,7 +50,7 @@ nix run github:utensils/nix-comfyui/[commit-hash] -- --open
 
 ```bash
 # Example: Use CUDA 12.1
-CUDA_VERSION=cu121 nix run github:utensils/nix-comfyui
+CUDA_VERSION=cu121 nix run github:utensils/comfyui-nix
 ```
 
 ### Development Shell
@@ -89,7 +89,7 @@ nix run .#update
 You can install ComfyUI to your profile:
 
 ```bash
-nix profile install github:utensils/nix-comfyui
+nix profile install github:utensils/comfyui-nix
 ```
 
 ## Customization
@@ -108,15 +108,15 @@ You can integrate this flake into your own Nix configuration using the overlay:
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nix-comfyui.url = "github:utensils/nix-comfyui";
+    comfyui-nix.url = "github:utensils/comfyui-nix";
   };
 
-  outputs = { self, nixpkgs, nix-comfyui }: {
+  outputs = { self, nixpkgs, comfyui-nix }: {
     # Use in NixOS configuration
     nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
       modules = [
         ({ pkgs, ... }: {
-          nixpkgs.overlays = [ nix-comfyui.overlays.default ];
+          nixpkgs.overlays = [ comfyui-nix.overlays.default ];
           environment.systemPackages = [ pkgs.comfy-ui ];
         })
       ];
@@ -253,20 +253,20 @@ Pre-built Docker images are automatically published to GitHub Container Registry
 
 ```bash
 # Pull the latest CPU version
-docker pull ghcr.io/utensils/nix-comfyui:latest
+docker pull ghcr.io/utensils/comfyui-nix:latest
 
 # Run the container
-docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/nix-comfyui:latest
+docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
 ```
 
 #### Pull and Run CUDA (GPU) Version
 
 ```bash
 # Pull the latest CUDA version
-docker pull ghcr.io/utensils/nix-comfyui:latest-cuda
+docker pull ghcr.io/utensils/comfyui-nix:latest-cuda
 
 # Run with GPU support
-docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/nix-comfyui:latest-cuda
+docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest-cuda
 ```
 
 #### Available Tags
@@ -276,7 +276,7 @@ docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/nix-com
 - `X.Y.Z` - Specific version (CPU)
 - `X.Y.Z-cuda` - Specific version (CUDA)
 
-Visit the [packages page](https://github.com/utensils/nix-comfyui/pkgs/container/nix-comfyui) to see all available versions.
+Visit the [packages page](https://github.com/utensils/comfyui-nix/pkgs/container/comfyui-nix) to see all available versions.
 
 ### Building the Docker Image Locally
 
@@ -289,7 +289,7 @@ Use the included `buildDocker` command to create a Docker image:
 nix run .#buildDocker
 
 # Or from remote
-nix run github:utensils/nix-comfyui#buildDocker
+nix run github:utensils/comfyui-nix#buildDocker
 ```
 
 This creates a Docker image named `comfy-ui:latest` in your local Docker daemon.
@@ -303,7 +303,7 @@ For Linux systems with NVIDIA GPUs, build the CUDA-enabled image:
 nix run .#buildDockerCuda
 
 # Or from remote
-nix run github:utensils/nix-comfyui#buildDockerCuda
+nix run github:utensils/comfyui-nix#buildDockerCuda
 ```
 
 This creates a Docker image named `comfy-ui:cuda` with GPU acceleration support.
@@ -319,7 +319,7 @@ Run the container with either the pre-built or locally-built image:
 mkdir -p ./data
 
 # Run pre-built image from GitHub Container Registry
-docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/nix-comfyui:latest
+docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
 
 # Or run locally-built image
 docker run -p 8188:8188 -v "$PWD/data:/data" comfy-ui:latest
@@ -334,7 +334,7 @@ For GPU-accelerated execution:
 mkdir -p ./data
 
 # Run pre-built CUDA image from GitHub Container Registry
-docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/nix-comfyui:latest-cuda
+docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest-cuda
 
 # Or run locally-built CUDA image
 docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" comfy-ui:cuda
@@ -376,7 +376,7 @@ Docker images are automatically built and published to GitHub Container Registry
   - Main branch pushes: `latest` and `X.Y.Z` (version from flake.nix)
   - Version tags: `vX.Y.Z` and `latest`
   - Pull requests: `pr-N` (for testing, not pushed to registry)
-- **Registry**: All images are publicly accessible at `ghcr.io/utensils/nix-comfyui`
+- **Registry**: All images are publicly accessible at `ghcr.io/utensils/comfyui-nix`
 - **Build cache**: Nix builds are cached using Cachix for faster CI runs
 
 The workflow uses Nix to ensure reproducible builds and leverages the same build configuration as local builds, guaranteeing consistency between development and production environments.

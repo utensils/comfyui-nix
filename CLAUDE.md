@@ -15,12 +15,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build with Nix**: `nix build` (builds the app without running)
 - **Build Docker image**: `nix run .#buildDocker` (creates `comfy-ui:latest` image)
 - **Build CUDA Docker**: `nix run .#buildDockerCuda` (creates `comfy-ui:cuda` image)
-- **Pull pre-built Docker**: `docker pull ghcr.io/utensils/nix-comfyui:latest`
-- **Pull pre-built CUDA**: `docker pull ghcr.io/utensils/nix-comfyui:latest-cuda`
+- **Pull pre-built Docker**: `docker pull ghcr.io/utensils/comfyui-nix:latest`
+- **Pull pre-built CUDA**: `docker pull ghcr.io/utensils/comfyui-nix:latest-cuda`
 - **Run Docker container**: `docker run -p 8188:8188 -v $PWD/data:/data comfy-ui:latest`
 - **Run CUDA Docker**: `docker run --gpus all -p 8188:8188 -v $PWD/data:/data comfy-ui:cuda`
 - **Develop with Nix**: `nix develop` (opens development shell)
-- **Install to profile**: `nix profile install github:utensils/nix-comfyui`
+- **Install to profile**: `nix profile install github:utensils/comfyui-nix`
 
 ## Linting and Code Quality
 - **Run all checks**: `nix flake check` (runs all CI checks: build, lint, type-check, shellcheck)
@@ -94,7 +94,7 @@ venv/          - Python virtual environment
 - **Purpose**: Automatically build and publish Docker images to GitHub Container Registry
 - **Triggers**: Push to main, version tags (v*), pull requests
 - **Build Matrix**: Both CPU and CUDA variants built in parallel
-- **Outputs**: Images published to `ghcr.io/utensils/nix-comfyui`
+- **Outputs**: Images published to `ghcr.io/utensils/comfyui-nix`
 - **Tags**:
   - Main branch: `latest`, `X.Y.Z` (from flake.nix)
   - Version tags: `vX.Y.Z`, `latest`
@@ -114,7 +114,7 @@ venv/          - Python virtual environment
 ### Container Registry
 - **Location**: GitHub Container Registry (ghcr.io)
 - **Public Access**: All images are publicly readable
-- **Namespace**: `ghcr.io/utensils/nix-comfyui`
+- **Namespace**: `ghcr.io/utensils/comfyui-nix`
 - **Variants**: CPU (`:latest`) and CUDA (`:latest-cuda`)
 
 ## Code Style Guidelines

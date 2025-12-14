@@ -237,7 +237,7 @@
                 "org.opencontainers.image.description" =
                   "ComfyUI - The most powerful and modular diffusion model GUI";
                 "org.opencontainers.image.version" = comfyuiVersion;
-                "org.opencontainers.image.source" = "https://github.com/utensils/nix-comfyui";
+                "org.opencontainers.image.source" = "https://github.com/utensils/comfyui-nix";
                 "org.opencontainers.image.licenses" = "GPL-3.0";
               };
             };
@@ -312,7 +312,7 @@
                 "org.opencontainers.image.title" = "ComfyUI CUDA";
                 "org.opencontainers.image.description" = "ComfyUI with CUDA support for GPU acceleration";
                 "org.opencontainers.image.version" = comfyuiVersion;
-                "org.opencontainers.image.source" = "https://github.com/utensils/nix-comfyui";
+                "org.opencontainers.image.source" = "https://github.com/utensils/comfyui-nix";
                 "org.opencontainers.image.licenses" = "GPL-3.0";
                 "com.nvidia.volumes.needed" = "nvidia_driver";
               };

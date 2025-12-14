@@ -1,5 +1,5 @@
 [project]
-name = "nix-comfyui"
+name = "comfyui-nix"
 version = "0.4.0"
 description = "A Nix flake for ComfyUI with Python 3.12"
 requires-python = ">=3.12"
@@ -17,7 +17,7 @@ include = ["src/**/*.py", "scripts/**/*.py"]
 # Exclude common directories
 exclude = [
     ".git",
-    ".nix-comfyui",
+    ".comfyui-nix",
     ".ruff_cache",
     ".venv",
     "venv",
@@ -143,7 +143,7 @@ exclude = [
     "**/__pycache__",
     "**/node_modules",
     ".git",
-    ".nix-comfyui",
+    ".comfyui-nix",
     ".venv",
     "venv",
     "build",

@@ -57,7 +57,7 @@ install_comfyui() {
         git config user.email "nix@localhost"
         git config user.name "Nix Build"
         git add -A
-        git commit -q -m "ComfyUI v$COMFY_VERSION (managed by nix-comfyui)"
+        git commit -q -m "ComfyUI v$COMFY_VERSION (managed by comfyui-nix)"
         git tag -a "v$COMFY_VERSION" -m "Version $COMFY_VERSION"
     ) 2>/dev/null || log_warn "Could not initialize git repo"
 
@@ -109,7 +109,7 @@ prevent_direct_install=False
 privileged_hosting=False
 
 # Nix-managed installation settings
-# ComfyUI core updates are handled by nix-comfyui flake
+# ComfyUI core updates are handled by comfyui-nix flake
 # Custom nodes can still be managed through ComfyUI-Manager
 skip_update_check=True
 file_logging=True
