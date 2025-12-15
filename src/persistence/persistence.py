@@ -219,8 +219,11 @@ def setup_persistence() -> str:
         logger.error("base_dir must be an absolute path: %s", base_dir)
         raise ValueError(f"Invalid base_dir: {base_dir}")
 
-    # Block dangerous system directories
-    blocked_dirs = ["/etc", "/bin", "/sbin", "/usr", "/lib", "/boot", "/sys", "/proc", "/dev"]
+    # Block dangerous system directories (must match bash blocklist in config.sh)
+    blocked_dirs = [
+        "/etc", "/bin", "/sbin", "/usr", "/lib", "/lib32",
+        "/lib64", "/boot", "/sys", "/proc", "/dev", "/root",
+    ]
     for blocked in blocked_dirs:
         if base_dir == blocked or base_dir.startswith(blocked + "/"):
             logger.error("base_dir cannot be in system directory: %s", base_dir)

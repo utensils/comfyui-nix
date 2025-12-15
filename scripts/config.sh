@@ -106,7 +106,7 @@ unset _parsed_base_dir
 # Uses blocklist approach to allow custom mount points while blocking system paths
 _validate_base_dir() {
   local dir="$1"
-  local blocked_prefixes=("/etc" "/bin" "/sbin" "/usr" "/lib" "/lib64" "/boot" "/sys" "/proc" "/dev" "/root")
+  local blocked_prefixes=("/etc" "/bin" "/sbin" "/usr" "/lib" "/lib32" "/lib64" "/boot" "/sys" "/proc" "/dev" "/root")
 
   # Require absolute path
   if [[ "$dir" != /* ]]; then
