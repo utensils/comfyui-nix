@@ -99,6 +99,10 @@ BASE_DIR="$HOME/.config/comfy-ui"
 _parsed_base_dir="$(_parse_base_directory "$@")"
 if [[ -n "$_parsed_base_dir" ]]; then
   BASE_DIR="$_parsed_base_dir"
+elif [[ "$*" =~ --base-directory ]]; then
+  # User provided the flag but parsing returned empty - this is an error
+  echo "ERROR: Failed to parse --base-directory argument" >&2
+  exit 1
 fi
 unset _parsed_base_dir
 
@@ -124,11 +128,20 @@ _validate_base_dir() {
 }
 _validate_base_dir "$BASE_DIR"
 
+# Resolve symlinks to prevent symlink attacks
+# Check both BASE_DIR itself and its parent directory
+
+# First, resolve BASE_DIR if it's a symlink (e.g., /home/user/link -> /etc)
+if [[ -L "$BASE_DIR" ]]; then
+  _resolved_base="$(readlink -f "$BASE_DIR" 2>/dev/null || echo "$BASE_DIR")"
+  _validate_base_dir "$_resolved_base"
+  BASE_DIR="$_resolved_base"
+fi
+
 # Validate base directory parent exists and is writable
-# Also resolve symlinks to prevent symlink attacks
 _parent_dir="$(dirname "$BASE_DIR")"
 
-# Resolve symlinks in parent directory to prevent attacks
+# Also resolve symlinks in parent directory
 if [[ -L "$_parent_dir" ]]; then
   _resolved_parent="$(readlink -f "$_parent_dir" 2>/dev/null || echo "$_parent_dir")"
   # Re-validate the resolved path
@@ -144,7 +157,7 @@ elif [[ ! -w "$_parent_dir" ]]; then
   echo "ERROR: No write permission for parent directory: $_parent_dir" >&2
   exit 1
 fi
-unset _parent_dir _resolved_parent
+unset _parent_dir _resolved_parent _resolved_base
 
 # App code and venv always live in .config (separate from data)
 CODE_DIR="$HOME/.config/comfy-ui/app"
