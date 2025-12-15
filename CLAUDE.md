@@ -62,9 +62,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Modular Launcher**: Manages installation, configuration, and runtime with separated concerns
 - **Logging System**: Provides consistent, configurable logging across all components
 
+### Command Line Options
+- `--base-directory PATH`: Set data directory for models, input, output, custom_nodes (preferred method)
+- `--open`: Auto-open browser when server is ready
+- `--port=XXXX`: Run on specific port (default: 8188)
+- `--debug` or `--verbose`: Enable detailed debug logging
+
 ### Important Environment Variables
-- `COMFY_USER_DIR`: Persistent storage directory (default: `~/.config/comfy-ui`)
-- `COMFY_APP_DIR`: ComfyUI application directory
+- `COMFY_USER_DIR`: Persistent storage directory (default: `~/.config/comfy-ui`, use `--base-directory` instead)
+- `COMFY_APP_DIR`: ComfyUI application directory (fixed at `~/.config/comfy-ui/app`)
 - `COMFY_SAVE_PATH`: User save path for outputs
 - `CUDA_VERSION`: CUDA version for PyTorch (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
 - `LD_LIBRARY_PATH`: (Linux) Set automatically to include system libraries and NVIDIA drivers
@@ -75,15 +81,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **macOS**: Detects Apple Silicon and configures MPS acceleration
 - **Library Paths**: Automatically includes `/run/opengl-driver/lib` on Linux for NVIDIA drivers
 
-### Data Persistence Structure (`~/.config/comfy-ui/`)
+### Data Persistence Structure
+**Fixed locations** (always in `~/.config/comfy-ui/`):
 ```
 app/           - ComfyUI application code (auto-updated when flake changes)
+venv/          - Python virtual environment
+```
+
+**Configurable locations** (default `~/.config/comfy-ui/`, or `--base-directory`):
+```
 models/        - Model files (checkpoints, loras, vae, controlnet, embeddings, upscale_models, clip, diffusers, etc.)
 output/        - Generated images and outputs
 user/          - User configuration and custom nodes
 input/         - Input files for processing
 custom_nodes/  - Persistent custom node installations
-venv/          - Python virtual environment
 ```
 
 ## CI/CD and Automation

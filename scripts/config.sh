@@ -34,27 +34,38 @@ CUDA_VERSION="${CUDA_VERSION:-cu124}"
 
 # Directory structure
 # Check for --base-directory in args first, otherwise use default
+# This is parsed early so all path variables can use BASE_DIR
 BASE_DIR="$HOME/.config/comfy-ui"
-for i in "$@"; do
-  case "$i" in
-    --base-directory)
-      # Next arg is the value (handled below)
-      ;;
+_args=("$@")
+_skip_next=false
+for i in "${!_args[@]}"; do
+  if [[ "$_skip_next" == "true" ]]; then
+    _skip_next=false
+    continue
+  fi
+  case "${_args[$i]}" in
     --base-directory=*)
-      BASE_DIR="${i#*=}"
-      BASE_DIR="${BASE_DIR/#\~/$HOME}"  # Expand tilde
+      BASE_DIR="${_args[$i]#*=}"
+      # Expand tilde (handles ~, ~/path, but not ~user)
+      BASE_DIR="${BASE_DIR/#\~/$HOME}"
+      ;;
+    --base-directory)
+      if [[ $((i+1)) -lt ${#_args[@]} ]]; then
+        BASE_DIR="${_args[$((i+1))]}"
+        BASE_DIR="${BASE_DIR/#\~/$HOME}"
+        _skip_next=true
+      fi
       ;;
   esac
 done
-# Handle --base-directory VALUE format
-_args=("$@")
-for i in "${!_args[@]}"; do
-  if [[ "${_args[$i]}" == "--base-directory" ]] && [[ $((i+1)) -lt ${#_args[@]} ]]; then
-    BASE_DIR="${_args[$((i+1))]}"
-    BASE_DIR="${BASE_DIR/#\~/$HOME}"  # Expand tilde
-    break
-  fi
-done
+unset _args _skip_next
+
+# Validate base directory parent exists (basic sanity check)
+if [[ ! -d "$(dirname "$BASE_DIR")" ]]; then
+  echo "ERROR: Parent directory of BASE_DIR does not exist: $(dirname "$BASE_DIR")" >&2
+  echo "Please create it first or specify a valid path with --base-directory" >&2
+  exit 1
+fi
 
 # App code and venv always live in .config (separate from data)
 CODE_DIR="$HOME/.config/comfy-ui/app"
@@ -109,15 +120,28 @@ ADDITIONAL_PACKAGES=(spandrel av GitPython toml rich safetensors pydantic pydant
 # This is set in install.sh based on platform detection
 
 # Function to parse command line arguments
+# Filters out arguments handled by this launcher, passes rest to ComfyUI
 parse_arguments() {
   ARGS=()
+  local skip_next=false
   for arg in "$@"; do
+    if [[ "$skip_next" == "true" ]]; then
+      skip_next=false
+      continue
+    fi
     case "$arg" in
       --open)
         OPEN_BROWSER=true
         ;;
       --port=*)
         COMFY_PORT="${arg#*=}"
+        ;;
+      --base-directory=*)
+        # Already handled in config, don't pass to ComfyUI
+        ;;
+      --base-directory)
+        # Skip this and next arg (value), already handled in config
+        skip_next=true
         ;;
       --debug)
         export LOG_LEVEL=$DEBUG

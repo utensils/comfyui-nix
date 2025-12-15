@@ -208,6 +208,10 @@ def setup_persistence() -> str:
         return _state.base_dir
 
     # Check if user specified --base-directory on command line (highest priority)
+    # Note: This is intentionally parsed both here and in bash (config.sh) because:
+    # 1. Bash needs it early to set up directory paths and symlinks
+    # 2. Python needs it to override folder_paths after ComfyUI loads
+    # The COMFY_USER_DIR env var is set by bash as a fallback mechanism
     base_dir = None
     if "--base-directory" in sys.argv:
         try:
