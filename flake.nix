@@ -87,6 +87,11 @@
           pythonEnv = pythonEnv;
         };
 
+        templateInputsScript = pkgs.substituteAll {
+          src = ./scripts/template_inputs.sh;
+          pythonEnv = pythonEnv;
+        };
+
         # Main launcher script with substitutions
         launcherScript = pkgs.substituteAll {
           src = ./scripts/launcher.sh;
@@ -106,6 +111,7 @@
           cp ${installScript} $out/install.sh
           cp ${persistenceShScript} $out/persistence.sh
           cp ${runtimeScript} $out/runtime.sh
+          cp ${templateInputsScript} $out/template_inputs.sh
           cp ${launcherScript} $out/launcher.sh
           chmod +x $out/*.sh
         '';
@@ -152,12 +158,20 @@
               # Copy all script files
               cp -r ${scriptDir}/* "$out/share/comfy-ui/scripts/"
 
-              # Install the launcher script
-              ln -s "$out/share/comfy-ui/scripts/launcher.sh" "$out/bin/comfy-ui-launcher"
-              chmod +x "$out/bin/comfy-ui-launcher"
+              # Install the launcher script with wrapper for required tools
+              # curl and jq are needed for downloading workflow template input files
+              makeWrapper "$out/share/comfy-ui/scripts/launcher.sh" "$out/bin/comfy-ui" \
+                --prefix PATH : "${
+                  pkgs.lib.makeBinPath [
+                    pkgs.curl
+                    pkgs.jq
+                    pkgs.git
+                    pkgs.coreutils
+                  ]
+                }"
 
-              # Create a symlink to the launcher
-              ln -s "$out/bin/comfy-ui-launcher" "$out/bin/comfy-ui"
+              # Create alias for backwards compatibility
+              ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"
             '';
 
             meta = with pkgs.lib; {
@@ -183,6 +197,7 @@
                 pkgs.netcat
                 pkgs.git
                 pkgs.curl
+                pkgs.jq
                 pkgs.cacert
                 pkgs.libGL
                 pkgs.libGLU
@@ -257,6 +272,7 @@
                 pkgs.netcat
                 pkgs.git
                 pkgs.curl
+                pkgs.jq
                 pkgs.cacert
                 pkgs.libGL
                 pkgs.libGLU

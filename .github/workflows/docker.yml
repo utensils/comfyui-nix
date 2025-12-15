@@ -28,7 +28,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -36,13 +36,25 @@ jobs:
       id-token: write
 
     strategy:
+      fail-fast: false
       matrix:
-        variant:
-          - name: cpu
+        include:
+          # CPU variants for both architectures
+          - variant: cpu
+            arch: x86_64-linux
             nix_target: dockerImage
+            platform: linux/amd64
             tag_suffix: ''
-          - name: cuda
+          - variant: cpu
+            arch: aarch64-linux
+            nix_target: dockerImage
+            platform: linux/arm64
+            tag_suffix: ''
+          # CUDA only for x86_64 (NVIDIA CUDA not available for ARM)
+          - variant: cuda
+            arch: x86_64-linux
             nix_target: dockerImageCuda
+            platform: linux/amd64
             tag_suffix: '-cuda'
 
     steps:
@@ -51,6 +63,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
@@ -58,6 +78,7 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
             accept-flake-config = true
+            extra-platforms = aarch64-linux
 
       - name: Setup Cachix
         uses: cachix/cachix-action@v15
@@ -81,28 +102,29 @@ jobs:
           VERSION=$(grep -m1 'comfyuiVersion = ' flake.nix | sed 's/.*"\(.*\)".*/\1/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-          # Generate Docker tags
-          TAGS=""
+          # Determine architecture suffix for intermediate tags
+          if [[ "${{ matrix.arch }}" == "aarch64-linux" ]]; then
+            ARCH_SUFFIX="-arm64"
+          else
+            ARCH_SUFFIX="-amd64"
+          fi
+          echo "arch_suffix=$ARCH_SUFFIX" >> $GITHUB_OUTPUT
+
+          # Generate Docker tags for this specific architecture
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest${{ matrix.variant.tag_suffix }}"
-            TAGS="$TAGS,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}${{ matrix.variant.tag_suffix }}"
+            TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest${{ matrix.tag_suffix }}${ARCH_SUFFIX}"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG_VERSION=${GITHUB_REF#refs/tags/v}
-            TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}${{ matrix.variant.tag_suffix }}"
-            TAGS="$TAGS,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest${{ matrix.variant.tag_suffix }}"
+            TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}${{ matrix.tag_suffix }}${ARCH_SUFFIX}"
           else
-            TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.pull_request.number }}${{ matrix.variant.tag_suffix }}"
+            TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.pull_request.number }}${{ matrix.tag_suffix }}${ARCH_SUFFIX}"
           fi
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
-
-          # Generate labels
-          echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-          echo "revision=${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Build Docker image with Nix
         run: |
-          echo "Building ${{ matrix.variant.name }} variant..."
-          nix build .#${{ matrix.variant.nix_target }} --print-build-logs
+          echo "Building ${{ matrix.variant }} variant for ${{ matrix.arch }}..."
+          nix build .#packages.${{ matrix.arch }}.${{ matrix.nix_target }} --print-build-logs
 
           # Load the image into Docker
           docker load < result
@@ -110,51 +132,151 @@ jobs:
           # Show loaded image
           docker images | grep comfy-ui
 
-      - name: Tag and push Docker images
+      - name: Tag and push Docker image
         if: github.event_name != 'pull_request'
         run: |
           # Get the image ID from the loaded image
-          if [[ "${{ matrix.variant.name }}" == "cuda" ]]; then
+          if [[ "${{ matrix.variant }}" == "cuda" ]]; then
             IMAGE_ID=$(docker images comfy-ui:cuda -q | head -n1)
           else
             IMAGE_ID=$(docker images comfy-ui:latest -q | head -n1)
           fi
 
-          # Tag and push each tag
-          IFS=',' read -ra TAG_ARRAY <<< "${{ steps.meta.outputs.tags }}"
-          for tag in "${TAG_ARRAY[@]}"; do
-            echo "Tagging and pushing: $tag"
-            docker tag "$IMAGE_ID" "$tag"
-            docker push "$tag"
-          done
+          echo "Tagging and pushing: ${{ steps.meta.outputs.tag }}"
+          docker tag "$IMAGE_ID" "${{ steps.meta.outputs.tag }}"
+          docker push "${{ steps.meta.outputs.tag }}"
 
-      - name: Generate image summary
-        if: github.event_name != 'pull_request'
+      - name: Generate build summary
         run: |
-          echo "## Docker Image Published (${{ matrix.variant.name }})" >> $GITHUB_STEP_SUMMARY
+          echo "## Docker Image Built (${{ matrix.variant }} - ${{ matrix.arch }})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** ${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Variant:** ${{ matrix.variant.name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Variant:** ${{ matrix.variant }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Architecture:** ${{ matrix.arch }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Platform:** ${{ matrix.platform }}" >> $GITHUB_STEP_SUMMARY
+
+  # Create and push multi-arch manifests after all builds complete
+  create-manifests:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    permissions:
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          VERSION=$(grep -m1 'comfyuiVersion = ' flake.nix | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create and push multi-arch manifest (CPU)
+        run: |
+          # Determine tags based on ref
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            MANIFEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+            VERSION_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_VERSION=${GITHUB_REF#refs/tags/v}
+            MANIFEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}"
+            VERSION_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          fi
+
+          # Create multi-arch manifest for CPU variant
+          echo "Creating multi-arch manifest: $MANIFEST_TAG"
+          docker manifest create "$MANIFEST_TAG" \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64" \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64"
+
+          docker manifest annotate "$MANIFEST_TAG" \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64" --arch amd64
+          docker manifest annotate "$MANIFEST_TAG" \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64" --arch arm64
+
+          docker manifest push "$MANIFEST_TAG"
+
+          # Also push version tag if on main
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "Creating multi-arch manifest: $VERSION_TAG"
+            docker manifest create "$VERSION_TAG" \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64" \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64"
+
+            docker manifest annotate "$VERSION_TAG" \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64" --arch amd64
+            docker manifest annotate "$VERSION_TAG" \
+              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64" --arch arm64
+
+            docker manifest push "$VERSION_TAG"
+          fi
+
+      - name: Create and push CUDA manifest (x86_64 only)
+        run: |
+          # CUDA is only available for x86_64, so no multi-arch manifest needed
+          # Just create alias tags for consistency
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda"
+            VERSION_CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}-cuda"
+
+            # Pull the amd64 cuda image and retag
+            docker pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda-amd64"
+
+            docker tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda-amd64" "$CUDA_TAG"
+            docker push "$CUDA_TAG"
+
+            docker tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda-amd64" "$VERSION_CUDA_TAG"
+            docker push "$VERSION_CUDA_TAG"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_VERSION=${GITHUB_REF#refs/tags/v}
+            CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda"
+            LATEST_CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda"
+
+            docker pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda-amd64"
+
+            docker tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda-amd64" "$CUDA_TAG"
+            docker push "$CUDA_TAG"
+
+            docker tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda-amd64" "$LATEST_CUDA_TAG"
+            docker push "$LATEST_CUDA_TAG"
+          fi
+
+      - name: Generate manifest summary
+        run: |
+          echo "## Multi-Architecture Docker Images Published" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Pull Commands:" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### CPU (Multi-arch: amd64 + arm64)" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          IFS=',' read -ra TAG_ARRAY <<< "${{ steps.meta.outputs.tags }}"
-          for tag in "${TAG_ARRAY[@]}"; do
-            echo "docker pull $tag" >> $GITHUB_STEP_SUMMARY
-          done
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Run Command:" >> $GITHUB_STEP_SUMMARY
+          echo "### CUDA (amd64 only)" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ matrix.variant.name }}" == "cuda" ]]; then
-            echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "docker run -p 8188:8188 -v \$PWD/data:/data ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Run Commands" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "# CPU (works on both amd64 and arm64)" >> $GITHUB_STEP_SUMMARY
+          echo "docker run -p 8188:8188 -v \$PWD/data:/data ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# CUDA (amd64 only)" >> $GITHUB_STEP_SUMMARY
+          echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   update-description:
-    needs: build-and-push
+    needs: create-manifests
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     permissions:

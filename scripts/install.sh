@@ -284,11 +284,19 @@ install_all() {
     install_model_downloader
     setup_venv
     setup_persistence_scripts
-    
+
     # Now set up the actual symlinks
     source "$SCRIPT_DIR/persistence.sh"
     setup_persistence
-    
+
+    # Download workflow template input files (non-blocking)
+    source "$SCRIPT_DIR/template_inputs.sh"
+    if needs_template_inputs; then
+        download_template_inputs
+    else
+        log_debug "Template input files are up to date"
+    fi
+
     log_section "Installation complete"
     log_info "ComfyUI $COMFY_VERSION has been successfully installed"
 }

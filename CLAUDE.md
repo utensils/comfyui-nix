@@ -104,11 +104,13 @@ custom_nodes/  - Persistent custom node installations
 #### Docker Image Publishing (`.github/workflows/docker.yml`)
 - **Purpose**: Automatically build and publish Docker images to GitHub Container Registry
 - **Triggers**: Push to main, version tags (v*), pull requests
-- **Build Matrix**: Both CPU and CUDA variants built in parallel
+- **Multi-Architecture**: CPU images built for both amd64 and arm64 (via QEMU emulation)
+- **Build Matrix**: CPU (multi-arch) and CUDA (x86_64 only) variants built in parallel
 - **Outputs**: Images published to `ghcr.io/utensils/comfyui-nix`
 - **Tags**:
   - Main branch: `latest`, `X.Y.Z` (from flake.nix)
   - Version tags: `vX.Y.Z`, `latest`
+  - Architecture-specific: `latest-amd64`, `latest-arm64`
   - Pull requests: `pr-N` (build only, no push)
 - **Caching**: Uses Cachix for Nix build caching (requires `CACHIX_AUTH_TOKEN` secret)
 
@@ -126,7 +128,8 @@ custom_nodes/  - Persistent custom node installations
 - **Location**: GitHub Container Registry (ghcr.io)
 - **Public Access**: All images are publicly readable
 - **Namespace**: `ghcr.io/utensils/comfyui-nix`
-- **Variants**: CPU (`:latest`) and CUDA (`:latest-cuda`)
+- **Variants**: CPU (`:latest`, multi-arch) and CUDA (`:latest-cuda`, x86_64 only)
+- **Architectures**: amd64 (x86_64) and arm64 (aarch64/Apple Silicon) for CPU images
 
 ## Code Style Guidelines
 

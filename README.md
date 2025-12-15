@@ -246,23 +246,23 @@ This structure ensures clear separation of concerns and makes the codebase easie
 
 ## Docker Support
 
-This flake includes Docker support for running ComfyUI in a containerized environment while preserving all functionality. Both CPU and CUDA-enabled GPU images are available.
+This flake includes Docker support for running ComfyUI in a containerized environment while preserving all functionality. Multi-architecture images are available for both x86_64 (amd64) and ARM64 (aarch64) platforms.
 
 ### Pre-built Images (GitHub Container Registry)
 
 Pre-built Docker images are automatically published to GitHub Container Registry on every release. This is the easiest way to get started:
 
-#### Pull and Run CPU Version
+#### Pull and Run CPU Version (Multi-arch: amd64 + arm64)
 
 ```bash
-# Pull the latest CPU version
+# Pull the latest CPU version (automatically selects correct architecture)
 docker pull ghcr.io/utensils/comfyui-nix:latest
 
 # Run the container
 docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
 ```
 
-#### Pull and Run CUDA (GPU) Version
+#### Pull and Run CUDA (GPU) Version (x86_64 only)
 
 ```bash
 # Pull the latest CUDA version
@@ -274,12 +274,30 @@ docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui
 
 #### Available Tags
 
-- `latest` - Latest CPU version from main branch
-- `latest-cuda` - Latest CUDA version from main branch
-- `X.Y.Z` - Specific version (CPU)
-- `X.Y.Z-cuda` - Specific version (CUDA)
+- `latest` - Latest CPU version, multi-arch (amd64 + arm64)
+- `latest-cuda` - Latest CUDA version (x86_64/amd64 only)
+- `latest-amd64` - Latest CPU version for x86_64
+- `latest-arm64` - Latest CPU version for ARM64
+- `X.Y.Z` - Specific version (CPU, multi-arch)
+- `X.Y.Z-cuda` - Specific version (CUDA, x86_64 only)
 
 Visit the [packages page](https://github.com/utensils/comfyui-nix/pkgs/container/comfyui-nix) to see all available versions.
+
+### Apple Silicon (M1/M2/M3) Support
+
+The `latest` and `latest-arm64` tags work on Apple Silicon Macs via Docker Desktop:
+
+```bash
+# Works on Apple Silicon Macs
+docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
+```
+
+**Important**: Docker containers on macOS cannot access the Metal GPU (MPS). The Docker image runs **CPU-only** on Apple Silicon. For GPU acceleration on Apple Silicon, use `nix run` directly instead of Docker:
+
+```bash
+# For GPU acceleration on Apple Silicon, use nix directly (not Docker)
+nix run github:utensils/comfyui-nix
+```
 
 ### Building the Docker Image Locally
 
@@ -374,11 +392,13 @@ The Docker image follows the same modular structure as the regular installation,
 Docker images are automatically built and published to GitHub Container Registry via GitHub Actions:
 
 - **Trigger events**: Push to main branch, version tags (v*), and pull requests
-- **Build matrix**: Both CPU and CUDA variants are built in parallel
+- **Multi-architecture**: CPU images built for both amd64 and arm64 (via QEMU emulation)
+- **Build matrix**: CPU (multi-arch) and CUDA (x86_64 only) variants built in parallel
 - **Tagging strategy**:
   - Main branch pushes: `latest` and `X.Y.Z` (version from flake.nix)
   - Version tags: `vX.Y.Z` and `latest`
   - Pull requests: `pr-N` (for testing, not pushed to registry)
+  - Architecture-specific: `latest-amd64`, `latest-arm64`
 - **Registry**: All images are publicly accessible at `ghcr.io/utensils/comfyui-nix`
 - **Build cache**: Nix builds are cached using Cachix for faster CI runs
 
