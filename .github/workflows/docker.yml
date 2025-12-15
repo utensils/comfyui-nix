@@ -254,7 +254,10 @@ jobs:
           echo "Found: $CUDA_AMD64_TAG"
 
           # Pull and retag for alias
-          docker pull "$CUDA_AMD64_TAG"
+          if ! docker pull "$CUDA_AMD64_TAG"; then
+            echo "ERROR: Failed to pull CUDA image: $CUDA_AMD64_TAG"
+            exit 1
+          fi
 
           docker tag "$CUDA_AMD64_TAG" "$CUDA_TAG"
           docker push "$CUDA_TAG"
