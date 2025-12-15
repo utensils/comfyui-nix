@@ -186,36 +186,45 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             MANIFEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
             VERSION_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}"
+            AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64"
+            ARM64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG_VERSION=${GITHUB_REF#refs/tags/v}
             MANIFEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}"
             VERSION_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+            AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-amd64"
+            ARM64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-arm64"
           fi
+
+          # Verify both architecture images exist before creating manifest
+          echo "Verifying architecture-specific images exist..."
+          for arch_tag in "$AMD64_TAG" "$ARM64_TAG"; do
+            if ! docker manifest inspect "$arch_tag" &>/dev/null; then
+              echo "ERROR: Required image not found: $arch_tag"
+              echo "This likely means the build job for this architecture failed."
+              exit 1
+            fi
+            echo "Found: $arch_tag"
+          done
 
           # Create multi-arch manifest for CPU variant
           echo "Creating multi-arch manifest: $MANIFEST_TAG"
           docker manifest create "$MANIFEST_TAG" \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64" \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64"
+            "$AMD64_TAG" \
+            "$ARM64_TAG"
 
-          docker manifest annotate "$MANIFEST_TAG" \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64" --arch amd64
-          docker manifest annotate "$MANIFEST_TAG" \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64" --arch arm64
+          docker manifest annotate "$MANIFEST_TAG" "$AMD64_TAG" --arch amd64
+          docker manifest annotate "$MANIFEST_TAG" "$ARM64_TAG" --arch arm64
 
           docker manifest push "$MANIFEST_TAG"
 
           # Also push version tag if on main
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Creating multi-arch manifest: $VERSION_TAG"
-            docker manifest create "$VERSION_TAG" \
-              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64" \
-              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64"
+            docker manifest create "$VERSION_TAG" "$AMD64_TAG" "$ARM64_TAG"
 
-            docker manifest annotate "$VERSION_TAG" \
-              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64" --arch amd64
-            docker manifest annotate "$VERSION_TAG" \
-              "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64" --arch arm64
+            docker manifest annotate "$VERSION_TAG" "$AMD64_TAG" --arch amd64
+            docker manifest annotate "$VERSION_TAG" "$ARM64_TAG" --arch arm64
 
             docker manifest push "$VERSION_TAG"
           fi
@@ -227,28 +236,31 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda"
             VERSION_CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}-cuda"
-
-            # Pull the amd64 cuda image and retag
-            docker pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda-amd64"
-
-            docker tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda-amd64" "$CUDA_TAG"
-            docker push "$CUDA_TAG"
-
-            docker tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda-amd64" "$VERSION_CUDA_TAG"
-            docker push "$VERSION_CUDA_TAG"
+            CUDA_AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda-amd64"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG_VERSION=${GITHUB_REF#refs/tags/v}
             CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda"
-            LATEST_CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda"
-
-            docker pull "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda-amd64"
-
-            docker tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda-amd64" "$CUDA_TAG"
-            docker push "$CUDA_TAG"
-
-            docker tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda-amd64" "$LATEST_CUDA_TAG"
-            docker push "$LATEST_CUDA_TAG"
+            VERSION_CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda"
+            CUDA_AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda-amd64"
           fi
+
+          # Verify CUDA image exists before creating alias tags
+          echo "Verifying CUDA image exists..."
+          if ! docker manifest inspect "$CUDA_AMD64_TAG" &>/dev/null; then
+            echo "ERROR: Required CUDA image not found: $CUDA_AMD64_TAG"
+            echo "This likely means the CUDA build job failed."
+            exit 1
+          fi
+          echo "Found: $CUDA_AMD64_TAG"
+
+          # Pull and retag for alias
+          docker pull "$CUDA_AMD64_TAG"
+
+          docker tag "$CUDA_AMD64_TAG" "$CUDA_TAG"
+          docker push "$CUDA_TAG"
+
+          docker tag "$CUDA_AMD64_TAG" "$VERSION_CUDA_TAG"
+          docker push "$VERSION_CUDA_TAG"
 
       - name: Generate manifest summary
         run: |
