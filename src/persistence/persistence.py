@@ -213,14 +213,17 @@ def setup_persistence() -> str:
     # 2. Python needs it to override folder_paths after ComfyUI loads
     # The COMFY_USER_DIR env var is set by bash as a fallback mechanism
     base_dir = None
-    if "--base-directory" in sys.argv:
-        try:
-            idx = sys.argv.index("--base-directory")
-            if idx + 1 < len(sys.argv):
-                base_dir = os.path.expanduser(sys.argv[idx + 1])
-                logger.info("Using user-specified base directory: %s", base_dir)
-        except (ValueError, IndexError):
-            pass
+    for i, arg in enumerate(sys.argv):
+        # Handle --base-directory VALUE format
+        if arg == "--base-directory" and i + 1 < len(sys.argv):
+            base_dir = os.path.expanduser(sys.argv[i + 1])
+            logger.info("Using user-specified base directory: %s", base_dir)
+            break
+        # Handle --base-directory=VALUE format
+        if arg.startswith("--base-directory="):
+            base_dir = os.path.expanduser(arg.split("=", 1)[1])
+            logger.info("Using user-specified base directory: %s", base_dir)
+            break
 
     # Fall back to COMFY_USER_DIR env var, then default
     if not base_dir:

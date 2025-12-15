@@ -41,7 +41,7 @@ nix run github:utensils/comfyui-nix/[commit-hash] -- --open
 
 - `--open`: Automatically opens ComfyUI in your browser when the server is ready
 - `--port=XXXX`: Run ComfyUI on a specific port (default: 8188)
-- `--base-directory PATH`: Set data directory for models, input, output, and custom_nodes (default: `~/.config/comfy-ui`)
+- `--base-directory PATH`: Set data directory for models, input, output, and custom_nodes (default: `~/.config/comfy-ui`). Quote paths with spaces: `--base-directory "/path/with spaces"`
 - `--debug` or `--verbose`: Enable detailed debug logging
 
 ### Environment Variables

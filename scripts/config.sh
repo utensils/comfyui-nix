@@ -60,12 +60,17 @@ for i in "${!_args[@]}"; do
 done
 unset _args _skip_next
 
-# Validate base directory parent exists (basic sanity check)
-if [[ ! -d "$(dirname "$BASE_DIR")" ]]; then
-  echo "ERROR: Parent directory of BASE_DIR does not exist: $(dirname "$BASE_DIR")" >&2
+# Validate base directory parent exists and is writable
+_parent_dir="$(dirname "$BASE_DIR")"
+if [[ ! -d "$_parent_dir" ]]; then
+  echo "ERROR: Parent directory of BASE_DIR does not exist: $_parent_dir" >&2
   echo "Please create it first or specify a valid path with --base-directory" >&2
   exit 1
+elif [[ ! -w "$_parent_dir" ]]; then
+  echo "ERROR: No write permission for parent directory: $_parent_dir" >&2
+  exit 1
 fi
+unset _parent_dir
 
 # App code and venv always live in .config (separate from data)
 CODE_DIR="$HOME/.config/comfy-ui/app"
