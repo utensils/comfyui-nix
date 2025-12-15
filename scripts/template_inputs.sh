@@ -11,6 +11,9 @@ TEMPLATE_MANIFEST_URL="https://raw.githubusercontent.com/Comfy-Org/workflow_temp
 # Maximum file size for template inputs (50MB - prevents DoS via large files)
 MAX_TEMPLATE_FILE_SIZE=$((50 * 1024 * 1024))
 
+# Minimum expected template files (heuristic for detecting incomplete downloads)
+MIN_EXPECTED_TEMPLATE_FILES=20
+
 # Platform-agnostic file size function
 get_file_size() {
     local file=$1
@@ -83,7 +86,6 @@ download_template_inputs() {
     log_info "Found $total_files template input files to check"
 
     # Process each asset in the manifest
-    local i=0
     while IFS= read -r line; do
         local file_path url
         file_path=$(echo "$line" | jq -r '.file_path // empty')
@@ -94,17 +96,33 @@ download_template_inputs() {
             continue
         fi
 
-        # Security: Check for path traversal attempts
-        if [[ "$file_path" =~ \.\. ]]; then
+        # Extract just the filename from file_path (e.g., "input/foo.png" -> "foo.png")
+        local filename
+        filename=$(basename "$file_path")
+        local local_path="$input_dir/$filename"
+
+        # Security: Validate path doesn't escape input directory
+        # Check for path traversal attempts (.. sequences, absolute paths, etc.)
+        if [[ "$file_path" =~ \.\. ]] || [[ "$filename" =~ \.\. ]] || [[ "$filename" == /* ]]; then
             log_warn "Skipping potentially malicious file_path: $file_path"
             ((fail_count++))
             continue
         fi
 
-        # Extract just the filename from file_path (e.g., "input/foo.png" -> "foo.png")
-        local filename
-        filename=$(basename "$file_path")
-        local local_path="$input_dir/$filename"
+        # Verify the final path stays within input_dir (defense in depth)
+        # Note: basename already strips path components, so this is a safety check
+        if [[ "$local_path" != "$input_dir"/* ]]; then
+            log_warn "File path escapes input directory: $file_path"
+            ((fail_count++))
+            continue
+        fi
+
+        # Security: Validate URL uses HTTPS
+        if [[ ! "$url" =~ ^https:// ]]; then
+            log_warn "Skipping non-HTTPS URL: $url"
+            ((fail_count++))
+            continue
+        fi
 
         # Skip if file already exists
         if [[ -f "$local_path" ]]; then
@@ -159,8 +177,6 @@ download_template_inputs() {
             log_debug "Failed to download $filename: ${download_error:-unknown error}"
             rm -f "$local_path.tmp"
         fi
-
-        ((i++))
     done < <(jq -c '.assets[]' "$manifest_cache")
 
     # Summary
@@ -202,11 +218,11 @@ needs_template_inputs() {
         return 0
     fi
 
-    # Quick heuristic: if input dir has fewer than 20 files, probably needs download
+    # Quick heuristic: if input dir has fewer than expected files, probably needs download
     # This catches cases where the manifest exists but files were deleted
     local file_count
     file_count=$(find "$input_dir" -maxdepth 1 -type f ! -name ".*" 2>/dev/null | wc -l)
-    if ((file_count < 20)); then
+    if ((file_count < MIN_EXPECTED_TEMPLATE_FILES)); then
         return 0
     fi
 
