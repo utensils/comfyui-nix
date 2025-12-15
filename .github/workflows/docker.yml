@@ -259,11 +259,23 @@ jobs:
             exit 1
           fi
 
-          docker tag "$CUDA_AMD64_TAG" "$CUDA_TAG"
-          docker push "$CUDA_TAG"
+          if ! docker tag "$CUDA_AMD64_TAG" "$CUDA_TAG"; then
+            echo "ERROR: Failed to tag CUDA image: $CUDA_TAG"
+            exit 1
+          fi
+          if ! docker push "$CUDA_TAG"; then
+            echo "ERROR: Failed to push CUDA image: $CUDA_TAG"
+            exit 1
+          fi
 
-          docker tag "$CUDA_AMD64_TAG" "$VERSION_CUDA_TAG"
-          docker push "$VERSION_CUDA_TAG"
+          if ! docker tag "$CUDA_AMD64_TAG" "$VERSION_CUDA_TAG"; then
+            echo "ERROR: Failed to tag CUDA version image: $VERSION_CUDA_TAG"
+            exit 1
+          fi
+          if ! docker push "$VERSION_CUDA_TAG"; then
+            echo "ERROR: Failed to push CUDA version image: $VERSION_CUDA_TAG"
+            exit 1
+          fi
 
       - name: Generate manifest summary
         run: |

@@ -109,10 +109,9 @@ download_template_inputs() {
             continue
         fi
 
-        # Verify the canonical path stays within input_dir
-        local canonical_path
-        canonical_path=$(cd "$input_dir" && realpath -m "$filename" 2>/dev/null || echo "$local_path")
-        if [[ ! "$canonical_path" =~ ^"$input_dir"/ ]] && [[ "$canonical_path" != "$input_dir"/* ]]; then
+        # Verify the final path stays within input_dir (defense in depth)
+        # Note: basename already strips path components, so this is a safety check
+        if [[ "$local_path" != "$input_dir"/* ]]; then
             log_warn "File path escapes input directory: $file_path"
             ((fail_count++))
             continue
