@@ -213,6 +213,19 @@ def setup_persistence() -> str:
     base_dir = os.environ.get(
         "COMFY_USER_DIR", os.path.join(os.path.expanduser("~"), ".config", "comfy-ui")
     )
+
+    # Validate path - defense in depth in case bash validation was bypassed
+    if not os.path.isabs(base_dir):
+        logger.error("base_dir must be an absolute path: %s", base_dir)
+        raise ValueError(f"Invalid base_dir: {base_dir}")
+
+    # Block dangerous system directories
+    blocked_dirs = ["/etc", "/bin", "/sbin", "/usr", "/lib", "/boot", "/sys", "/proc", "/dev"]
+    for blocked in blocked_dirs:
+        if base_dir == blocked or base_dir.startswith(blocked + "/"):
+            logger.error("base_dir cannot be in system directory: %s", base_dir)
+            raise ValueError(f"Unsafe base_dir: {base_dir}")
+
     logger.info("Using persistent directory: %s", base_dir)
 
     # Get ComfyUI path

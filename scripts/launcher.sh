@@ -19,7 +19,8 @@ if [[ "$SCRIPT_DIR" == *"/bin" ]]; then
 fi
 
 # Source the component scripts
-source "$SCRIPT_DIR/config.sh"
+# IMPORTANT: Pass "$@" to config.sh so it can parse --base-directory early
+source "$SCRIPT_DIR/config.sh" "$@"
 source "$SCRIPT_DIR/logger.sh"
 source "$SCRIPT_DIR/install.sh"
 source "$SCRIPT_DIR/persistence.sh"

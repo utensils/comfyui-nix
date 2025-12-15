@@ -70,10 +70,27 @@ _parse_base_directory() {
 
   # Process the path if one was provided
   if [[ -n "$raw_path" ]]; then
+    # Strip surrounding quotes if present (handles edge case of quoted paths)
+    raw_path="${raw_path%\"}"
+    raw_path="${raw_path#\"}"
+    raw_path="${raw_path%\'}"
+    raw_path="${raw_path#\'}"
+
     # Expand tilde (handles ~, ~/path, but not ~user)
     raw_path="${raw_path/#\~/$HOME}"
-    # Convert to absolute path (realpath -m allows non-existent paths)
-    realpath -m "$raw_path" 2>/dev/null || echo "$raw_path"
+
+    # Convert to absolute path
+    if command -v realpath &>/dev/null; then
+      # realpath -m allows non-existent paths
+      realpath -m "$raw_path" 2>/dev/null || echo "$raw_path"
+    else
+      # Fallback: make path absolute if it isn't already
+      if [[ "$raw_path" == /* ]]; then
+        echo "$raw_path"
+      else
+        echo "$PWD/$raw_path"
+      fi
+    fi
   fi
 }
 
@@ -85,27 +102,40 @@ if [[ -n "$_parsed_base_dir" ]]; then
 fi
 unset _parsed_base_dir
 
-# Security: Validate path is within user's home directory or common safe locations
-# This prevents path traversal attacks like --base-directory "../../../../etc"
+# Security: Validate path is not in dangerous system directories
+# Uses blocklist approach to allow custom mount points while blocking system paths
 _validate_base_dir() {
   local dir="$1"
-  local home_dir="$HOME"
-  local allowed_prefixes=("$home_dir" "/tmp" "/var/tmp" "/data" "/mnt" "/media" "/run/media")
+  local blocked_prefixes=("/etc" "/bin" "/sbin" "/usr" "/lib" "/lib64" "/boot" "/sys" "/proc" "/dev" "/root")
 
-  for prefix in "${allowed_prefixes[@]}"; do
-    if [[ "$dir" == "$prefix"* ]]; then
-      return 0
+  # Require absolute path
+  if [[ "$dir" != /* ]]; then
+    echo "ERROR: --base-directory must be an absolute path: $dir" >&2
+    exit 1
+  fi
+
+  # Check against blocked system directories
+  for prefix in "${blocked_prefixes[@]}"; do
+    if [[ "$dir" == "$prefix" || "$dir" == "$prefix"/* ]]; then
+      echo "ERROR: --base-directory cannot be in system directory: $prefix" >&2
+      exit 1
     fi
   done
-
-  echo "ERROR: --base-directory must be within home directory or a data mount point" >&2
-  echo "Allowed locations: ${allowed_prefixes[*]}" >&2
-  exit 1
 }
 _validate_base_dir "$BASE_DIR"
 
 # Validate base directory parent exists and is writable
+# Also resolve symlinks to prevent symlink attacks
 _parent_dir="$(dirname "$BASE_DIR")"
+
+# Resolve symlinks in parent directory to prevent attacks
+if [[ -L "$_parent_dir" ]]; then
+  _resolved_parent="$(readlink -f "$_parent_dir" 2>/dev/null || echo "$_parent_dir")"
+  # Re-validate the resolved path
+  _validate_base_dir "$_resolved_parent/$(basename "$BASE_DIR")"
+  _parent_dir="$_resolved_parent"
+fi
+
 if [[ ! -d "$_parent_dir" ]]; then
   echo "ERROR: Parent directory of BASE_DIR does not exist: $_parent_dir" >&2
   echo "Please create it first or specify a valid path with --base-directory" >&2
@@ -114,7 +144,7 @@ elif [[ ! -w "$_parent_dir" ]]; then
   echo "ERROR: No write permission for parent directory: $_parent_dir" >&2
   exit 1
 fi
-unset _parent_dir
+unset _parent_dir _resolved_parent
 
 # App code and venv always live in .config (separate from data)
 CODE_DIR="$HOME/.config/comfy-ui/app"
@@ -209,8 +239,11 @@ parse_arguments() {
 
 # Export the configuration
 export_config() {
+  # Set COMFY_APP_DIR to CODE_DIR for Python persistence module
+  COMFY_APP_DIR="$CODE_DIR"
+
   # Export all defined variables to make them available to sourced scripts
-  export COMFY_VERSION COMFY_PORT BASE_DIR CODE_DIR COMFY_VENV
+  export COMFY_VERSION COMFY_PORT BASE_DIR CODE_DIR COMFY_VENV COMFY_APP_DIR
   export COMFY_MANAGER_DIR MODEL_DOWNLOADER_PERSISTENT_DIR
   export CUSTOM_NODE_DIR MODEL_DOWNLOADER_APP_DIR
   export OPEN_BROWSER PYTHON_ENV
