@@ -35,30 +35,74 @@ CUDA_VERSION="${CUDA_VERSION:-cu124}"
 # Directory structure
 # Check for --base-directory in args first, otherwise use default
 # This is parsed early so all path variables can use BASE_DIR
-BASE_DIR="$HOME/.config/comfy-ui"
-_args=("$@")
-_skip_next=false
-for i in "${!_args[@]}"; do
-  if [[ "$_skip_next" == "true" ]]; then
-    _skip_next=false
-    continue
+# NOTE: We use echo for errors here because logger.sh hasn't been sourced yet.
+# This is intentional - BASE_DIR must be set before other scripts are sourced.
+
+# Function to parse --base-directory from arguments
+# Returns the parsed path via stdout, or empty if not found
+_parse_base_directory() {
+  local args=("$@")
+  local skip_next=false
+  local raw_path=""
+  local i
+
+  for i in "${!args[@]}"; do
+    if [[ "$skip_next" == "true" ]]; then
+      skip_next=false
+      continue
+    fi
+    case "${args[$i]}" in
+      --base-directory=*)
+        raw_path="${args[$i]#*=}"
+        ;;
+      --base-directory)
+        # Validate next argument exists and isn't another flag
+        if [[ $((i+1)) -lt ${#args[@]} ]] && [[ ! "${args[$((i+1))]}" =~ ^-- ]]; then
+          raw_path="${args[$((i+1))]}"
+          skip_next=true
+        else
+          echo "ERROR: --base-directory requires a path argument" >&2
+          exit 1
+        fi
+        ;;
+    esac
+  done
+
+  # Process the path if one was provided
+  if [[ -n "$raw_path" ]]; then
+    # Expand tilde (handles ~, ~/path, but not ~user)
+    raw_path="${raw_path/#\~/$HOME}"
+    # Convert to absolute path (realpath -m allows non-existent paths)
+    realpath -m "$raw_path" 2>/dev/null || echo "$raw_path"
   fi
-  case "${_args[$i]}" in
-    --base-directory=*)
-      BASE_DIR="${_args[$i]#*=}"
-      # Expand tilde (handles ~, ~/path, but not ~user)
-      BASE_DIR="${BASE_DIR/#\~/$HOME}"
-      ;;
-    --base-directory)
-      if [[ $((i+1)) -lt ${#_args[@]} ]]; then
-        BASE_DIR="${_args[$((i+1))]}"
-        BASE_DIR="${BASE_DIR/#\~/$HOME}"
-        _skip_next=true
-      fi
-      ;;
-  esac
-done
-unset _args _skip_next
+}
+
+# Parse and set BASE_DIR
+BASE_DIR="$HOME/.config/comfy-ui"
+_parsed_base_dir="$(_parse_base_directory "$@")"
+if [[ -n "$_parsed_base_dir" ]]; then
+  BASE_DIR="$_parsed_base_dir"
+fi
+unset _parsed_base_dir
+
+# Security: Validate path is within user's home directory or common safe locations
+# This prevents path traversal attacks like --base-directory "../../../../etc"
+_validate_base_dir() {
+  local dir="$1"
+  local home_dir="$HOME"
+  local allowed_prefixes=("$home_dir" "/tmp" "/var/tmp" "/data" "/mnt" "/media" "/run/media")
+
+  for prefix in "${allowed_prefixes[@]}"; do
+    if [[ "$dir" == "$prefix"* ]]; then
+      return 0
+    fi
+  done
+
+  echo "ERROR: --base-directory must be within home directory or a data mount point" >&2
+  echo "Allowed locations: ${allowed_prefixes[*]}" >&2
+  exit 1
+}
+_validate_base_dir "$BASE_DIR"
 
 # Validate base directory parent exists and is writable
 _parent_dir="$(dirname "$BASE_DIR")"
@@ -117,8 +161,10 @@ declare -A DIRECTORIES=(
 )
 
 # Python packages to install (as arrays for proper handling)
+# shellcheck disable=SC2034  # Used in install.sh
 BASE_PACKAGES=(pyyaml pillow numpy requests)
 # Core packages needed for ComfyUI v0.4.0+
+# shellcheck disable=SC2034  # Used in install.sh
 ADDITIONAL_PACKAGES=(spandrel av GitPython toml rich safetensors pydantic pydantic-settings alembic)
 
 # PyTorch installation will be determined dynamically based on GPU availability

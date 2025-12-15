@@ -11,7 +11,6 @@ from __future__ import annotations
 import logging
 import os
 import shutil
-import sys
 from pathlib import Path
 
 # Configure logging
@@ -207,29 +206,13 @@ def setup_persistence() -> str:
     if _state.initialized and _state.base_dir is not None:
         return _state.base_dir
 
-    # Check if user specified --base-directory on command line (highest priority)
-    # Note: This is intentionally parsed both here and in bash (config.sh) because:
-    # 1. Bash needs it early to set up directory paths and symlinks
-    # 2. Python needs it to override folder_paths after ComfyUI loads
-    # The COMFY_USER_DIR env var is set by bash as a fallback mechanism
-    base_dir = None
-    for i, arg in enumerate(sys.argv):
-        # Handle --base-directory VALUE format
-        if arg == "--base-directory" and i + 1 < len(sys.argv):
-            base_dir = os.path.expanduser(sys.argv[i + 1])
-            logger.info("Using user-specified base directory: %s", base_dir)
-            break
-        # Handle --base-directory=VALUE format
-        if arg.startswith("--base-directory="):
-            base_dir = os.path.expanduser(arg.split("=", 1)[1])
-            logger.info("Using user-specified base directory: %s", base_dir)
-            break
-
-    # Fall back to COMFY_USER_DIR env var, then default
-    if not base_dir:
-        base_dir = os.environ.get(
-            "COMFY_USER_DIR", os.path.join(os.path.expanduser("~"), ".config", "comfy-ui")
-        )
+    # Get base directory from COMFY_USER_DIR environment variable.
+    # This is set by the bash launcher (config.sh) which parses --base-directory.
+    # We intentionally do NOT re-parse command line args here to avoid inconsistencies
+    # between bash and Python argument parsing (edge cases with quotes, spaces, etc.)
+    base_dir = os.environ.get(
+        "COMFY_USER_DIR", os.path.join(os.path.expanduser("~"), ".config", "comfy-ui")
+    )
     logger.info("Using persistent directory: %s", base_dir)
 
     # Get ComfyUI path
@@ -285,10 +268,6 @@ def setup_persistence() -> str:
 
     # Set up environment
     os.environ["COMFY_SAVE_PATH"] = os.path.join(base_dir, "user")
-
-    # Set command line args if needed
-    if "--base-directory" not in sys.argv:
-        sys.argv.extend(["--base-directory", base_dir])
 
     # Patch folder_paths module
     patch_folder_paths(base_dir)
