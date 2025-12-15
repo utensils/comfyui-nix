@@ -207,10 +207,22 @@ def setup_persistence() -> str:
     if _state.initialized and _state.base_dir is not None:
         return _state.base_dir
 
-    # Create the persistent directory if it doesn't exist
-    base_dir = os.environ.get(
-        "COMFY_USER_DIR", os.path.join(os.path.expanduser("~"), ".config", "comfy-ui")
-    )
+    # Check if user specified --base-directory on command line (highest priority)
+    base_dir = None
+    if "--base-directory" in sys.argv:
+        try:
+            idx = sys.argv.index("--base-directory")
+            if idx + 1 < len(sys.argv):
+                base_dir = os.path.expanduser(sys.argv[idx + 1])
+                logger.info("Using user-specified base directory: %s", base_dir)
+        except (ValueError, IndexError):
+            pass
+
+    # Fall back to COMFY_USER_DIR env var, then default
+    if not base_dir:
+        base_dir = os.environ.get(
+            "COMFY_USER_DIR", os.path.join(os.path.expanduser("~"), ".config", "comfy-ui")
+        )
     logger.info("Using persistent directory: %s", base_dir)
 
     # Get ComfyUI path

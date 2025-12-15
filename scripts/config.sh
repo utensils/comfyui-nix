@@ -33,9 +33,32 @@ COMFY_PORT="8188"
 CUDA_VERSION="${CUDA_VERSION:-cu124}"
 
 # Directory structure
+# Check for --base-directory in args first, otherwise use default
 BASE_DIR="$HOME/.config/comfy-ui"
-CODE_DIR="$BASE_DIR/app"
-COMFY_VENV="$BASE_DIR/venv"
+for i in "$@"; do
+  case "$i" in
+    --base-directory)
+      # Next arg is the value (handled below)
+      ;;
+    --base-directory=*)
+      BASE_DIR="${i#*=}"
+      BASE_DIR="${BASE_DIR/#\~/$HOME}"  # Expand tilde
+      ;;
+  esac
+done
+# Handle --base-directory VALUE format
+_args=("$@")
+for i in "${!_args[@]}"; do
+  if [[ "${_args[$i]}" == "--base-directory" ]] && [[ $((i+1)) -lt ${#_args[@]} ]]; then
+    BASE_DIR="${_args[$((i+1))]}"
+    BASE_DIR="${BASE_DIR/#\~/$HOME}"  # Expand tilde
+    break
+  fi
+done
+
+# App code and venv always live in .config (separate from data)
+CODE_DIR="$HOME/.config/comfy-ui/app"
+COMFY_VENV="$HOME/.config/comfy-ui/venv"
 COMFY_MANAGER_DIR="$BASE_DIR/custom_nodes/ComfyUI-Manager"
 MODEL_DOWNLOADER_PERSISTENT_DIR="$BASE_DIR/custom_nodes/model_downloader"
 CUSTOM_NODE_DIR="$CODE_DIR/custom_nodes"

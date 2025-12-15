@@ -41,16 +41,19 @@ nix run github:utensils/comfyui-nix/[commit-hash] -- --open
 
 - `--open`: Automatically opens ComfyUI in your browser when the server is ready
 - `--port=XXXX`: Run ComfyUI on a specific port (default: 8188)
+- `--base-directory PATH`: Set data directory for models, input, output, and custom_nodes (default: `~/.config/comfy-ui`)
 - `--debug` or `--verbose`: Enable detailed debug logging
 
 ### Environment Variables
 
 - `CUDA_VERSION`: CUDA version for PyTorch (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
-- `COMFY_USER_DIR`: Override the default user data directory (default: `~/.config/comfy-ui`)
 
 ```bash
 # Example: Use CUDA 12.1
 CUDA_VERSION=cu121 nix run github:utensils/comfyui-nix
+
+# Example: Use custom data directory (e.g., on a separate drive)
+nix run github:utensils/comfyui-nix -- --base-directory ~/AI
 ```
 
 ### Development Shell
@@ -383,39 +386,32 @@ The workflow uses Nix to ensure reproducible builds and leverages the same build
 
 ## Useful Hints
 
-### Using External Model Directories
+### Using a Custom Data Directory
 
-Use `--extra-model-paths-config` to point ComfyUI at existing model directories:
+Use `--base-directory` to store all data (models, input, output, custom_nodes) on a separate drive:
 
-```yaml
-# ~/AI/extra_model_paths.yaml
-ai_models:
-    base_path: ~/AI/Models/
-    checkpoints: checkpoints
-    loras: loras
-    vae: vae
-    controlnet: controlnet
-    clip: clip
-    text_encoders: text_encoders
-    diffusion_models: |
-        diffusion_models
-        unet
-    upscale_models: upscale_models
-
-ai_io:
-    base_path: ~/AI/
-    input: Input
-    output: Output
+```bash
+nix run github:utensils/comfyui-nix -- --base-directory ~/AI
 ```
 
-Use pipe (`|`) syntax to map multiple directories to one model type.
+Expected structure in your base directory:
+```
+~/AI/
+├── models/          # checkpoints, loras, vae, text_encoders, etc.
+├── input/           # input files
+├── output/          # generated outputs
+├── custom_nodes/    # extensions
+└── user/            # workflows and settings
+```
+
+For advanced setups with non-standard directory structures, use `--extra-model-paths-config` with a YAML file to map custom paths.
 
 ### Flux 2 Dev on RTX 4090
 
 Run Flux 2 Dev without offloading using GGUF quantization:
 
 ```bash
-nix run github:utensils/comfyui-nix -- --listen 0.0.0.0 --use-pytorch-cross-attention --cuda-malloc --lowvram --extra-model-paths-config ~/AI/extra_model_paths.yaml
+nix run github:utensils/comfyui-nix -- --base-directory ~/AI --listen 0.0.0.0 --use-pytorch-cross-attention --cuda-malloc --lowvram
 ```
 
 **Models** (install ComfyUI-GGUF via Manager first):
