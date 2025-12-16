@@ -52,51 +52,26 @@
           persistenceScript = ./src/persistence/persistence.py;
           persistenceMainScript = ./src/persistence/main.py;
 
-          # Process each script file individually
-          configScript = pkgs.substituteAll {
-            src = ./scripts/config.sh;
+          # Process script files - only use replaceVars for scripts with @var@ patterns
+          configScript = pkgs.replaceVars ./scripts/config.sh {
             pythonEnv = pythonEnv;
             comfyuiSrc = comfyui-src;
             modelDownloaderDir = modelDownloaderDir;
             persistenceScript = persistenceScript;
             persistenceMainScript = persistenceMainScript;
-          };
-
-          loggerScript = pkgs.substituteAll {
-            src = ./scripts/logger.sh;
-            pythonEnv = pythonEnv;
-          };
-
-          installScript = pkgs.substituteAll {
-            src = ./scripts/install.sh;
-            pythonEnv = pythonEnv;
-          };
-
-          persistenceShScript = pkgs.substituteAll {
-            src = ./scripts/persistence.sh;
-            pythonEnv = pythonEnv;
-          };
-
-          runtimeScript = pkgs.substituteAll {
-            src = ./scripts/runtime.sh;
-            pythonEnv = pythonEnv;
-          };
-
-          templateInputsScript = pkgs.substituteAll {
-            src = ./scripts/template_inputs.sh;
-            pythonEnv = pythonEnv;
           };
 
           # Main launcher script with substitutions
-          launcherScript = pkgs.substituteAll {
-            src = ./scripts/launcher.sh;
-            pythonEnv = pythonEnv;
-            comfyuiSrc = comfyui-src;
-            modelDownloaderDir = modelDownloaderDir;
-            persistenceScript = persistenceScript;
-            persistenceMainScript = persistenceMainScript;
+          launcherScript = pkgs.replaceVars ./scripts/launcher.sh {
             libPath = "${pkgs.stdenv.cc.cc.lib}/lib";
           };
+
+          # Scripts without substitution patterns - copy directly
+          loggerScript = ./scripts/logger.sh;
+          installScript = ./scripts/install.sh;
+          persistenceShScript = ./scripts/persistence.sh;
+          runtimeScript = ./scripts/runtime.sh;
+          templateInputsScript = ./scripts/template_inputs.sh;
 
           # Create a directory with all scripts
           scriptDir = pkgs.runCommand "comfy-ui-scripts" { } ''
