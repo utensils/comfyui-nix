@@ -95,7 +95,8 @@ _parse_base_directory() {
 }
 
 # Parse and set BASE_DIR
-BASE_DIR="$HOME/.config/comfy-ui"
+# Priority: 1) --base-directory flag, 2) COMFY_USER_DIR env var, 3) $HOME/.config/comfy-ui default
+BASE_DIR="${COMFY_USER_DIR:-${HOME:-/root}/.config/comfy-ui}"
 _parsed_base_dir="$(_parse_base_directory "$@")"
 if [[ -n "$_parsed_base_dir" ]]; then
   BASE_DIR="$_parsed_base_dir"
@@ -160,8 +161,8 @@ fi
 unset _parent_dir _resolved_parent _resolved_base
 
 # App code and venv always live in .config (separate from data)
-CODE_DIR="$HOME/.config/comfy-ui/app"
-COMFY_VENV="$HOME/.config/comfy-ui/venv"
+CODE_DIR="${HOME:-/root}/.config/comfy-ui/app"
+COMFY_VENV="${HOME:-/root}/.config/comfy-ui/venv"
 COMFY_MANAGER_DIR="$BASE_DIR/custom_nodes/ComfyUI-Manager"
 MODEL_DOWNLOADER_PERSISTENT_DIR="$BASE_DIR/custom_nodes/model_downloader"
 CUSTOM_NODE_DIR="$CODE_DIR/custom_nodes"

@@ -1,7 +1,5 @@
 # ComfyUI Nix Flake
 
-**⚠️ NOTE: Model and workflow persistence should work but has not been thoroughly tested yet. Please report any issues.**
-
 A Nix flake for installing and running [ComfyUI](https://github.com/comfyanonymous/ComfyUI) with Python 3.12. Supports both macOS (Intel/Apple Silicon) and Linux with automatic GPU detection.
 
 ![ComfyUI Demo](comfyui-demo.gif)
