@@ -1,5 +1,13 @@
 [
   {
+    "hash": "f05a249a9c233506e43ca9cbfd143f18b5782f84",
+    "short_hash": "f05a249",
+    "author": "James Brink",
+    "date": "2025-12-15T19:08:01-07:00",
+    "message": "feat: Add deciduous decision graph integration\n\nIntegrate deciduous (https://github.com/notactuallytreyanastasio/deciduous)\nfor tracking architectural decisions and development history.\n\n- Add Claude Code slash commands for decision management (/context, /decision)\n- Add decision graph workflow documentation to CLAUDE.md\n- Add GitHub Pages deployment for graph visualization\n- Add workflow to cleanup stale decision graphs\n- Initialize graph with 38 nodes covering project history from git commits\n- Minor code formatting fixes from ruff",
+    "files_changed": 13
+  },
+  {
     "hash": "fcb471f80b8c45d99c307ef2136deed6d840bdcb",
     "short_hash": "fcb471f",
     "author": "James Brink",
