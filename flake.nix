@@ -450,6 +450,11 @@
         # Python environment for dev shell (native only)
         pythonEnv = mkPythonEnv pkgs;
 
+        source = builtins.path {
+          path = ./.;
+          name = "comfyui-nix-source";
+        };
+
         # Define all packages
         packages =
           {
@@ -765,7 +770,7 @@
             pkgs.runCommand "ruff-check"
               {
                 nativeBuildInputs = [ pkgs.ruff ];
-                src = ./.;
+                src = source;
               }
               ''
                 cp -r $src source
@@ -780,7 +785,7 @@
             pkgs.runCommand "pyright-check"
               {
                 nativeBuildInputs = [ pkgs.pyright ];
-                src = ./.;
+                src = source;
               }
               ''
                 cp -r $src source
@@ -795,7 +800,7 @@
             pkgs.runCommand "shellcheck"
               {
                 nativeBuildInputs = [ pkgs.shellcheck ];
-                src = ./.;
+                src = source;
               }
               ''
                 cp -r $src source
@@ -811,7 +816,7 @@
             pkgs.runCommand "nixfmt-check"
               {
                 nativeBuildInputs = [ pkgs.nixfmt-rfc-style ];
-                src = ./.;
+                src = source;
               }
               ''
                 cp -r $src source
