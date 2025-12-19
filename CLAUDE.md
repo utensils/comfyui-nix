@@ -32,9 +32,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Nix formatting**: `nix fmt` (format Nix files with nixfmt-rfc-style)
 
 ## Version Management
-- Current ComfyUI version: v0.4.0 (pinned in `flake.nix`)
+- Current ComfyUI version: v0.4.0 (pinned in `nix/versions.nix`)
 - To update ComfyUI: modify `rev` and `hash` in `comfyui-src` fetchFromGitHub block
-- Frontend/docs/template packages: vendored wheels pinned in `flake.nix`
+- Frontend/docs/template packages: vendored wheels pinned in `nix/versions.nix`
 - Python version: 3.12 (stable for ML workloads)
 - PyTorch: Stable releases (no nightly builds)
 - Note: Pure mode uses Nix-provided Python runtime dependencies; mutable mode installs extra deps via pip in a user venv.
@@ -53,6 +53,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - **install.sh**: Installation and setup procedures
   - **persistence.sh**: Symlink creation and data persistence management
   - **runtime.sh**: Runtime execution and process management
+- **nix/**: Flake helpers and modules
+  - **versions.nix**: Version pins for ComfyUI and vendored wheels
+  - **packages.nix**: Packaging definitions
+  - **docker.nix**: Docker image helpers
+  - **checks.nix**: `nix flake check` definitions
+  - **modules/comfyui.nix**: NixOS service module
 
 ### Key Components
 - **Model Downloader**: Non-blocking async download system using aiohttp with WebSocket progress updates
@@ -112,11 +118,10 @@ custom_nodes/  - Persistent custom node installations
 - **Build Matrix**: CPU (multi-arch) and CUDA (x86_64 only) variants built in parallel
 - **Outputs**: Images published to `ghcr.io/utensils/comfyui-nix`
 - **Tags**:
-  - Main branch: `latest`, `X.Y.Z` (from flake.nix)
+  - Main branch: `latest`, `X.Y.Z` (from `nix/versions.nix`)
   - Version tags: `vX.Y.Z`, `latest`
   - Architecture-specific: `latest-amd64`, `latest-arm64`
   - Pull requests: `pr-N` (build only, no push)
-- **Caching**: Uses Cachix for Nix build caching (requires `CACHIX_AUTH_TOKEN` secret)
 
 #### Claude Code Integration (`.github/workflows/claude.yml`, `.github/workflows/claude-code-review.yml`)
 - **Purpose**: AI-assisted code review and issue responses
@@ -124,7 +129,6 @@ custom_nodes/  - Persistent custom node installations
 - **Requirements**: `CLAUDE_CODE_OAUTH_TOKEN` secret
 
 ### Secrets Required
-- `CACHIX_AUTH_TOKEN`: (Optional) For Nix build caching, speeds up CI
 - `CLAUDE_CODE_OAUTH_TOKEN`: For Claude Code GitHub integration
 - `GITHUB_TOKEN`: Automatically provided by GitHub for registry access
 

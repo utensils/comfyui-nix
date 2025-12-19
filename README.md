@@ -34,6 +34,7 @@ nix run github:utensils/comfyui-nix -- --open
 - CI validation with `nix flake check` (build, lint, type-check, shellcheck, nixfmt)
 - Built-in formatters: `nix fmt` (Nix files), `nix run .#format` (Python files)
 - Overlay for easy integration with other flakes
+- NixOS module for running ComfyUI as a service
 
 ## Additional Options
 
@@ -107,7 +108,7 @@ The flake is designed to be simple and extensible. You can customize it by:
 
 1. Adding Python packages in the `pythonRuntime` definition
 2. Modifying the launcher script in `scripts/launcher.sh`
-3. Pinning to a specific ComfyUI version by changing the version variables at the top of `flake.nix`
+3. Pinning to a specific ComfyUI version by changing the version pins in `nix/versions.nix`
 4. Adding third-party custom nodes:
    - Preferred: package them via an overlay and add to your flake inputs/overlays.
    - Mutable mode: install via ComfyUI-Manager/pip in `nix run .#mutable` (impure, user-local).
@@ -137,6 +138,52 @@ You can integrate this flake into your own Nix configuration using the overlay:
 }
 ```
 
+### NixOS Module
+
+Enable ComfyUI as a systemd service:
+
+```nix
+{
+  inputs.comfyui-nix.url = "github:utensils/comfyui-nix";
+
+  outputs = { self, nixpkgs, comfyui-nix }: {
+    nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
+      modules = [
+        comfyui-nix.nixosModules.default
+        ({ ... }: {
+          nixpkgs.overlays = [ comfyui-nix.overlays.default ];
+          services.comfyui = {
+            enable = true;
+            port = 8188;
+            listenAddress = "127.0.0.1";  # Use "0.0.0.0" for network access
+            dataDir = "/var/lib/comfyui";
+            openFirewall = false;  # Set true to open port in firewall
+            mutable = false;  # Set true to enable ComfyUI-Manager/pip installs
+          };
+        })
+      ];
+    };
+  };
+}
+```
+
+#### Module Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enable` | bool | `false` | Enable the ComfyUI service |
+| `package` | package | `pkgs.comfy-ui` | ComfyUI package to run |
+| `port` | port | `8188` | Port for ComfyUI to listen on |
+| `listenAddress` | string | `"127.0.0.1"` | Address to listen on (use `"0.0.0.0"` for all interfaces) |
+| `dataDir` | path | `/var/lib/comfyui` | Base directory for models, input, output, custom nodes |
+| `user` | string | `"comfyui"` | User account to run ComfyUI under |
+| `group` | string | `"comfyui"` | Group to run ComfyUI under |
+| `createUser` | bool | `true` | Create the comfyui system user/group |
+| `openFirewall` | bool | `false` | Open the configured port in the firewall |
+| `mutable` | bool | `false` | Enable mutable mode (ComfyUI-Manager/pip installs) |
+| `extraArgs` | list of strings | `[]` | Extra CLI arguments passed to ComfyUI |
+| `environment` | attrs | `{}` | Environment variables for the service |
+
 ### Project Structure
 
 This flake uses a modular, multi-file approach for better maintainability:
@@ -149,6 +196,12 @@ This flake uses a modular, multi-file approach for better maintainability:
   - `install.sh` - Installation and setup procedures
   - `persistence.sh` - Symlink creation and data persistence management
   - `runtime.sh` - Runtime execution and process management
+- `nix/` - Flake modules and helpers:
+  - `versions.nix` - Version pins for ComfyUI and vendored wheels
+  - `packages.nix` - Package build definitions
+  - `docker.nix` - Docker image helpers
+  - `checks.nix` - `nix flake check` definitions
+  - `modules/comfyui.nix` - NixOS service module
 
 This modular structure makes the codebase much easier to maintain, debug, and extend as features are added. Each script has a single responsibility, improving code organization and readability.
 
@@ -209,7 +262,7 @@ This flake currently provides:
 - Python 3.12
 - PyTorch stable releases (with MPS support on Apple Silicon, CUDA on Linux)
 - ComfyUI-Manager available in mutable mode
-- Frontend/docs/template packages vendored as wheels pinned in `flake.nix`
+- Frontend/docs/template packages vendored as wheels pinned in `nix/versions.nix`
 
 To check for updates:
 ```bash
@@ -407,12 +460,11 @@ Docker images are automatically built and published to GitHub Container Registry
 - **Multi-architecture**: CPU images built for both amd64 and arm64 (via QEMU emulation)
 - **Build matrix**: CPU (multi-arch) and CUDA (x86_64 only) variants built in parallel
 - **Tagging strategy**:
-  - Main branch pushes: `latest` and `X.Y.Z` (version from flake.nix)
+  - Main branch pushes: `latest` and `X.Y.Z` (version from `nix/versions.nix`)
   - Version tags: `vX.Y.Z` and `latest`
   - Pull requests: `pr-N` (for testing, not pushed to registry)
   - Architecture-specific: `latest-amd64`, `latest-arm64`
 - **Registry**: All images are publicly accessible at `ghcr.io/utensils/comfyui-nix`
-- **Build cache**: Nix builds are cached using Cachix for faster CI runs
 
 The workflow uses Nix to ensure reproducible builds and leverages the same build configuration as local builds, guaranteeing consistency between development and production environments.
 

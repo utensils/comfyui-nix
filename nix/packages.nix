@@ -1,0 +1,182 @@
+{
+  pkgs,
+  lib,
+  versions,
+  scriptsPath,
+  pythonOverrides,
+}:
+let
+  python = pkgs.python312.override { packageOverrides = pythonOverrides; };
+
+  vendored = import ./vendored-packages.nix { inherit pkgs python versions; };
+
+  comfyuiSrc = pkgs.fetchFromGitHub {
+    owner = "comfyanonymous";
+    repo = "ComfyUI";
+    rev = versions.comfyui.rev;
+    hash = versions.comfyui.hash;
+  };
+
+  modelDownloaderDir = builtins.path {
+    path = ../src/custom_nodes/model_downloader;
+    name = "comfyui-model-downloader";
+  };
+
+  pythonRuntime = python.withPackages (
+    ps:
+    let
+      base = with ps; [
+        pillow
+        numpy
+        einops
+        transformers
+        tokenizers
+        sentencepiece
+        safetensors
+        aiohttp
+        yarl
+        pyyaml
+        scipy
+        tqdm
+        psutil
+        alembic
+        sqlalchemy
+        av
+        pydantic-settings
+      ];
+      optionals =
+        lib.optionals (ps ? torch) [ ps.torch ]
+        ++ lib.optionals (ps ? torchvision) [ ps.torchvision ]
+        ++ lib.optionals (ps ? torchaudio) [ ps.torchaudio ]
+        ++ lib.optionals (ps ? torchsde) [ ps.torchsde ]
+        ++ lib.optionals (ps ? kornia) [ ps.kornia ]
+        ++ lib.optionals (ps ? pydantic) [ ps.pydantic ]
+        ++ lib.optionals (ps ? spandrel) [ ps.spandrel ]
+        ++ [
+          vendored.comfyuiFrontendPackage
+          vendored.comfyuiWorkflowTemplates
+          vendored.comfyuiEmbeddedDocs
+        ];
+    in
+    base ++ optionals
+  );
+
+  configScript = pkgs.replaceVars "${scriptsPath}/config.sh" {
+    pythonEnv = pythonRuntime;
+    pythonRuntime = pythonRuntime;
+    comfyuiSrc = comfyuiSrc;
+    modelDownloaderDir = modelDownloaderDir;
+    comfyuiVersion = versions.comfyui.version;
+  };
+
+  launcherScript = pkgs.replaceVars "${scriptsPath}/launcher.sh" {
+    libPath = "${pkgs.stdenv.cc.cc.lib}/lib";
+  };
+
+  loggerScript = "${scriptsPath}/logger.sh";
+  installScript = "${scriptsPath}/install.sh";
+  persistenceShScript = "${scriptsPath}/persistence.sh";
+  runtimeScript = "${scriptsPath}/runtime.sh";
+  templateInputsScript = "${scriptsPath}/template_inputs.sh";
+
+  scriptDir = pkgs.runCommand "comfy-ui-scripts" { } ''
+    mkdir -p $out
+    cp ${configScript} $out/config.sh
+    cp ${loggerScript} $out/logger.sh
+    cp ${installScript} $out/install.sh
+    cp ${persistenceShScript} $out/persistence.sh
+    cp ${runtimeScript} $out/runtime.sh
+    cp ${templateInputsScript} $out/template_inputs.sh
+    cp ${launcherScript} $out/launcher.sh
+    chmod +x $out/*.sh
+  '';
+
+  comfyUiPackage = pkgs.stdenv.mkDerivation {
+    pname = "comfy-ui";
+    version = versions.comfyui.version;
+
+    src = comfyuiSrc;
+
+    passthru = {
+      inherit comfyuiSrc;
+      version = versions.comfyui.version;
+    };
+
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    buildInputs = [
+      pkgs.libGL
+      pkgs.libGLU
+      pkgs.stdenv.cc.cc.lib
+    ];
+
+    dontBuild = true;
+    dontConfigure = true;
+
+    installPhase = ''
+      mkdir -p "$out/bin"
+      mkdir -p "$out/share/comfy-ui"
+
+      cp -r ${comfyuiSrc}/* "$out/share/comfy-ui/"
+
+      mkdir -p "$out/share/comfy-ui/scripts"
+      cp -r ${scriptDir}/* "$out/share/comfy-ui/scripts/"
+
+      makeWrapper "$out/share/comfy-ui/scripts/launcher.sh" "$out/bin/comfy-ui" \
+        --prefix PATH : "${
+          lib.makeBinPath [
+            pkgs.curl
+            pkgs.jq
+            pkgs.git
+            pkgs.coreutils
+          ]
+        }" \
+        --set-default LD_LIBRARY_PATH "${pkgs.stdenv.cc.cc.lib}/lib" \
+        --set-default DYLD_LIBRARY_PATH "${pkgs.stdenv.cc.cc.lib}/lib" \
+        --set-default COMFY_MODE pure \
+        --set-default PYTHON_RUNTIME "${pythonRuntime}"
+
+      ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"
+    '';
+
+    meta = with lib; {
+      description = "ComfyUI with Python 3.12";
+      homepage = "https://github.com/comfyanonymous/ComfyUI";
+      license = licenses.gpl3;
+      platforms = platforms.linux ++ platforms.darwin;
+      maintainers = [
+        {
+          name = "James Brink";
+          github = "utensils";
+        }
+      ];
+      mainProgram = "comfy-ui";
+    };
+  };
+
+  dockerLib = import ./docker.nix { inherit pkgs lib; };
+
+  dockerImage = dockerLib.mkDockerImage {
+    name = "comfy-ui";
+    tag = "latest";
+    comfyUiPackage = comfyUiPackage;
+    extraLabels = {
+      "org.opencontainers.image.version" = versions.comfyui.version;
+    };
+  };
+
+  dockerImageCuda = dockerLib.mkDockerImage {
+    name = "comfy-ui";
+    tag = "cuda";
+    comfyUiPackage = comfyUiPackage;
+    cudaSupport = true;
+    cudaVersion = "cu124";
+    extraLabels = {
+      "org.opencontainers.image.version" = versions.comfyui.version;
+      "com.nvidia.volumes.needed" = "nvidia_driver";
+    };
+  };
+in
+{
+  default = comfyUiPackage;
+  inherit dockerImage dockerImageCuda pythonRuntime;
+}
