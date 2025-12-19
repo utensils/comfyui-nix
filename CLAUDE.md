@@ -69,26 +69,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `--debug` or `--verbose`: Enable detailed debug logging
 
 ### Important Environment Variables
-- `COMFY_USER_DIR`: Persistent storage directory (default: `~/.config/comfy-ui`, use `--base-directory` instead)
+- `COMFY_USER_DIR`: Persistent storage directory (default: `~/.config/comfy-ui` in pure mode, `~/.config/comfy-ui/mutable` in mutable mode; use `--base-directory` instead)
 - `COMFY_APP_DIR`: ComfyUI application directory (fixed at `~/.config/comfy-ui/app`)
 - `COMFY_SAVE_PATH`: User save path for outputs
-- `CUDA_VERSION`: CUDA version for PyTorch (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
+- `CUDA_VERSION`: CUDA version for PyTorch in mutable mode (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
 - `LD_LIBRARY_PATH`: (Linux) Set automatically to include system libraries and NVIDIA drivers
 - `DYLD_LIBRARY_PATH`: (macOS) Set if needed for dynamic libraries
 
 ### Platform-Specific Configuration
-- **Linux**: Automatically detects NVIDIA GPUs and configures CUDA support
-- **macOS**: Detects Apple Silicon and configures MPS acceleration
+- **Mutable mode**: Detects NVIDIA GPUs on Linux and configures CUDA, detects Apple Silicon and configures MPS
+- **Pure mode**: Uses Nix-provided PyTorch packages without runtime detection or installs
 - **Library Paths**: Automatically includes `/run/opengl-driver/lib` on Linux for NVIDIA drivers
 
 ### Data Persistence Structure
 **Fixed locations** (always in `~/.config/comfy-ui/`):
 ```
 app/           - ComfyUI application code (auto-updated when flake changes)
+```
+
+**Mutable-only location**:
+```
 venv/          - Python virtual environment
 ```
 
-**Configurable locations** (default `~/.config/comfy-ui/`, or `--base-directory`):
+**Configurable locations** (default `~/.config/comfy-ui/` in pure mode, `~/.config/comfy-ui/mutable` in mutable mode, or `--base-directory`):
 ```
 models/        - Model files (checkpoints, loras, vae, controlnet, embeddings, upscale_models, clip, diffusers, etc.)
 output/        - Generated images and outputs

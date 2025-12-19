@@ -25,8 +25,8 @@ nix run github:utensils/comfyui-nix -- --open
 - Reproducible environment through Nix flakes
 - Pure-by-default runtime; opt-in mutable mode for ComfyUI-Manager/pip installs
 - Cross-platform support: macOS (Intel/Apple Silicon) and Linux
-- Automatic GPU detection: CUDA on Linux, MPS on Apple Silicon
-- Configurable CUDA version via `CUDA_VERSION` environment variable
+- Mutable mode auto-detects GPUs and installs appropriate PyTorch (CUDA on Linux, MPS on Apple Silicon)
+- Configurable CUDA version via `CUDA_VERSION` (mutable mode only)
 - Persistent user data directory with automatic version upgrades
 - Mutable mode includes ComfyUI-Manager for extension installation
 - Improved model download experience with automatic backend downloads
@@ -51,7 +51,7 @@ nix run github:utensils/comfyui-nix/[commit-hash] -- --open
 
 ### Environment Variables
 
-- `CUDA_VERSION`: CUDA version for PyTorch (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
+- `CUDA_VERSION`: CUDA version for PyTorch in mutable mode (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
 - `COMFY_ENABLE_API_NODES`: set to `true` to allow built-in API nodes in pure mode (requires you to provide their Python deps/credentials)
 
 ```bash
@@ -163,6 +163,7 @@ User data is stored in `~/.config/comfy-ui` with the following structure:
 - `input/` - Input files for processing
 
 This structure ensures your models, outputs, and custom nodes persist between application updates.
+Mutable mode defaults to `~/.config/comfy-ui/mutable` for data storage; override with `COMFY_USER_DIR` or `--base-directory` as needed.
 
 ## System Requirements
 
@@ -193,10 +194,12 @@ This structure ensures your models, outputs, and custom nodes persist between ap
 
 ### GPU Detection
 
-The flake automatically detects your hardware and installs the appropriate PyTorch version:
+In mutable mode, the launcher detects your hardware and installs the appropriate PyTorch:
 - **Linux with NVIDIA GPU**: PyTorch with CUDA support (configurable via `CUDA_VERSION`)
 - **macOS with Apple Silicon**: PyTorch with MPS acceleration
 - **Other systems**: CPU-only PyTorch
+
+In pure mode, PyTorch is provided by Nix and no runtime detection or installs occur.
 
 ## Version Information
 
@@ -205,8 +208,8 @@ This flake currently provides:
 - ComfyUI v0.4.0
 - Python 3.12
 - PyTorch stable releases (with MPS support on Apple Silicon, CUDA on Linux)
-- ComfyUI-Manager for extension management
-- Frontend managed via ComfyUI's requirements.txt
+- ComfyUI-Manager available in mutable mode
+- Frontend/docs/template packages vendored as wheels pinned in `flake.nix`
 
 To check for updates:
 ```bash
