@@ -54,5 +54,5 @@ models/
 .DS_Store
 Thumbs.db
 
-# Deciduous database (local)
-.deciduous/
+# Codex local state
+.codex/

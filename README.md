@@ -12,16 +12,23 @@ A Nix flake for installing and running [ComfyUI](https://github.com/comfyanonymo
 nix run github:utensils/comfyui-nix -- --open
 ```
 
+### Modes
+
+- Pure (default): `nix run github:utensils/comfyui-nix -- …` uses the Nix-packaged Python runtime and avoids runtime installs/network mutation.
+- Mutable (opt-in): `nix run github:utensils/comfyui-nix#mutable -- …` enables ComfyUI-Manager and pip installs in your `$COMFY_USER_DIR`. Use this when you explicitly want a writable environment.
+- Mutable state is isolated under `~/.config/comfy-ui/mutable` by default; override with `COMFY_USER_DIR` or `--base-directory` if you need a different path.
+- API nodes are disabled by default in pure mode to avoid missing cloud SDK deps; set `COMFY_ENABLE_API_NODES=true` if you want them (you must supply the required APIs/dependencies yourself).
+
 ## Features
 
 - Provides ComfyUI packaged with Python 3.12
 - Reproducible environment through Nix flakes
-- Hybrid approach: Nix for environment management, pip for Python dependencies
+- Pure-by-default runtime; opt-in mutable mode for ComfyUI-Manager/pip installs
 - Cross-platform support: macOS (Intel/Apple Silicon) and Linux
 - Automatic GPU detection: CUDA on Linux, MPS on Apple Silicon
 - Configurable CUDA version via `CUDA_VERSION` environment variable
 - Persistent user data directory with automatic version upgrades
-- Includes ComfyUI-Manager for easy extension installation
+- Mutable mode includes ComfyUI-Manager for extension installation
 - Improved model download experience with automatic backend downloads
 - Code quality tooling: ruff (linter/formatter), pyright (type checker), shellcheck
 - CI validation with `nix flake check` (build, lint, type-check, shellcheck, nixfmt)
@@ -45,6 +52,7 @@ nix run github:utensils/comfyui-nix/[commit-hash] -- --open
 ### Environment Variables
 
 - `CUDA_VERSION`: CUDA version for PyTorch (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
+- `COMFY_ENABLE_API_NODES`: set to `true` to allow built-in API nodes in pure mode (requires you to provide their Python deps/credentials)
 
 ```bash
 # Example: Use CUDA 12.1
@@ -97,9 +105,12 @@ nix profile install github:utensils/comfyui-nix
 
 The flake is designed to be simple and extensible. You can customize it by:
 
-1. Adding Python packages in the `pythonEnv` definition
+1. Adding Python packages in the `pythonRuntime` definition
 2. Modifying the launcher script in `scripts/launcher.sh`
 3. Pinning to a specific ComfyUI version by changing the version variables at the top of `flake.nix`
+4. Adding third-party custom nodes:
+   - Preferred: package them via an overlay and add to your flake inputs/overlays.
+   - Mutable mode: install via ComfyUI-Manager/pip in `nix run .#mutable` (impure, user-local).
 
 ### Using the Overlay
 

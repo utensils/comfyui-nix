@@ -27,6 +27,7 @@ trap 'echo "ERROR in config.sh: Command failed with exit code $? at line $LINENO
 # Version and port configuration
 COMFY_VERSION="0.4.0"
 COMFY_PORT="8188"
+COMFY_MODE="${COMFY_MODE:-pure}"
 
 # CUDA configuration (can be overridden via environment)
 # Supported versions: cu118, cu121, cu124, cpu
@@ -96,7 +97,15 @@ _parse_base_directory() {
 
 # Parse and set BASE_DIR
 # Priority: 1) --base-directory flag, 2) COMFY_USER_DIR env var, 3) $HOME/.config/comfy-ui default
-BASE_DIR="${COMFY_USER_DIR:-${HOME:-/root}/.config/comfy-ui}"
+if [[ -n "${COMFY_USER_DIR:-}" ]]; then
+  BASE_DIR="$COMFY_USER_DIR"
+else
+  if [[ "$COMFY_MODE" == "mutable" ]]; then
+    BASE_DIR="${HOME:-/root}/.config/comfy-ui/mutable"
+  else
+    BASE_DIR="${HOME:-/root}/.config/comfy-ui"
+  fi
+fi
 _parsed_base_dir="$(_parse_base_directory "$@")"
 if [[ -n "$_parsed_base_dir" ]]; then
   BASE_DIR="$_parsed_base_dir"
@@ -182,12 +191,11 @@ OPEN_BROWSER=false
 
 # Python paths (to be substituted by Nix)
 PYTHON_ENV="@pythonEnv@/bin/python"
+PYTHON_RUNTIME="@pythonRuntime@"
 
 # Source paths (to be substituted by Nix)
 COMFYUI_SRC="@comfyuiSrc@"
 MODEL_DOWNLOADER_DIR="@modelDownloaderDir@"
-PERSISTENCE_SCRIPT="@persistenceScript@"
-PERSISTENCE_MAIN_SCRIPT="@persistenceMainScript@"
 
 # Directory lists for creation
 declare -A DIRECTORIES=(
@@ -249,20 +257,29 @@ parse_arguments() {
         ;;
     esac
   done
+
+  # Disable builtin API nodes by default in pure mode to avoid missing dep churn
+  if [[ "$COMFY_MODE" == "pure" && "${COMFY_ENABLE_API_NODES:-}" != "true" ]]; then
+    ARGS+=("--disable-api-nodes")
+  fi
 }
 
 # Export the configuration
 export_config() {
   # Set COMFY_APP_DIR to CODE_DIR for Python persistence module
   COMFY_APP_DIR="$CODE_DIR"
+  if [[ "$COMFY_MODE" == "pure" ]]; then
+    PYTHON_BIN="$PYTHON_RUNTIME/bin/python"
+  else
+    PYTHON_BIN="$COMFY_VENV/bin/python"
+  fi
 
   # Export all defined variables to make them available to sourced scripts
-  export COMFY_VERSION COMFY_PORT BASE_DIR CODE_DIR COMFY_VENV COMFY_APP_DIR
+  export COMFY_VERSION COMFY_PORT BASE_DIR CODE_DIR COMFY_VENV COMFY_APP_DIR COMFY_MODE
   export COMFY_MANAGER_DIR MODEL_DOWNLOADER_PERSISTENT_DIR
   export CUSTOM_NODE_DIR MODEL_DOWNLOADER_APP_DIR
-  export OPEN_BROWSER PYTHON_ENV
+  export OPEN_BROWSER PYTHON_ENV PYTHON_RUNTIME PYTHON_BIN
   export COMFYUI_SRC MODEL_DOWNLOADER_DIR
-  export PERSISTENCE_SCRIPT PERSISTENCE_MAIN_SCRIPT
 
   # Export environment variables (eval is needed to properly export var=value pairs)
   for var in "${ENV_VARS[@]}"; do

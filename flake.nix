@@ -19,13 +19,60 @@
       comfyuiRev = "fc657f471a29d07696ca16b566000e8e555d67d1";
       comfyuiHash = "sha256-gq7/CfKqXGD/ti9ZeBVsHFPid+LTkpP4nTzt6NE/Jfo=";
 
+      # Source paths with proper store context
+      scriptsPath = builtins.path {
+        path = ./scripts;
+        name = "comfyui-nix-scripts";
+      };
+
+      pythonOverrides = pkgs: final: prev: {
+        spandrel = final.buildPythonPackage rec {
+          pname = "spandrel";
+          version = "0.4.1";
+          format = "wheel";
+          src = pkgs.fetchurl {
+            url = "https://files.pythonhosted.org/packages/d3/1e/5dce7f0d3eb2aa418bd9cf3e84b2f5d2cf45b1c62488dd139fc93c729cfe/spandrel-0.4.1-py3-none-any.whl";
+            hash = "sha256-SaOaqXl2l0mkIgNCg1W8SEBFKFTWM0zg1GWvRgmN1Eg=";
+          };
+          dontBuild = true;
+          dontConfigure = true;
+          nativeBuildInputs = [
+            final.setuptools
+            final.wheel
+            final.ninja
+          ];
+          propagatedBuildInputs = with final; [
+            torch
+            torchvision
+            safetensors
+            numpy
+            einops
+            typing-extensions
+          ];
+          pythonImportsCheck = [ ];
+          doCheck = false;
+        };
+      };
+
+      # Shared Python environment builder for bootstrapping/mutable mode
+      mkPythonEnv =
+        pkgs:
+        let
+          python = pkgs.python312.override { packageOverrides = pythonOverrides pkgs; };
+        in
+        python.buildEnv.override {
+          extraLibs = with python.pkgs; [
+            setuptools
+            wheel
+            pip
+          ];
+          ignoreCollisions = true;
+        };
+
       # Function to build packages for a given pkgs
       # This allows us to build for different target systems (cross-compilation)
       mkComfyPackages =
-        {
-          pkgs,
-          forDocker ? false,
-        }:
+        { pkgs }:
         let
           # ComfyUI source
           comfyui-src = pkgs.fetchFromGitHub {
@@ -38,40 +85,103 @@
           # Model downloader custom node
           modelDownloaderDir = ./src/custom_nodes/model_downloader;
 
-          # Python environment with minimal dependencies for bootstrapping
-          pythonEnv = pkgs.python312.buildEnv.override {
-            extraLibs = with pkgs.python312Packages; [
-              setuptools
-              wheel
-              pip
-            ];
-            ignoreCollisions = true;
+          python = pkgs.python312.override { packageOverrides = pythonOverrides pkgs; };
+
+          # Vendored PyPI-only deps
+          comfyuiFrontendPackage = python.pkgs.buildPythonPackage {
+            pname = "comfyui-frontend-package";
+            version = "1.33.13";
+            format = "wheel";
+            src = pkgs.fetchurl {
+              url = "https://files.pythonhosted.org/packages/35/e7/8d529ec2801bffd8a7a545f99951c1a3b46b80f2ac6b0b5b4af421aa56a0/comfyui_frontend_package-1.33.13-py3-none-any.whl";
+              hash = "sha256-XsMU5OECnUnJlxMo51ji5B6JuYWi5Ts+S1NaedQjoN8=";
+            };
+            doCheck = false;
           };
 
-          # Copy our persistence scripts to the nix store
-          persistenceScript = ./src/persistence/persistence.py;
-          persistenceMainScript = ./src/persistence/main.py;
+          comfyuiWorkflowTemplates = python.pkgs.buildPythonPackage {
+            pname = "comfyui-workflow-templates";
+            version = "0.7.54";
+            format = "wheel";
+            src = pkgs.fetchurl {
+              url = "https://files.pythonhosted.org/packages/8f/0f/42ef2094b5527dc836e42709c1c60d85483602e226a708e7c4f13d6fe378/comfyui_workflow_templates-0.7.54-py3-none-any.whl";
+              hash = "sha256-Q/c8NRP31uqJjPQ0dYwb3or/YDJUlemYp66tiqb5/aQ=";
+            };
+            doCheck = false;
+          };
+
+          comfyuiEmbeddedDocs = python.pkgs.buildPythonPackage {
+            pname = "comfyui-embedded-docs";
+            version = "0.3.1";
+            format = "wheel";
+            src = pkgs.fetchurl {
+              url = "https://files.pythonhosted.org/packages/25/29/84cf6f3cb9ef558dc5056363d1676174f0f4444a741f5cb65554af06836c/comfyui_embedded_docs-0.3.1-py3-none-any.whl";
+              hash = "sha256-+7sO+Z6r2Hh8Zl7+I1ZlsztivV+bxNlA6yBV02g0yRw=";
+            };
+            doCheck = false;
+          };
+
+          # Python environments
+          pythonRuntime = python.withPackages (
+            ps:
+            let
+              base = with ps; [
+                pillow
+                numpy
+                einops
+                transformers
+                tokenizers
+                sentencepiece
+                safetensors
+                aiohttp
+                yarl
+                pyyaml
+                scipy
+                tqdm
+                psutil
+                alembic
+                sqlalchemy
+                av
+                pydantic-settings
+              ];
+              optionals =
+                pkgs.lib.optionals (ps ? torch) [ ps.torch ]
+                ++ pkgs.lib.optionals (ps ? torchvision) [ ps.torchvision ]
+                ++ pkgs.lib.optionals (ps ? torchaudio) [ ps.torchaudio ]
+                ++ pkgs.lib.optionals (ps ? torchsde) [ ps.torchsde ]
+                ++ pkgs.lib.optionals (ps ? kornia) [ ps.kornia ]
+                ++ pkgs.lib.optionals (ps ? pydantic) [ ps.pydantic ]
+                ++ pkgs.lib.optionals (ps ? spandrel) [ ps.spandrel ]
+                ++ [
+                  comfyuiFrontendPackage
+                  comfyuiWorkflowTemplates
+                  comfyuiEmbeddedDocs
+                ];
+            in
+            base ++ optionals
+          );
 
           # Process script files - only use replaceVars for scripts with @var@ patterns
-          configScript = pkgs.replaceVars ./scripts/config.sh {
-            pythonEnv = pythonEnv;
+          configScript = pkgs.substituteAll {
+            src = "${scriptsPath}/config.sh";
+            pythonEnv = pythonRuntime;
+            pythonRuntime = pythonRuntime;
             comfyuiSrc = comfyui-src;
             modelDownloaderDir = modelDownloaderDir;
-            persistenceScript = persistenceScript;
-            persistenceMainScript = persistenceMainScript;
           };
 
           # Main launcher script with substitutions
-          launcherScript = pkgs.replaceVars ./scripts/launcher.sh {
+          launcherScript = pkgs.substituteAll {
+            src = "${scriptsPath}/launcher.sh";
             libPath = "${pkgs.stdenv.cc.cc.lib}/lib";
           };
 
           # Scripts without substitution patterns - copy directly
-          loggerScript = ./scripts/logger.sh;
-          installScript = ./scripts/install.sh;
-          persistenceShScript = ./scripts/persistence.sh;
-          runtimeScript = ./scripts/runtime.sh;
-          templateInputsScript = ./scripts/template_inputs.sh;
+          loggerScript = "${scriptsPath}/logger.sh";
+          installScript = "${scriptsPath}/install.sh";
+          persistenceShScript = "${scriptsPath}/persistence.sh";
+          runtimeScript = "${scriptsPath}/runtime.sh";
+          templateInputsScript = "${scriptsPath}/template_inputs.sh";
 
           # Create a directory with all scripts
           scriptDir = pkgs.runCommand "comfy-ui-scripts" { } ''
@@ -86,30 +196,24 @@
             chmod +x $out/*.sh
           '';
 
-          # Main comfy-ui package
-          comfyUiPackage = pkgs.stdenv.mkDerivation {
+          # Main comfy-ui package (declarative build)
+          comfyUiPackage = pkgs.python312.pkgs.buildPythonApplication {
             pname = "comfy-ui";
             version = comfyuiVersion;
+            format = "other";
 
             src = comfyui-src;
 
-            passthru = {
-              inherit comfyui-src;
-              version = comfyuiVersion;
-            };
+            dontBuild = true;
+            dontConfigure = true;
 
-            nativeBuildInputs = [
-              pkgs.makeWrapper
-              pythonEnv
-            ];
+            nativeBuildInputs = [ pkgs.makeWrapper ];
             buildInputs = [
               pkgs.libGL
               pkgs.libGLU
               pkgs.stdenv.cc.cc.lib
             ];
-
-            dontBuild = true;
-            dontConfigure = true;
+            propagatedBuildInputs = [ pythonRuntime ];
 
             installPhase = ''
               mkdir -p "$out/bin"
@@ -128,7 +232,11 @@
                     pkgs.git
                     pkgs.coreutils
                   ]
-                }"
+                }" \
+                --set-default LD_LIBRARY_PATH "${pkgs.stdenv.cc.cc.lib}/lib" \
+                --set-default DYLD_LIBRARY_PATH "${pkgs.stdenv.cc.cc.lib}/lib" \
+                --set-default COMFY_MODE pure \
+                --set-default PYTHON_RUNTIME "${pythonRuntime}"
 
               ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"
             '';
@@ -137,7 +245,7 @@
               description = "ComfyUI with Python 3.12";
               homepage = "https://github.com/comfyanonymous/ComfyUI";
               license = licenses.gpl3;
-              platforms = platforms.all;
+              platforms = platforms.linux ++ platforms.darwin;
               mainProgram = "comfy-ui";
             };
           };
@@ -315,7 +423,6 @@
           inherit system;
           config = {
             allowUnfree = true;
-            allowUnsupportedSystem = true;
           };
         };
 
@@ -326,40 +433,39 @@
         linuxSystem = linuxSystemFor system;
         isLinuxCrossCompile = system != linuxSystem;
 
-        linuxPkgs = import nixpkgs {
-          system = linuxSystem;
-          config = {
-            allowUnfree = true;
-            allowUnsupportedSystem = true;
-          };
-        };
+        linuxPkgs =
+          if isLinuxCrossCompile then
+            import nixpkgs {
+              system = linuxSystem;
+              config = {
+                allowUnfree = true;
+              };
+            }
+          else
+            null;
 
-        linuxPackages = mkComfyPackages {
-          pkgs = linuxPkgs;
-          forDocker = true;
-        };
+        linuxPackages =
+          if isLinuxCrossCompile && linuxPkgs != null then mkComfyPackages { pkgs = linuxPkgs; } else null;
 
         # Python environment for dev shell (native only)
-        pythonEnv = pkgs.python312.buildEnv.override {
-          extraLibs = with pkgs.python312Packages; [
-            setuptools
-            wheel
-            pip
-          ];
-          ignoreCollisions = true;
-        };
+        pythonEnv = mkPythonEnv pkgs;
 
         # Define all packages
         packages =
           {
             default = nativePackages.default;
-            dockerImage = nativePackages.dockerImage;
-            dockerImageCuda = nativePackages.dockerImageCuda;
           }
           // (
-            if isLinuxCrossCompile then
+            if pkgs.stdenv.isLinux then
               {
-                # Cross-compiled Linux Docker images (for macOS users)
+                dockerImage = nativePackages.dockerImage;
+                dockerImageCuda = nativePackages.dockerImageCuda;
+              }
+            else if isLinuxCrossCompile && linuxPackages != null then
+              {
+                # macOS users: expose Linux Docker images directly
+                dockerImage = linuxPackages.dockerImage;
+                dockerImageCuda = linuxPackages.dockerImageCuda;
                 dockerImageLinux = linuxPackages.dockerImage;
                 dockerImageLinuxCuda = linuxPackages.dockerImageCuda;
               }
@@ -386,6 +492,10 @@
             buildDocker =
               let
                 script = pkgs.writeShellScriptBin "build-docker" ''
+                  if [ -z "${"packages.dockerImage:-"}" ]; then
+                    echo "Docker image is only available on Linux; please build from a Linux system." >&2
+                    exit 1
+                  fi
                   echo "Building Docker image for ComfyUI..."
                   # Load the Docker image directly
                   ${pkgs.docker}/bin/docker load < ${packages.dockerImage}
@@ -405,6 +515,10 @@
             buildDockerCuda =
               let
                 script = pkgs.writeShellScriptBin "build-docker-cuda" ''
+                  if [ -z "${"packages.dockerImageCuda:-"}" ]; then
+                    echo "CUDA Docker image is only available on Linux; please build from a Linux system." >&2
+                    exit 1
+                  fi
                   echo "Building Docker image for ComfyUI with CUDA support..."
                   # Load the Docker image directly
                   ${pkgs.docker}/bin/docker load < ${packages.dockerImageCuda}
@@ -502,6 +616,22 @@
                 program = "${script}/bin/type-check";
                 meta = {
                   description = "Run pyright type checker on Python code";
+                };
+              };
+
+            # Mutable mode launcher (allows runtime installs/manager)
+            mutable =
+              let
+                script = pkgs.writeShellScriptBin "comfy-ui-mutable" ''
+                  export COMFY_MODE=mutable
+                  exec ${packages.default}/bin/comfy-ui "$@"
+                '';
+              in
+              {
+                type = "app";
+                program = "${script}/bin/comfy-ui-mutable";
+                meta = {
+                  description = "Run ComfyUI in mutable mode (allows ComfyUI-Manager/pip installs)";
                 };
               };
 
@@ -671,8 +801,8 @@
                 cp -r $src source
                 chmod -R u+w source
                 cd source/scripts
-                shellcheck -x launcher.sh
-                shellcheck logger.sh runtime.sh persistence.sh
+                shellcheck -x launcher.sh config.sh install.sh
+                shellcheck logger.sh runtime.sh persistence.sh template_inputs.sh
                 touch $out
               '';
 

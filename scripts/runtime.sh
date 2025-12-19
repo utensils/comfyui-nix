@@ -81,9 +81,9 @@ start_with_browser() {
 
     # Ensure library paths are preserved for the Python subprocess
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" "$COMFY_VENV/bin/python" "$CODE_DIR/persistent_main.py" --port "$COMFY_PORT" --force-fp16 "${ARGS[@]}" &
+        LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" "$PYTHON_BIN" "$CODE_DIR/main.py" --port "$COMFY_PORT" --force-fp16 "${ARGS[@]}" &
     else
-        "$COMFY_VENV/bin/python" "$CODE_DIR/persistent_main.py" --port "$COMFY_PORT" --force-fp16 "${ARGS[@]}" &
+        "$PYTHON_BIN" "$CODE_DIR/main.py" --port "$COMFY_PORT" --force-fp16 "${ARGS[@]}" &
     fi
     PID=$!
 
@@ -121,9 +121,9 @@ start_normal() {
 
     # Ensure library paths are preserved for the Python subprocess
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" exec "$COMFY_VENV/bin/python" "$CODE_DIR/persistent_main.py" --port "$COMFY_PORT" --force-fp16 "${ARGS[@]}"
+        LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" exec "$PYTHON_BIN" "$CODE_DIR/main.py" --port "$COMFY_PORT" --force-fp16 "${ARGS[@]}"
     else
-        exec "$COMFY_VENV/bin/python" "$CODE_DIR/persistent_main.py" --port "$COMFY_PORT" --force-fp16 "${ARGS[@]}"
+        exec "$PYTHON_BIN" "$CODE_DIR/main.py" --port "$COMFY_PORT" --force-fp16 "${ARGS[@]}"
     fi
 }
 

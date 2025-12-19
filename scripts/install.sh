@@ -33,6 +33,7 @@ install_comfyui() {
 
     # Remove existing directory (but keep symlinked content safe)
     log_info "Preparing fresh installation in $CODE_DIR"
+    chmod -R u+w "$CODE_DIR" 2>/dev/null || true
     rm -rf "$CODE_DIR"
     mkdir -p "$CODE_DIR"
 
@@ -41,34 +42,44 @@ install_comfyui() {
     cp -r "$COMFYUI_SRC"/* "$CODE_DIR/"
     echo "$COMFY_VERSION" > "$CODE_DIR/VERSION"
 
-    # Copy persistence scripts
-    cp -f "$PERSISTENCE_MAIN_SCRIPT" "$CODE_DIR/persistent_main.py" 2>/dev/null || true
-
     # Ensure proper permissions
     chmod -R u+rw "$CODE_DIR"
 
-    # Initialize a git repo to satisfy ComfyUI-Manager's version check
-    # Nix manages the actual version, but Manager expects a git repo
-    # Note: Manager expects 'master' branch, not 'main'
-    log_info "Initializing git repo for ComfyUI-Manager compatibility"
-    (
-        cd "$CODE_DIR"
-        git init -q -b master
-        git config user.email "nix@localhost"
-        git config user.name "Nix Build"
-        git add -A
-        git commit -q -m "ComfyUI v$COMFY_VERSION (managed by comfyui-nix)"
-        git tag -a "v$COMFY_VERSION" -m "Version $COMFY_VERSION"
-    ) 2>/dev/null || log_warn "Could not initialize git repo"
+    if [[ "$COMFY_MODE" == "mutable" ]]; then
+        # Initialize a git repo to satisfy ComfyUI-Manager's version check
+        # Nix manages the actual version, but Manager expects a git repo
+        # Note: Manager expects 'master' branch, not 'main'
+        log_info "Initializing git repo for ComfyUI-Manager compatibility"
+        (
+            cd "$CODE_DIR"
+            git init -q -b master
+            git config user.email "nix@localhost"
+            git config user.name "Nix Build"
+            git add -A
+            git commit -q -m "ComfyUI v$COMFY_VERSION (managed by comfyui-nix)"
+            git tag -a "v$COMFY_VERSION" -m "Version $COMFY_VERSION"
+        ) 2>/dev/null || log_warn "Could not initialize git repo"
+    else
+        log_debug "Skipping git repo initialization (pure mode)"
+    fi
 
     # Ensure model directories exist in the CODE_DIR for symlinks
     mkdir -p "$CODE_DIR/models"
 
-    log_info "ComfyUI core installed successfully"
+    # Install bundled custom nodes (pure mode copies into app directory)
+    mkdir -p "$CODE_DIR/custom_nodes"
+    cp -r "$MODEL_DOWNLOADER_DIR" "$CODE_DIR/custom_nodes/" 2>/dev/null || log_warn "Could not vendor model_downloader into code directory"
+
+    log_info "ComfyUI core installed successfully (mode: $COMFY_MODE)"
 }
 
 # Install/update ComfyUI-Manager
 install_comfyui_manager() {
+    if [[ "$COMFY_MODE" != "mutable" ]]; then
+        log_info "Pure mode: skipping ComfyUI-Manager installation"
+        return
+    fi
+
     log_section "Setting up ComfyUI-Manager"
     
     if [ ! -d "$COMFY_MANAGER_DIR" ]; then
@@ -120,6 +131,11 @@ CONFIG_EOF
 
 # Install model downloader extension
 install_model_downloader() {
+    if [[ "$COMFY_MODE" != "mutable" ]]; then
+        log_info "Pure mode: model downloader bundled into CODE_DIR; skipping mutable install"
+        return
+    fi
+
     log_section "Setting up model downloader"
     
     # Ensure fresh installation
@@ -179,6 +195,11 @@ detect_pytorch_version() {
 
 # Setup Python virtual environment
 setup_venv() {
+    if [[ "$COMFY_MODE" != "mutable" ]]; then
+        log_info "Pure mode: skipping virtual environment creation and pip installs (using Nix-provided runtime)"
+        return
+    fi
+
     log_section "Setting up Python environment"
 
     local version_file="$COMFY_VENV/.comfyui_version"
@@ -263,19 +284,6 @@ setup_venv() {
     fi
 }
 
-# Setup persistence scripts
-setup_persistence_scripts() {
-    log_section "Setting up persistence scripts"
-    
-    # Copy our persistence scripts to ensure directory paths are persistent
-    cp -f "$PERSISTENCE_SCRIPT" "$CODE_DIR/persistent.py" 2>/dev/null || true
-    cp -f "$PERSISTENCE_MAIN_SCRIPT" "$CODE_DIR/persistent_main.py" 2>/dev/null || true
-    chmod +x "$CODE_DIR/persistent.py"
-    chmod +x "$CODE_DIR/persistent_main.py"
-    
-    log_info "Persistence scripts installed"
-}
-
 # Main installation function
 install_all() {
     create_directories
@@ -283,7 +291,6 @@ install_all() {
     install_comfyui_manager
     install_model_downloader
     setup_venv
-    setup_persistence_scripts
 
     # Now set up the actual symlinks
     source "$SCRIPT_DIR/persistence.sh"
@@ -291,10 +298,14 @@ install_all() {
 
     # Download workflow template input files (non-blocking)
     source "$SCRIPT_DIR/template_inputs.sh"
-    if needs_template_inputs; then
-        download_template_inputs
+    if [[ "$COMFY_MODE" == "mutable" ]]; then
+        if needs_template_inputs; then
+            download_template_inputs
+        else
+            log_debug "Template input files are up to date"
+        fi
     else
-        log_debug "Template input files are up to date"
+        log_info "Pure mode: skipping template input downloads"
     fi
 
     log_section "Installation complete"
