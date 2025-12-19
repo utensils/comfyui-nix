@@ -67,8 +67,8 @@ install_comfyui() {
     mkdir -p "$CODE_DIR/models"
 
     # Install bundled custom nodes (pure mode copies into app directory)
-    mkdir -p "$CODE_DIR/custom_nodes"
-    cp -r "$MODEL_DOWNLOADER_DIR" "$CODE_DIR/custom_nodes/" 2>/dev/null || log_warn "Could not vendor model_downloader into code directory"
+    mkdir -p "$CODE_DIR/custom_nodes/model_downloader"
+    cp -r "$MODEL_DOWNLOADER_DIR"/* "$CODE_DIR/custom_nodes/model_downloader/" 2>/dev/null || log_warn "Could not vendor model_downloader into code directory"
 
     log_info "ComfyUI core installed successfully (mode: $COMFY_MODE)"
 }
