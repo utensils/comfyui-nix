@@ -297,15 +297,12 @@ install_all() {
     setup_persistence
 
     # Download workflow template input files (non-blocking)
+    # These are static image assets needed for workflow examples, downloaded in all modes
     source "$SCRIPT_DIR/template_inputs.sh"
-    if [[ "$COMFY_MODE" == "mutable" ]]; then
-        if needs_template_inputs; then
-            download_template_inputs
-        else
-            log_debug "Template input files are up to date"
-        fi
+    if needs_template_inputs; then
+        download_template_inputs
     else
-        log_info "Pure mode: skipping template input downloads"
+        log_debug "Template input files are up to date"
     fi
 
     log_section "Installation complete"
