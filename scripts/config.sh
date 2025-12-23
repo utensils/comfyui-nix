@@ -186,8 +186,13 @@ PYTHON_ENV="@pythonEnv@/bin/python"
 # Source paths (to be substituted by Nix)
 COMFYUI_SRC="@comfyuiSrc@"
 MODEL_DOWNLOADER_DIR="@modelDownloaderDir@"
-PERSISTENCE_SCRIPT="@persistenceScript@"
-PERSISTENCE_MAIN_SCRIPT="@persistenceMainScript@"
+
+# Persistence scripts - compute relative to SCRIPT_DIR
+# SCRIPT_DIR is set by launcher.sh before sourcing this file
+# Scripts are in scripts/, persistence is in persistence/ (sibling directory)
+_PACKAGE_DIR="$(dirname "${SCRIPT_DIR:-$(dirname "${BASH_SOURCE[0]}")}")"
+PERSISTENCE_SCRIPT="$_PACKAGE_DIR/persistence/persistence.py"
+PERSISTENCE_MAIN_SCRIPT="$_PACKAGE_DIR/persistence/main.py"
 
 # Directory lists for creation
 declare -A DIRECTORIES=(

@@ -57,8 +57,6 @@
             pythonEnv = pythonEnv;
             comfyuiSrc = comfyui-src;
             modelDownloaderDir = modelDownloaderDir;
-            persistenceScript = persistenceScript;
-            persistenceMainScript = persistenceMainScript;
           };
 
           # Main launcher script with substitutions
@@ -128,6 +126,11 @@
               mkdir -p "$out/share/comfy-ui/scripts"
               cp -r ${scriptDir}/* "$out/share/comfy-ui/scripts/"
 
+              # Copy persistence scripts
+              mkdir -p "$out/share/comfy-ui/persistence"
+              cp ${persistenceScript} "$out/share/comfy-ui/persistence/persistence.py"
+              cp ${persistenceMainScript} "$out/share/comfy-ui/persistence/main.py"
+
               makeWrapper "$out/share/comfy-ui/scripts/launcher.sh" "$out/bin/comfy-ui" \
                 --prefix PATH : "${
                   pkgs.lib.makeBinPath [
@@ -183,11 +186,12 @@
               Cmd = [
                 "/bin/bash"
                 "-c"
-                "export COMFY_USER_DIR=/data && mkdir -p /data && /bin/comfy-ui --listen 0.0.0.0 --cpu"
+                "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && /bin/comfy-ui --listen 0.0.0.0 --cpu"
               ];
               Env = [
                 "HOME=/root"
                 "COMFY_USER_DIR=/data"
+                "TMPDIR=/tmp"
                 "PATH=/bin:/usr/bin"
                 "PYTHONUNBUFFERED=1"
                 "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
@@ -200,6 +204,7 @@
               WorkingDir = "/data";
               Volumes = {
                 "/data" = { };
+                "/tmp" = { };
               };
               Healthcheck = {
                 Test = [
@@ -258,11 +263,12 @@
               Cmd = [
                 "/bin/bash"
                 "-c"
-                "export COMFY_USER_DIR=/data && mkdir -p /data && /bin/comfy-ui --listen 0.0.0.0"
+                "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && /bin/comfy-ui --listen 0.0.0.0"
               ];
               Env = [
                 "HOME=/root"
                 "COMFY_USER_DIR=/data"
+                "TMPDIR=/tmp"
                 "PATH=/bin:/usr/bin"
                 "PYTHONUNBUFFERED=1"
                 "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
@@ -277,6 +283,7 @@
               WorkingDir = "/data";
               Volumes = {
                 "/data" = { };
+                "/tmp" = { };
               };
               Healthcheck = {
                 Test = [
