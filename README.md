@@ -55,6 +55,7 @@ nix run github:utensils/comfyui-nix/[commit-hash] -- --open
 
 - `CUDA_VERSION`: CUDA version for PyTorch in mutable mode (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
 - `COMFY_ENABLE_API_NODES`: set to `true` to allow built-in API nodes in pure mode (requires you to provide their Python deps/credentials)
+- `COMFY_SKIP_TEMPLATE_INPUTS`: set to `1`/`true` to skip downloading workflow template inputs at startup (default: enabled in Docker images)
 
 ```bash
 # Example: Use CUDA 12.1
@@ -176,7 +177,7 @@ Enable ComfyUI as a systemd service:
 | `package` | package | `pkgs.comfy-ui` | ComfyUI package to run |
 | `port` | port | `8188` | Port for ComfyUI to listen on |
 | `listenAddress` | string | `"127.0.0.1"` | Address to listen on (use `"0.0.0.0"` for all interfaces) |
-| `dataDir` | path | `/var/lib/comfyui` | Base directory for models, input, output, custom nodes |
+| `dataDir` | string | `/var/lib/comfyui` | Base directory for models, input, output, custom nodes |
 | `user` | string | `"comfyui"` | User account to run ComfyUI under |
 | `group` | string | `"comfyui"` | Group to run ComfyUI under |
 | `createUser` | bool | `true` | Create the comfyui system user/group |
@@ -261,7 +262,7 @@ This flake currently provides:
 
 - ComfyUI v0.5.1
 - Python 3.12
-- PyTorch stable releases (with MPS support on Apple Silicon, CUDA on Linux)
+- PyTorch stable releases (MPS on Apple Silicon in mutable mode; CUDA in the `-cuda` Docker image)
 - ComfyUI-Manager available in mutable mode
 - comfy-cli for command-line workflow management
 - Frontend/docs/template packages vendored as wheels pinned in `nix/versions.nix`
@@ -446,11 +447,14 @@ sudo systemctl restart docker
 ### Docker Image Features
 
 - **Full functionality**: Includes all the features of the regular ComfyUI installation
+- **Pure mode by default**: Docker images run with the Nix runtime and skip pip installs on startup
+- **Template inputs**: Docker images skip template input downloads by default; set `COMFY_SKIP_TEMPLATE_INPUTS=0` if you want them
 - **Persistence**: Data is stored in a mounted volume at `/data`
 - **Port exposure**: Web UI available on port 8188
 - **Essential utilities**: Includes bash, coreutils, git, and other necessary tools
 - **Proper environment**: All environment variables set correctly for containerized operation
 - **GPU support**: CUDA version includes proper environment variables for NVIDIA GPU access
+- **CUDA runtime**: CUDA image uses Nix-provided CUDA PyTorch (no pip install on startup)
 
 The Docker image follows the same modular structure as the regular installation, ensuring consistency across deployment methods.
 

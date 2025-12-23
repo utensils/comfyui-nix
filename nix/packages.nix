@@ -4,6 +4,7 @@
   versions,
   scriptsPath,
   pythonOverrides,
+  cudaSupport ? false,
 }:
 let
   python = pkgs.python312.override { packageOverrides = pythonOverrides; };
@@ -41,6 +42,7 @@ let
         aiohttp
         yarl
         pyyaml
+        requests
         scipy
         tqdm
         psutil
@@ -49,14 +51,23 @@ let
         av
         pydantic-settings
       ];
+      torchPackages =
+        if cudaSupport && ps ? torchWithCuda then
+          [ ps.torchWithCuda ]
+        else
+          lib.optionals (ps ? torch) [ ps.torch ];
       optionals =
-        lib.optionals (ps ? torch) [ ps.torch ]
+        torchPackages
         ++ lib.optionals (ps ? torchvision) [ ps.torchvision ]
         ++ lib.optionals (ps ? torchaudio) [ ps.torchaudio ]
         ++ lib.optionals (ps ? torchsde) [ ps.torchsde ]
         ++ lib.optionals (ps ? kornia) [ ps.kornia ]
         ++ lib.optionals (ps ? pydantic) [ ps.pydantic ]
         ++ lib.optionals (ps ? spandrel) [ ps.spandrel ]
+        ++ lib.optionals (ps ? gitpython) [ ps.gitpython ]
+        ++ lib.optionals (ps ? toml) [ ps.toml ]
+        ++ lib.optionals (ps ? rich) [ ps.rich ]
+        ++ lib.optionals (ps ? "comfy-cli") [ ps."comfy-cli" ]
         ++ [
           vendored.comfyuiFrontendPackage
           vendored.comfyuiWorkflowTemplates
@@ -158,7 +169,7 @@ let
             pkgs.libGL
           ]
         }" \
-        --set-default COMFY_MODE pure \
+        --set-default COMFY_MODE ${if pkgs.stdenv.isDarwin then "mutable" else "pure"} \
         --set-default PYTHON_RUNTIME "${pythonRuntime}"
 
       ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"

@@ -39,14 +39,17 @@
           };
         };
 
-        pythonOverridesFor = pkgs: import ./nix/python-overrides.nix { inherit pkgs versions; };
+        pythonOverridesFor =
+          pkgs: cudaSupport: import ./nix/python-overrides.nix { inherit pkgs versions cudaSupport; };
 
-        mkPython = pkgs: pkgs.python312.override { packageOverrides = pythonOverridesFor pkgs; };
+        mkPython =
+          pkgs: cudaSupport:
+          pkgs.python312.override { packageOverrides = pythonOverridesFor pkgs cudaSupport; };
 
         mkPythonEnv =
           pkgs:
           let
-            python = mkPython pkgs;
+            python = mkPython pkgs false;
           in
           python.withPackages (ps: [
             ps.setuptools
@@ -56,13 +59,22 @@
 
         mkComfyPackages =
           pkgs:
+          {
+            cudaSupport ? false,
+          }:
           import ./nix/packages.nix {
-            inherit pkgs versions scriptsPath;
+            inherit
+              pkgs
+              versions
+              scriptsPath
+              cudaSupport
+              ;
             lib = pkgs.lib;
-            pythonOverrides = pythonOverridesFor pkgs;
+            pythonOverrides = pythonOverridesFor pkgs cudaSupport;
           };
 
-        nativePackages = mkComfyPackages pkgs;
+        nativePackages = mkComfyPackages pkgs { };
+        nativePackagesCuda = mkComfyPackages pkgs { cudaSupport = true; };
 
         linuxSystem = linuxSystemFor system;
         isLinuxCrossCompile = system != linuxSystem;
@@ -79,13 +91,33 @@
             null;
 
         linuxPackages =
-          if isLinuxCrossCompile && linuxPkgs != null then mkComfyPackages linuxPkgs else null;
+          if isLinuxCrossCompile && linuxPkgs != null then mkComfyPackages linuxPkgs { } else null;
+
+        linuxPackagesCuda =
+          if isLinuxCrossCompile && linuxPkgs != null then
+            mkComfyPackages linuxPkgs { cudaSupport = true; }
+          else
+            null;
 
         pythonEnv = mkPythonEnv pkgs;
 
-        source = builtins.path {
-          path = ./.;
-          name = "comfyui-nix-source";
+        source = pkgs.lib.cleanSourceWith {
+          src = ./.;
+          filter =
+            path: type:
+            let
+              rel = pkgs.lib.removePrefix (toString ./. + "/") (toString path);
+              excluded = [
+                ".direnv"
+                ".git"
+                "data"
+                "dist"
+                "node_modules"
+                "result"
+                "tmp"
+              ];
+            in
+            !pkgs.lib.any (prefix: rel == prefix || pkgs.lib.hasPrefix (prefix + "/") rel) excluded;
         };
 
         packages =
@@ -96,14 +128,15 @@
             if pkgs.stdenv.isLinux then
               {
                 dockerImage = nativePackages.dockerImage;
-                dockerImageCuda = nativePackages.dockerImageCuda;
+                dockerImageCuda = nativePackagesCuda.dockerImageCuda;
               }
             else if isLinuxCrossCompile && linuxPackages != null then
               {
                 dockerImage = linuxPackages.dockerImage;
-                dockerImageCuda = linuxPackages.dockerImageCuda;
+                dockerImageCuda = if linuxPackagesCuda != null then linuxPackagesCuda.dockerImageCuda else null;
                 dockerImageLinux = linuxPackages.dockerImage;
-                dockerImageLinuxCuda = linuxPackages.dockerImageCuda;
+                dockerImageLinuxCuda =
+                  if linuxPackagesCuda != null then linuxPackagesCuda.dockerImageCuda else null;
               }
             else
               { }
@@ -157,6 +190,11 @@
         comfy-ui = self.packages.${final.system}.default;
       };
 
-      nixosModules.default = import ./nix/modules/comfyui.nix;
+      nixosModules.default =
+        { ... }:
+        {
+          imports = [ ./nix/modules/comfyui.nix ];
+          nixpkgs.overlays = [ self.overlays.default ];
+        };
     };
 }

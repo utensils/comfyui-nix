@@ -12,7 +12,9 @@
     let
       baseEnv = [
         "HOME=/root"
+        "COMFY_MODE=pure"
         "COMFY_USER_DIR=/data"
+        "COMFY_SKIP_TEMPLATE_INPUTS=1"
         "TMPDIR=/tmp"
         "PATH=/bin:/usr/bin"
         "PYTHONUNBUFFERED=1"

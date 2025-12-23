@@ -1,5 +1,13 @@
-{ pkgs, versions }:
-final: prev: {
+{
+  pkgs,
+  versions,
+  cudaSupport ? false,
+}:
+let
+  lib = pkgs.lib;
+in
+final: prev:
+lib.optionalAttrs (prev ? torch) {
   spandrel = final.buildPythonPackage rec {
     pname = "spandrel";
     version = versions.vendored.spandrel.version;
@@ -15,14 +23,13 @@ final: prev: {
       final.wheel
       final.ninja
     ];
-    propagatedBuildInputs = with final; [
-      torch
-      torchvision
-      safetensors
-      numpy
-      einops
-      typing-extensions
-    ];
+    propagatedBuildInputs =
+      lib.optionals (prev ? torch) [ final.torch ]
+      ++ lib.optionals (prev ? torchvision) [ final.torchvision ]
+      ++ lib.optionals (prev ? safetensors) [ final.safetensors ]
+      ++ lib.optionals (prev ? numpy) [ final.numpy ]
+      ++ lib.optionals (prev ? einops) [ final.einops ]
+      ++ lib.optionals (prev ? typing-extensions) [ final.typing-extensions ];
     pythonImportsCheck = [ ];
     doCheck = false;
   };

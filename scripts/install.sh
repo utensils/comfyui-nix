@@ -31,6 +31,17 @@ create_directories() {
 install_comfyui() {
     log_section "Installing ComfyUI $COMFY_VERSION"
 
+    local version_file="$CODE_DIR/VERSION"
+    local marker_file="$CODE_DIR/.comfyui_nix"
+    if [[ "$COMFY_MODE" == "pure" && -f "$version_file" && -f "$marker_file" ]]; then
+        local installed_version
+        installed_version=$(cat "$version_file" 2>/dev/null || echo "")
+        if [[ "$installed_version" == "$COMFY_VERSION" ]]; then
+            log_info "ComfyUI $COMFY_VERSION already installed (pure mode), skipping copy"
+            return
+        fi
+    fi
+
     # Remove existing directory (but keep symlinked content safe)
     log_info "Preparing fresh installation in $CODE_DIR"
     chmod -R u+w "$CODE_DIR" 2>/dev/null || true
@@ -41,6 +52,7 @@ install_comfyui() {
     log_info "Copying ComfyUI source code"
     cp -r "$COMFYUI_SRC"/* "$CODE_DIR/"
     echo "$COMFY_VERSION" > "$CODE_DIR/VERSION"
+    touch "$CODE_DIR/.comfyui_nix"
 
     # Ensure proper permissions
     chmod -R u+rw "$CODE_DIR"
@@ -315,11 +327,15 @@ install_all() {
 
     # Download workflow template input files (non-blocking)
     # These are static image assets needed for workflow examples, downloaded in all modes
-    source "$SCRIPT_DIR/template_inputs.sh"
-    if needs_template_inputs; then
-        download_template_inputs
+    if [[ "${COMFY_SKIP_TEMPLATE_INPUTS:-}" == "1" || "${COMFY_SKIP_TEMPLATE_INPUTS:-}" == "true" ]]; then
+        log_info "Skipping template input downloads (COMFY_SKIP_TEMPLATE_INPUTS set)"
     else
-        log_debug "Template input files are up to date"
+        source "$SCRIPT_DIR/template_inputs.sh"
+        if needs_template_inputs; then
+            download_template_inputs
+        else
+            log_debug "Template input files are up to date"
+        fi
     fi
 
     log_section "Installation complete"

@@ -79,6 +79,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `COMFY_APP_DIR`: ComfyUI application directory (fixed at `~/.config/comfy-ui/app`)
 - `COMFY_SAVE_PATH`: User save path for outputs
 - `CUDA_VERSION`: CUDA version for PyTorch in mutable mode (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
+- `COMFY_SKIP_TEMPLATE_INPUTS`: Set to `1`/`true` to skip downloading workflow template inputs at startup
 - `LD_LIBRARY_PATH`: (Linux) Set automatically to include system libraries and NVIDIA drivers
 - `DYLD_LIBRARY_PATH`: (macOS) Set if needed for dynamic libraries
 

@@ -159,9 +159,7 @@ in
       buildDockerLinuxCuda =
         mkApp "build-docker-linux-cuda" "Build Linux CUDA Docker image from macOS (cross-compile)"
           buildDockerLinuxCudaScript
-          [
-            pkgs.docker
-          ];
+          [ pkgs.docker ];
     }
   else
     { }

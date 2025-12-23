@@ -46,7 +46,7 @@ in
     };
 
     dataDir = lib.mkOption {
-      type = lib.types.path;
+      type = lib.types.str;
       default = "/var/lib/comfyui";
       description = "Base directory for ComfyUI data (models, input, output, custom nodes).";
     };
