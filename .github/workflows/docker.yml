@@ -97,6 +97,18 @@ jobs:
         with:
           name: utensils
 
+      - name: Free disk space
+        run: |
+          df -h
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /var/lib/apt/lists/*
+          sudo apt-get clean
+          docker system prune -af || true
+          df -h
+
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
