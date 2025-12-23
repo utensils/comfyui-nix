@@ -30,7 +30,9 @@
         cp -r $src source
         chmod -R u+w source
         cd source
-        ${pkgs.pyright}/bin/pyright src/
+        ${pkgs.pyright}/bin/pyright \
+          --pythonpath ${packages.pythonRuntime}/bin/python \
+          src/
         touch $out
       '';
 

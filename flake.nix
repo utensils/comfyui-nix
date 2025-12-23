@@ -123,6 +123,7 @@
         packages =
           {
             default = nativePackages.default;
+            pythonRuntime = nativePackages.pythonRuntime;
           }
           // (
             if pkgs.stdenv.isLinux then
