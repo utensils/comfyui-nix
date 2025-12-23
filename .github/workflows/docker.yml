@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - flake-refactor-pure
     tags:
       - 'v*'
     paths-ignore:
@@ -13,6 +14,7 @@ on:
   pull_request:
     branches:
       - main
+      - flake-refactor-pure
     paths-ignore:
       - '**.md'
       - 'LICENSE'
@@ -59,20 +61,20 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.7.0
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.12.0
+        uses: docker/setup-buildx-action@v3
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31.9.0
+        uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           extra_nix_config: |
@@ -80,9 +82,22 @@ jobs:
             accept-flake-config = true
             extra-platforms = aarch64-linux
 
+      - name: Configure Cachix (push)
+        if: github.event_name != 'pull_request' && secrets.CACHIX_AUTH_TOKEN != ''
+        uses: cachix/cachix-action@v14
+        with:
+          name: utensils
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Configure Cachix (pull-only)
+        if: github.event_name == 'pull_request' || secrets.CACHIX_AUTH_TOKEN == ''
+        uses: cachix/cachix-action@v14
+        with:
+          name: utensils
+
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3.6.0
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -106,6 +121,8 @@ jobs:
           # Generate Docker tags for this specific architecture
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest${{ matrix.tag_suffix }}${ARCH_SUFFIX}"
+          elif [[ "${{ github.ref }}" == "refs/heads/flake-refactor-pure" ]]; then
+            TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure${{ matrix.tag_suffix }}${ARCH_SUFFIX}"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG_VERSION=${GITHUB_REF#refs/tags/v}
             TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}${{ matrix.tag_suffix }}${ARCH_SUFFIX}"
@@ -158,10 +175,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Log in to Container Registry
-        uses: docker/login-action@v3.6.0
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -181,6 +198,11 @@ jobs:
             VERSION_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}"
             AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64"
             ARM64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64"
+          elif [[ "${{ github.ref }}" == "refs/heads/flake-refactor-pure" ]]; then
+            MANIFEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure"
+            VERSION_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-${{ steps.meta.outputs.version }}"
+            AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-amd64"
+            ARM64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-arm64"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG_VERSION=${GITHUB_REF#refs/tags/v}
             MANIFEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}"
@@ -212,7 +234,7 @@ jobs:
           docker manifest push "$MANIFEST_TAG"
 
           # Also push version tag if on main
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == "refs/heads/flake-refactor-pure" ]]; then
             echo "Creating multi-arch manifest: $VERSION_TAG"
             docker manifest create "$VERSION_TAG" "$AMD64_TAG" "$ARM64_TAG"
 
@@ -230,6 +252,10 @@ jobs:
             CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda"
             VERSION_CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}-cuda"
             CUDA_AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda-amd64"
+          elif [[ "${{ github.ref }}" == "refs/heads/flake-refactor-pure" ]]; then
+            CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-cuda"
+            VERSION_CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-${{ steps.meta.outputs.version }}-cuda"
+            CUDA_AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-cuda-amd64"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG_VERSION=${GITHUB_REF#refs/tags/v}
             CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda"
@@ -303,7 +329,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Update Container Registry description
         run: |
