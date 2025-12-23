@@ -33,6 +33,7 @@ create_symlinks() {
     if [[ "$COMFY_MODE" == "mutable" ]]; then
         log_debug "Setting up model downloader symlink"
         if [ -e "$MODEL_DOWNLOADER_APP_DIR" ]; then
+            chmod -R u+w "$MODEL_DOWNLOADER_APP_DIR" 2>/dev/null || true
             rm -rf "$MODEL_DOWNLOADER_APP_DIR"
         fi
         ln -sf "$MODEL_DOWNLOADER_PERSISTENT_DIR" "$MODEL_DOWNLOADER_APP_DIR"
