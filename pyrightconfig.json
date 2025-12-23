@@ -1,0 +1,4 @@
+{
+  "include": ["src"],
+  "exclude": ["data", "result", ".direnv", ".codex", "venv", "env", ".venv"]
+}

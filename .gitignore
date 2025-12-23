@@ -43,6 +43,7 @@ output/
 input/
 temp/
 models/
+data/
 
 # Editor specific files
 .vscode/
