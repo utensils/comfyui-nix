@@ -462,6 +462,24 @@ sudo systemctl restart docker
 
 The Docker image follows the same modular structure as the regular installation, ensuring consistency across deployment methods.
 
+## Binary Cache (Cachix)
+
+To speed up builds, you can use the public Cachix cache:
+
+```bash
+cachix use utensils
+```
+
+If you are building locally and want to publish artifacts to the cache:
+
+```bash
+# Watch and upload new store paths
+cachix watch-store utensils &
+
+# Build what you need
+nix build .#dockerImageCuda
+```
+
 ### Automated Builds (CI/CD)
 
 Docker images are automatically built and published to GitHub Container Registry via GitHub Actions:
