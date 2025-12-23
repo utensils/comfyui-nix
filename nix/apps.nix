@@ -148,6 +148,14 @@ in
     mkApp "comfy-ui-mutable" "Run ComfyUI in mutable mode (allows ComfyUI-Manager/pip installs)"
       mutableScript
       [ ];
+
+  cuda = {
+    type = "app";
+    program = "${packages.cuda}/bin/comfy-ui";
+    meta = {
+      description = "Run ComfyUI with the CUDA-enabled Nix runtime";
+    };
+  };
 }
 // (
   if isLinuxCrossCompile then

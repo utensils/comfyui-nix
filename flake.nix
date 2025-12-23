@@ -123,7 +123,9 @@
         packages =
           {
             default = nativePackages.default;
+            cuda = nativePackagesCuda.default;
             pythonRuntime = nativePackages.pythonRuntime;
+            pythonRuntimeCuda = nativePackagesCuda.pythonRuntime;
           }
           // (
             if pkgs.stdenv.isLinux then

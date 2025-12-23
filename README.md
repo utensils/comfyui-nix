@@ -15,6 +15,7 @@ nix run github:utensils/comfyui-nix -- --open
 ### Modes
 
 - Pure (default): `nix run github:utensils/comfyui-nix -- …` uses the Nix-packaged Python runtime and avoids runtime installs/network mutation.
+- CUDA (pure): `nix run github:utensils/comfyui-nix#cuda -- …` uses the CUDA-enabled Nix runtime (Linux/NVIDIA only).
 - Mutable (opt-in): `nix run github:utensils/comfyui-nix#mutable -- …` enables ComfyUI-Manager and pip installs in your `$COMFY_USER_DIR`. Use this when you explicitly want a writable environment.
 - Mutable state is isolated under `~/.config/comfy-ui/mutable` by default; override with `COMFY_USER_DIR` or `--base-directory` if you need a different path.
 - API nodes are disabled by default in pure mode to avoid missing cloud SDK deps; set `COMFY_ENABLE_API_NODES=true` if you want them (you must supply the required APIs/dependencies yourself).
@@ -60,6 +61,9 @@ nix run github:utensils/comfyui-nix/[commit-hash] -- --open
 ```bash
 # Example: Use CUDA 12.1
 CUDA_VERSION=cu121 nix run github:utensils/comfyui-nix
+
+# Example: Pure CUDA runtime (Linux + NVIDIA)
+nix run github:utensils/comfyui-nix#cuda -- --listen 0.0.0.0
 
 # Example: Use custom data directory (e.g., on a separate drive)
 nix run github:utensils/comfyui-nix -- --base-directory ~/AI
