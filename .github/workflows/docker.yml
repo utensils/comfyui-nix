@@ -36,6 +36,8 @@ jobs:
       contents: read
       packages: write
       id-token: write
+    env:
+      CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
     strategy:
       fail-fast: false
@@ -83,14 +85,14 @@ jobs:
             extra-platforms = aarch64-linux
 
       - name: Configure Cachix (push)
-        if: github.event_name != 'pull_request' && secrets.CACHIX_AUTH_TOKEN != ''
+        if: github.event_name != 'pull_request' && env.CACHIX_AUTH_TOKEN != ''
         uses: cachix/cachix-action@v14
         with:
           name: utensils
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          authToken: ${{ env.CACHIX_AUTH_TOKEN }}
 
       - name: Configure Cachix (pull-only)
-        if: github.event_name == 'pull_request' || secrets.CACHIX_AUTH_TOKEN == ''
+        if: github.event_name == 'pull_request' || env.CACHIX_AUTH_TOKEN == ''
         uses: cachix/cachix-action@v14
         with:
           name: utensils
