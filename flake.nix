@@ -117,34 +117,52 @@
             dontConfigure = true;
 
             installPhase = ''
-              mkdir -p "$out/bin"
-              mkdir -p "$out/share/comfy-ui"
+                            mkdir -p "$out/bin"
+                            mkdir -p "$out/share/comfy-ui"
 
-              cp -r ${comfyui-src}/* "$out/share/comfy-ui/"
+                            cp -r ${comfyui-src}/* "$out/share/comfy-ui/"
 
-              mkdir -p "$out/share/comfy-ui/scripts"
-              cp -r ${scriptDir}/* "$out/share/comfy-ui/scripts/"
+                            mkdir -p "$out/share/comfy-ui/scripts"
+                            cp -r ${scriptDir}/* "$out/share/comfy-ui/scripts/"
 
-              # Copy persistence scripts
-              mkdir -p "$out/share/comfy-ui/persistence"
-              cp ${persistenceScript} "$out/share/comfy-ui/persistence/persistence.py"
-              cp ${persistenceMainScript} "$out/share/comfy-ui/persistence/main.py"
+                            # Copy persistence scripts
+                            mkdir -p "$out/share/comfy-ui/persistence"
+                            cp ${persistenceScript} "$out/share/comfy-ui/persistence/persistence.py"
+                            cp ${persistenceMainScript} "$out/share/comfy-ui/persistence/main.py"
 
-              # Copy model downloader custom node
-              mkdir -p "$out/share/comfy-ui/model_downloader"
-              cp -r ${modelDownloaderDir}/* "$out/share/comfy-ui/model_downloader/"
+                            # Copy model downloader custom node
+                            mkdir -p "$out/share/comfy-ui/model_downloader"
+                            cp -r ${modelDownloaderDir}/* "$out/share/comfy-ui/model_downloader/"
 
-              makeWrapper "$out/share/comfy-ui/scripts/launcher.sh" "$out/bin/comfy-ui" \
-                --prefix PATH : "${
-                  pkgs.lib.makeBinPath [
-                    pkgs.curl
-                    pkgs.jq
-                    pkgs.git
-                    pkgs.coreutils
-                  ]
-                }"
+                            makeWrapper "$out/share/comfy-ui/scripts/launcher.sh" "$out/bin/comfy-ui" \
+                              --prefix PATH : "${
+                                pkgs.lib.makeBinPath [
+                                  pkgs.curl
+                                  pkgs.jq
+                                  pkgs.git
+                                  pkgs.coreutils
+                                ]
+                              }"
 
-              ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"
+                            ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"
+
+                            # Create comfy-cli wrapper script
+                            cat > "$out/bin/comfy" << 'COMFY_WRAPPER'
+              #!/usr/bin/env bash
+              VENV_DIR="''${HOME}/.config/comfy-ui/venv"
+              COMFY_BIN="$VENV_DIR/bin/comfy"
+
+              if [ ! -f "$COMFY_BIN" ]; then
+                  echo "Error: comfy-cli not found at $COMFY_BIN"
+                  echo ""
+                  echo "The comfy command requires the ComfyUI environment to be set up first."
+                  echo "Please run 'comfy-ui' at least once to initialize the environment."
+                  exit 1
+              fi
+
+              exec "$COMFY_BIN" "$@"
+              COMFY_WRAPPER
+                            chmod +x "$out/bin/comfy"
             '';
 
             meta = with pkgs.lib; {
