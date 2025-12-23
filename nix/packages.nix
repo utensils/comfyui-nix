@@ -169,7 +169,7 @@ let
             pkgs.libGL
           ]
         }" \
-        --set-default COMFY_MODE ${if pkgs.stdenv.isDarwin then "mutable" else "pure"} \
+        --set-default COMFY_MODE "pure" \
         --set-default PYTHON_RUNTIME "${pythonRuntime}"
 
       ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"
