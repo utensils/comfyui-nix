@@ -80,6 +80,7 @@ let
   configScript = pkgs.replaceVars "${scriptsPath}/config.sh" {
     pythonEnv = pythonRuntime;
     pythonRuntime = pythonRuntime;
+    pythonSitePackages = python.sitePackages;
     comfyuiSrc = comfyuiSrc;
     comfyuiVersion = versions.comfyui.version;
   };

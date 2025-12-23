@@ -192,6 +192,10 @@ OPEN_BROWSER=false
 # Python paths (to be substituted by Nix)
 PYTHON_ENV="@pythonEnv@/bin/python"
 PYTHON_RUNTIME="@pythonRuntime@"
+PYTHON_SITE_PACKAGES="@pythonSitePackages@"
+
+# Frontend root for pure mode (avoid runtime downloads)
+COMFY_FRONTEND_ROOT="$PYTHON_RUNTIME/$PYTHON_SITE_PACKAGES/comfyui_frontend_package/static"
 
 # Source paths (to be substituted by Nix)
 COMFYUI_SRC="@comfyuiSrc@"
@@ -236,9 +240,16 @@ ADDITIONAL_PACKAGES=(spandrel av GitPython toml rich safetensors pydantic pydant
 parse_arguments() {
   ARGS=()
   local skip_next=false
+  local skip_next_action=""
+  local frontend_root_set=false
+  local frontend_version_set=false
   for arg in "$@"; do
     if [[ "$skip_next" == "true" ]]; then
       skip_next=false
+      if [[ "$skip_next_action" == "pass" ]]; then
+        ARGS+=("$arg")
+      fi
+      skip_next_action=""
       continue
     fi
     case "$arg" in
@@ -254,6 +265,27 @@ parse_arguments() {
       --base-directory)
         # Skip this and next arg (value), already handled in config
         skip_next=true
+        skip_next_action="drop"
+        ;;
+      --front-end-root=*)
+        frontend_root_set=true
+        ARGS+=("$arg")
+        ;;
+      --front-end-root)
+        frontend_root_set=true
+        ARGS+=("$arg")
+        skip_next=true
+        skip_next_action="pass"
+        ;;
+      --front-end-version=*)
+        frontend_version_set=true
+        ARGS+=("$arg")
+        ;;
+      --front-end-version)
+        frontend_version_set=true
+        ARGS+=("$arg")
+        skip_next=true
+        skip_next_action="pass"
         ;;
       --debug)
         export LOG_LEVEL=$DEBUG
@@ -270,6 +302,15 @@ parse_arguments() {
   # Disable builtin API nodes by default in pure mode to avoid missing dep churn
   if [[ "$COMFY_MODE" == "pure" && "${COMFY_ENABLE_API_NODES:-}" != "true" ]]; then
     ARGS+=("--disable-api-nodes")
+  fi
+
+  # Force packaged frontend in pure mode unless user overrides it
+  if [[ "$COMFY_MODE" == "pure" && "$frontend_root_set" == "false" && "$frontend_version_set" == "false" ]]; then
+    if [[ -d "$COMFY_FRONTEND_ROOT" ]]; then
+      ARGS+=("--front-end-root" "$COMFY_FRONTEND_ROOT")
+    else
+      echo "WARN: Packaged frontend not found at $COMFY_FRONTEND_ROOT" >&2
+    fi
   fi
 }
 
@@ -288,7 +329,7 @@ export_config() {
   export COMFY_MANAGER_DIR MODEL_DOWNLOADER_PERSISTENT_DIR
   export CUSTOM_NODE_DIR MODEL_DOWNLOADER_APP_DIR
   export OPEN_BROWSER PYTHON_ENV PYTHON_RUNTIME PYTHON_BIN
-  export COMFYUI_SRC MODEL_DOWNLOADER_DIR
+  export COMFYUI_SRC MODEL_DOWNLOADER_DIR COMFY_FRONTEND_ROOT
 
   # Export environment variables (eval is needed to properly export var=value pairs)
   for var in "${ENV_VARS[@]}"; do

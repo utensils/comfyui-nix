@@ -149,6 +149,8 @@ in
       mutableScript
       [ ];
 
+}
+// pkgs.lib.optionalAttrs (packages ? cuda) {
   cuda = {
     type = "app";
     program = "${packages.cuda}/bin/comfy-ui";
