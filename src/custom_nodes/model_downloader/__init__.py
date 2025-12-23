@@ -7,7 +7,7 @@ import importlib.util
 import logging
 import os
 import sys
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -33,7 +33,7 @@ if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
 # Type aliases for handler functions
-DownloadHandler = Callable[["web.Request"], "web.Response"]
+DownloadHandler = Callable[["web.Request"], Awaitable["web.Response"]]
 
 # Import the model_downloader_patch module and get handler functions
 _download_model_handler: DownloadHandler | None = None
