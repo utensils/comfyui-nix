@@ -243,7 +243,8 @@ setup_venv() {
         local TORCH_INSTALL
         TORCH_INSTALL=$(detect_pytorch_version)
         log_info "Installing PyTorch: $TORCH_INSTALL"
-        "$COMFY_VENV/bin/pip" install "$TORCH_INSTALL"
+        # shellcheck disable=SC2086  # Word splitting is intentional here
+        "$COMFY_VENV/bin/pip" install $TORCH_INSTALL
 
         # Install additional packages (includes pydantic, alembic for v0.3.76+)
         "$COMFY_VENV/bin/pip" install "${ADDITIONAL_PACKAGES[@]}"
@@ -273,7 +274,8 @@ setup_venv() {
             local TORCH_INSTALL
             TORCH_INSTALL=$(detect_pytorch_version)
             "$COMFY_VENV/bin/pip" uninstall -y torch torchvision torchaudio
-            "$COMFY_VENV/bin/pip" install "$TORCH_INSTALL"
+            # shellcheck disable=SC2086  # Word splitting is intentional here
+            "$COMFY_VENV/bin/pip" install $TORCH_INSTALL
             touch "$cuda_check_file"
         else
             log_info "PyTorch already has CUDA support"
@@ -284,6 +286,20 @@ setup_venv() {
     fi
 }
 
+# Setup persistence scripts
+setup_persistence_scripts() {
+    log_section "Setting up persistence scripts"
+
+    # Copy our persistence scripts to ensure directory paths are persistent
+    # Note: persistence.py must keep its name for the import in persistent_main.py to work
+    cp -f "$PERSISTENCE_SCRIPT" "$CODE_DIR/persistence.py" 2>/dev/null || true
+    cp -f "$PERSISTENCE_MAIN_SCRIPT" "$CODE_DIR/persistent_main.py" 2>/dev/null || true
+    chmod +x "$CODE_DIR/persistence.py"
+    chmod +x "$CODE_DIR/persistent_main.py"
+
+    log_info "Persistence scripts installed"
+}
+
 # Main installation function
 install_all() {
     create_directories
@@ -291,6 +307,7 @@ install_all() {
     install_comfyui_manager
     install_model_downloader
     setup_venv
+    setup_persistence_scripts
 
     # Now set up the actual symlinks
     source "$SCRIPT_DIR/persistence.sh"

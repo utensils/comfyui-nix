@@ -195,7 +195,16 @@ PYTHON_RUNTIME="@pythonRuntime@"
 
 # Source paths (to be substituted by Nix)
 COMFYUI_SRC="@comfyuiSrc@"
-MODEL_DOWNLOADER_DIR="@modelDownloaderDir@"
+
+# Package-relative paths - compute relative to SCRIPT_DIR
+# SCRIPT_DIR is set by launcher.sh before sourcing this file
+# Scripts are in scripts/, other dirs are siblings (persistence/, model_downloader/)
+_PACKAGE_DIR="$(dirname "${SCRIPT_DIR:-$(dirname "${BASH_SOURCE[0]}")}")"
+MODEL_DOWNLOADER_DIR="$_PACKAGE_DIR/model_downloader"
+# shellcheck disable=SC2034  # Used in install.sh
+PERSISTENCE_SCRIPT="$_PACKAGE_DIR/persistence/persistence.py"
+# shellcheck disable=SC2034  # Used in install.sh
+PERSISTENCE_MAIN_SCRIPT="$_PACKAGE_DIR/persistence/main.py"
 
 # Directory lists for creation
 declare -A DIRECTORIES=(
@@ -215,9 +224,9 @@ declare -A DIRECTORIES=(
 # Python packages to install (as arrays for proper handling)
 # shellcheck disable=SC2034  # Used in install.sh
 BASE_PACKAGES=(pyyaml pillow numpy requests)
-# Core packages needed for ComfyUI v0.4.0+
+# Core packages needed for ComfyUI v0.5.x+
 # shellcheck disable=SC2034  # Used in install.sh
-ADDITIONAL_PACKAGES=(spandrel av GitPython toml rich safetensors pydantic pydantic-settings alembic)
+ADDITIONAL_PACKAGES=(spandrel av GitPython toml rich safetensors pydantic pydantic-settings alembic comfy-cli)
 
 # PyTorch installation will be determined dynamically based on GPU availability
 # This is set in install.sh based on platform detection

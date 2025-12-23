@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-nix"
-version = "0.4.0"
+version = "0.5.1"
 description = "A Nix flake for ComfyUI with Python 3.12"
 requires-python = ">=3.12"
 

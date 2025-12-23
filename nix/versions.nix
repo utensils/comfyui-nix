@@ -1,8 +1,8 @@
 {
   comfyui = {
-    version = "0.4.0";
-    rev = "fc657f471a29d07696ca16b566000e8e555d67d1";
-    hash = "sha256-gq7/CfKqXGD/ti9ZeBVsHFPid+LTkpP4nTzt6NE/Jfo=";
+    version = "0.5.1";
+    rev = "ba6080bbab070934ea6e870c5fc30dbf702eb445";
+    hash = "sha256-mJf8p6ga9jQHXmHrQjeGs4fgAlRFnREQIPskNM0vwXQ=";
   };
 
   vendored = {

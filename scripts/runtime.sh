@@ -75,7 +75,7 @@ start_with_browser() {
     # Set up a trap to kill the child process when this script receives a signal
     trap 'kill "$PID" 2>/dev/null' INT TERM
 
-    # Start ComfyUI in the background using our persistent_main.py wrapper
+    # Start ComfyUI in the background
     cd "$CODE_DIR" || exit 1
     log_info "Starting ComfyUI in background..."
 

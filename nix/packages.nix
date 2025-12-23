@@ -22,6 +22,11 @@ let
     name = "comfyui-model-downloader";
   };
 
+  persistenceDir = builtins.path {
+    path = ../src/persistence;
+    name = "comfyui-persistence";
+  };
+
   pythonRuntime = python.withPackages (
     ps:
     let
@@ -65,12 +70,15 @@ let
     pythonEnv = pythonRuntime;
     pythonRuntime = pythonRuntime;
     comfyuiSrc = comfyuiSrc;
-    modelDownloaderDir = modelDownloaderDir;
     comfyuiVersion = versions.comfyui.version;
   };
 
   launcherScript = pkgs.replaceVars "${scriptsPath}/launcher.sh" {
-    libPath = "${pkgs.stdenv.cc.cc.lib}/lib";
+    libPath = lib.makeLibraryPath [
+      pkgs.stdenv.cc.cc.lib
+      pkgs.glib
+      pkgs.libGL
+    ];
   };
 
   loggerScript = "${scriptsPath}/logger.sh";
@@ -121,6 +129,12 @@ let
       mkdir -p "$out/share/comfy-ui/scripts"
       cp -r ${scriptDir}/* "$out/share/comfy-ui/scripts/"
 
+      mkdir -p "$out/share/comfy-ui/persistence"
+      cp -r ${persistenceDir}/* "$out/share/comfy-ui/persistence/"
+
+      mkdir -p "$out/share/comfy-ui/model_downloader"
+      cp -r ${modelDownloaderDir}/* "$out/share/comfy-ui/model_downloader/"
+
       makeWrapper "$out/share/comfy-ui/scripts/launcher.sh" "$out/bin/comfy-ui" \
         --prefix PATH : "${
           lib.makeBinPath [
@@ -130,12 +144,41 @@ let
             pkgs.coreutils
           ]
         }" \
-        --set-default LD_LIBRARY_PATH "${pkgs.stdenv.cc.cc.lib}/lib" \
-        --set-default DYLD_LIBRARY_PATH "${pkgs.stdenv.cc.cc.lib}/lib" \
+        --set-default LD_LIBRARY_PATH "${
+          lib.makeLibraryPath [
+            pkgs.stdenv.cc.cc.lib
+            pkgs.glib
+            pkgs.libGL
+          ]
+        }" \
+        --set-default DYLD_LIBRARY_PATH "${
+          lib.makeLibraryPath [
+            pkgs.stdenv.cc.cc.lib
+            pkgs.glib
+            pkgs.libGL
+          ]
+        }" \
         --set-default COMFY_MODE pure \
         --set-default PYTHON_RUNTIME "${pythonRuntime}"
 
       ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"
+
+      printf '%s\n' \
+        '#!/usr/bin/env bash' \
+        'VENV_DIR="''${HOME}/.config/comfy-ui/venv"' \
+        'COMFY_BIN="$VENV_DIR/bin/comfy"' \
+        "" \
+        'if [ ! -f "$COMFY_BIN" ]; then' \
+        '  echo "Error: comfy-cli not found at $COMFY_BIN"' \
+        '  echo ""' \
+        '  echo "The comfy command requires the ComfyUI environment to be set up first."' \
+        '  echo "Please run \"comfy-ui\" at least once to initialize the environment."' \
+        '  exit 1' \
+        'fi' \
+        "" \
+        'exec "$COMFY_BIN" "$@"' \
+        > "$out/bin/comfy"
+      chmod +x "$out/bin/comfy"
     '';
 
     meta = with lib; {

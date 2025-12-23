@@ -13,6 +13,7 @@
       baseEnv = [
         "HOME=/root"
         "COMFY_USER_DIR=/data"
+        "TMPDIR=/tmp"
         "PATH=/bin:/usr/bin"
         "PYTHONUNBUFFERED=1"
         "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
@@ -37,6 +38,7 @@
     in
     pkgs.dockerTools.buildImage {
       inherit name tag;
+      created = "now";
 
       copyToRoot = pkgs.buildEnv {
         name = "root";
@@ -48,6 +50,7 @@
           pkgs.curl
           pkgs.jq
           pkgs.cacert
+          pkgs.glib
           pkgs.libGL
           pkgs.libGLU
           pkgs.stdenv.cc.cc.lib
@@ -67,9 +70,9 @@
           "-c"
           (
             if cudaSupport then
-              "export COMFY_USER_DIR=/data && mkdir -p /data && /bin/comfy-ui --listen 0.0.0.0"
+              "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && export PATH=\"/root/.config/comfy-ui/venv/bin:$PATH\" && /bin/comfy-ui --listen 0.0.0.0"
             else
-              "export COMFY_USER_DIR=/data && mkdir -p /data && /bin/comfy-ui --listen 0.0.0.0 --cpu"
+              "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && export PATH=\"/root/.config/comfy-ui/venv/bin:$PATH\" && /bin/comfy-ui --listen 0.0.0.0 --cpu"
           )
         ];
         Env = baseEnv ++ cpuEnv ++ cudaEnv;
@@ -79,6 +82,7 @@
         WorkingDir = "/data";
         Volumes = {
           "/data" = { };
+          "/tmp" = { };
         };
         Healthcheck = {
           Test = [
