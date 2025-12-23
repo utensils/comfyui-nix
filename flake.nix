@@ -15,9 +15,9 @@
     }:
     let
       # Version configuration - single source of truth
-      comfyuiVersion = "0.4.0";
-      comfyuiRev = "fc657f471a29d07696ca16b566000e8e555d67d1";
-      comfyuiHash = "sha256-gq7/CfKqXGD/ti9ZeBVsHFPid+LTkpP4nTzt6NE/Jfo=";
+      comfyuiVersion = "0.5.1";
+      comfyuiRev = "ba6080bbab070934ea6e870c5fc30dbf702eb445";
+      comfyuiHash = "sha256-mJf8p6ga9jQHXmHrQjeGs4fgAlRFnREQIPskNM0vwXQ=";
 
       # Function to build packages for a given pkgs
       # This allows us to build for different target systems (cross-compilation)
@@ -154,6 +154,7 @@
           dockerImage = pkgs.dockerTools.buildImage {
             name = "comfy-ui";
             tag = "latest";
+            created = "now";
 
             copyToRoot = pkgs.buildEnv {
               name = "root";
@@ -228,6 +229,7 @@
           dockerImageCuda = pkgs.dockerTools.buildImage {
             name = "comfy-ui";
             tag = "cuda";
+            created = "now";
 
             copyToRoot = pkgs.buildEnv {
               name = "root";

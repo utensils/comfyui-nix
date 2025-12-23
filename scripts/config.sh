@@ -25,7 +25,7 @@ debug_vars() {
 trap 'echo "ERROR in config.sh: Command failed with exit code $? at line $LINENO"' ERR
 
 # Version and port configuration
-COMFY_VERSION="0.4.0"
+COMFY_VERSION="0.5.1"
 COMFY_PORT="8188"
 
 # CUDA configuration (can be overridden via environment)
