@@ -7,7 +7,6 @@ let
   lib = pkgs.lib;
   useCuda = cudaSupport && pkgs.stdenv.isLinux;
   sentencepieceNoGperf = pkgs.sentencepiece.override { withGPerfTools = false; };
-  ffmpegFull = pkgs.ffmpeg-full;
 in
 final: prev:
 lib.optionalAttrs (prev ? torch) (
@@ -62,9 +61,6 @@ lib.optionalAttrs (prev ? torch) (
     nativeBuildInputs = old.nativeBuildInputs or [ ];
   });
 }
-// lib.optionalAttrs (pkgs.stdenv.isDarwin && prev ? av) {
-  av = prev.av.overridePythonAttrs (old: {
-    buildInputs = [ ffmpegFull ];
-    nativeBuildInputs = old.nativeBuildInputs or [ ];
-  });
-}
+# Note: On Darwin, av uses ffmpeg 7.x and torchaudio uses ffmpeg 6.x.
+# These versions are mutually incompatible for building. The resulting runtime
+# warning about duplicate Objective-C classes is harmless in practice.
