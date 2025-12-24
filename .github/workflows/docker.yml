@@ -137,8 +137,8 @@ jobs:
       - name: Extract metadata
         id: meta
         run: |
-          # Get ComfyUI version from flake.nix
-          VERSION=$(grep -m1 'comfyuiVersion = ' flake.nix | sed 's/.*"\(.*\)".*/\1/')
+          # Get ComfyUI version from nix/versions.nix
+          VERSION=$(grep -m1 'version = ' nix/versions.nix | sed 's/.*"\(.*\)".*/\1/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           # Determine architecture suffix for intermediate tags
@@ -216,7 +216,7 @@ jobs:
       - name: Extract metadata
         id: meta
         run: |
-          VERSION=$(grep -m1 'comfyuiVersion = ' flake.nix | sed 's/.*"\(.*\)".*/\1/')
+          VERSION=$(grep -m1 'version = ' nix/versions.nix | sed 's/.*"\(.*\)".*/\1/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create and push multi-arch manifest (CPU)
