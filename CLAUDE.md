@@ -26,12 +26,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Linting and Code Quality
 - **Run all checks**: `nix flake check` (runs all CI checks: build, lint, type-check, nixfmt)
-- **Lint code**: `nix run .#lint` (run ruff linter, check only)
-- **Format code**: `nix run .#format` (auto-format code with ruff)
-- **Fix linting issues**: `nix run .#lint-fix` (run ruff with auto-fix)
-- **Type check**: `nix run .#type-check` (run pyright type checker)
-- **Run all checks (verbose)**: `nix run .#check-all` (lint + type-check with output)
 - **Nix formatting**: `nix fmt` (format Nix files with nixfmt-rfc-style)
+- **Dev shell**: `nix develop` provides ruff and pyright for manual linting/type-checking
 
 ## Version Management
 - Current ComfyUI version: v0.5.1 (pinned in `nix/versions.nix`)

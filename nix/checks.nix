@@ -2,6 +2,7 @@
   pkgs,
   source,
   packages,
+  pythonRuntime,
 }:
 {
   package = packages.default;
@@ -31,7 +32,7 @@
         chmod -R u+w source
         cd source
         ${pkgs.pyright}/bin/pyright \
-          --pythonpath ${packages.pythonRuntime}/bin/python \
+          --pythonpath ${pythonRuntime}/bin/python \
           src/
         touch $out
       '';

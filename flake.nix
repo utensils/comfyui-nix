@@ -93,14 +93,9 @@
         packages =
           {
             default = nativePackages.default;
-            pythonRuntime = nativePackages.pythonRuntime;
           }
           // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
             cuda = nativePackagesCuda.default;
-            pythonRuntimeCuda = nativePackagesCuda.pythonRuntime;
-          }
-          # Docker images only exported on Linux (CI builds on Linux, cross-compile has platform issues)
-          // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
             dockerImage = nativePackages.dockerImage;
             dockerImageCuda = nativePackagesCuda.dockerImageCuda;
           };
@@ -146,7 +141,10 @@
 
         formatter = pkgs.nixfmt-rfc-style;
 
-        checks = import ./nix/checks.nix { inherit pkgs source packages; };
+        checks = import ./nix/checks.nix {
+          inherit pkgs source packages;
+          pythonRuntime = nativePackages.pythonRuntime;
+        };
       }
     )
     // {
