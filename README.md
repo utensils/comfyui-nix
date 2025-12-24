@@ -411,14 +411,14 @@ The Docker images use the same pure Nix-based launcher as the local installation
 To speed up builds, you can use the public Cachix cache:
 
 ```bash
-cachix use utensils
+cachix use comfyui
 ```
 
 If you are building locally and want to publish artifacts to the cache:
 
 ```bash
 # Watch and upload new store paths
-cachix watch-store utensils &
+cachix watch-store comfyui &
 
 # Build what you need
 nix build .#dockerImageCuda

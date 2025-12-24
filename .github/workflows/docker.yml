@@ -88,14 +88,14 @@ jobs:
         if: github.event_name != 'pull_request' && env.CACHIX_AUTH_TOKEN != ''
         uses: cachix/cachix-action@v14
         with:
-          name: utensils
+          name: comfyui
           authToken: ${{ env.CACHIX_AUTH_TOKEN }}
 
       - name: Configure Cachix (pull-only)
         if: github.event_name == 'pull_request' || env.CACHIX_AUTH_TOKEN == ''
         uses: cachix/cachix-action@v14
         with:
-          name: utensils
+          name: comfyui
 
       - name: Free disk space
         run: |
