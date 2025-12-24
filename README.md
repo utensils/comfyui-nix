@@ -1,10 +1,8 @@
 # ComfyUI Nix Flake
 
-A Nix flake for installing and running [ComfyUI](https://github.com/comfyanonymous/ComfyUI) with Python 3.12. Supports both macOS (Intel/Apple Silicon) and Linux with automatic GPU detection.
+A pure Nix flake for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) with Python 3.12. Supports macOS (Intel/Apple Silicon) and Linux.
 
 ![ComfyUI Demo](comfyui-demo.gif)
-
-> **Note:** Pull requests are more than welcome! Contributions to this open project are appreciated.
 
 ## Quick Start
 
@@ -12,469 +10,110 @@ A Nix flake for installing and running [ComfyUI](https://github.com/comfyanonymo
 nix run github:utensils/comfyui-nix -- --open
 ```
 
-### Modes
-
-- **Default**: `nix run github:utensils/comfyui-nix -- …` uses the Nix-packaged Python runtime with all dependencies pre-built.
-- **CUDA**: `nix run github:utensils/comfyui-nix#cuda -- …` uses the CUDA-enabled Nix runtime (Linux/NVIDIA only).
-- API nodes are disabled by default to avoid missing cloud SDK deps; set `COMFY_ENABLE_API_NODES=true` if you want them (you must supply the required APIs/dependencies yourself).
-
-## Additional Options
-
+For CUDA (Linux/NVIDIA):
 ```bash
-# Run a specific version using a commit hash
-nix run github:utensils/comfyui-nix/[commit-hash] -- --open
+nix run github:utensils/comfyui-nix#cuda
 ```
 
-### Command Line Options
+## Options
 
-- `--open`: Automatically opens ComfyUI in your browser when the server is ready
-- `--port=XXXX`: Run ComfyUI on a specific port (default: 8188)
-- `--base-directory PATH`: Set data directory for models, input, output, and custom_nodes. Quote paths with spaces: `--base-directory "/path/with spaces"`
-  - **Linux default**: `~/.config/comfy-ui` (XDG convention)
-  - **macOS default**: `~/Library/Application Support/comfy-ui` (Apple convention)
-- `--debug` or `--verbose`: Enable detailed debug logging
+| Flag | Description |
+|------|-------------|
+| `--open` | Open browser when ready |
+| `--port=XXXX` | Custom port (default: 8188) |
+| `--base-directory PATH` | Data directory for models, outputs, custom nodes |
+| `--listen 0.0.0.0` | Allow network access |
 
-### Environment Variables
+**Default data locations:**
+- Linux: `~/.config/comfy-ui`
+- macOS: `~/Library/Application Support/comfy-ui`
 
-- `COMFY_USER_DIR`: Override the default data directory (alternative to `--base-directory`)
-- `COMFY_ENABLE_API_NODES`: Set to `true` to allow built-in API nodes (requires you to provide their Python deps/credentials)
-- `COMFY_ALLOW_MANAGER`: Set to `1` to prevent auto-disabling of ComfyUI-Manager in pure mode
+**Environment variables:**
+- `COMFY_USER_DIR` - Override data directory
+- `COMFY_ENABLE_API_NODES=true` - Enable API nodes (you provide deps)
+- `COMFY_ALLOW_MANAGER=1` - Keep ComfyUI-Manager enabled
 
-```bash
-# Example: CUDA runtime (Linux + NVIDIA)
-nix run github:utensils/comfyui-nix#cuda -- --listen 0.0.0.0
-
-# Example: Use custom data directory (e.g., on a separate drive)
-nix run github:utensils/comfyui-nix -- --base-directory ~/AI
-```
-
-### Development Shell
+## Installation
 
 ```bash
-# Enter a development shell with all dependencies
-nix develop
-```
-
-The development shell includes: Python 3.12, git, nixfmt, ruff, pyright, jq, and curl.
-
-### Code Quality and CI
-
-```bash
-# Format Nix files
-nix fmt
-
-# Format Python code
-nix run .#format
-
-# Lint Python code
-nix run .#lint
-
-# Type check Python code
-nix run .#type-check
-
-# Run all checks (build, lint, type-check, shellcheck, nixfmt)
-nix flake check
-
-# Check for ComfyUI updates
-nix run .#update
-```
-
-### Installation
-
-You can install ComfyUI to your profile:
-
-```bash
+# Install to profile
 nix profile install github:utensils/comfyui-nix
-```
 
-## Customization
-
-The flake is designed to be simple and extensible. You can customize it by:
-
-1. Adding Python packages in the `pythonRuntime` definition in `nix/packages.nix`
-2. Pinning to a specific ComfyUI version by changing the version pins in `nix/versions.nix`
-3. Adding third-party custom nodes: package them via an overlay and add to your flake inputs/overlays
-
-### Using the Overlay
-
-You can integrate this flake into your own Nix configuration using the overlay:
-
-```nix
-{
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    comfyui-nix.url = "github:utensils/comfyui-nix";
-  };
-
-  outputs = { self, nixpkgs, comfyui-nix }: {
-    # Use in NixOS configuration
-    nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
-      modules = [
-        ({ pkgs, ... }: {
-          nixpkgs.overlays = [ comfyui-nix.overlays.default ];
-          environment.systemPackages = [ pkgs.comfy-ui ];
-        })
-      ];
-    };
-  };
-}
-```
-
-### NixOS Module
-
-Enable ComfyUI as a systemd service:
-
-```nix
+# Or use the overlay in your flake
 {
   inputs.comfyui-nix.url = "github:utensils/comfyui-nix";
+  # Then: nixpkgs.overlays = [ comfyui-nix.overlays.default ];
+  # Provides: pkgs.comfy-ui
+}
+```
 
-  outputs = { self, nixpkgs, comfyui-nix }: {
-    nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
-      modules = [
-        comfyui-nix.nixosModules.default
-        ({ ... }: {
-          nixpkgs.overlays = [ comfyui-nix.overlays.default ];
-          services.comfyui = {
-            enable = true;
-            port = 8188;
-            listenAddress = "127.0.0.1";  # Use "0.0.0.0" for network access
-            dataDir = "/var/lib/comfyui";
-            openFirewall = false;  # Set true to open port in firewall
-          };
-        })
-      ];
-    };
+## NixOS Module
+
+```nix
+{
+  imports = [ comfyui-nix.nixosModules.default ];
+  nixpkgs.overlays = [ comfyui-nix.overlays.default ];
+
+  services.comfyui = {
+    enable = true;
+    port = 8188;
+    listenAddress = "127.0.0.1";
+    dataDir = "/var/lib/comfyui";
+    openFirewall = false;
+    # extraArgs = [ "--lowvram" ];
+    # environment = { };
   };
 }
 ```
 
-#### Module Options
+## Docker
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `enable` | bool | `false` | Enable the ComfyUI service |
-| `package` | package | `pkgs.comfy-ui` | ComfyUI package to run |
-| `port` | port | `8188` | Port for ComfyUI to listen on |
-| `listenAddress` | string | `"127.0.0.1"` | Address to listen on (use `"0.0.0.0"` for all interfaces) |
-| `dataDir` | string | `/var/lib/comfyui` | Base directory for models, input, output, custom nodes |
-| `user` | string | `"comfyui"` | User account to run ComfyUI under |
-| `group` | string | `"comfyui"` | Group to run ComfyUI under |
-| `createUser` | bool | `true` | Create the comfyui system user/group (only when using default "comfyui" names) |
-| `openFirewall` | bool | `false` | Open the configured port in the firewall |
-| `extraArgs` | list of strings | `[]` | Extra CLI arguments passed to ComfyUI |
-| `environment` | attrs | `{}` | Environment variables for the service |
+Pre-built images on GitHub Container Registry:
 
-### Project Structure
+```bash
+# CPU (multi-arch: amd64 + arm64)
+docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
 
-This flake uses a modular, multi-file approach for better maintainability:
+# CUDA (x86_64 only, requires nvidia-container-toolkit)
+docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest-cuda
+```
 
-- `flake.nix` - Main flake definition and package configuration
-- `nix/` - Flake modules and helpers:
-  - `versions.nix` - Version pins for ComfyUI and vendored wheels
-  - `packages.nix` - Package build definitions and inline launcher script
-  - `docker.nix` - Docker image helpers
-  - `checks.nix` - `nix flake check` definitions
-  - `modules/comfyui.nix` - NixOS service module
-- `src/custom_nodes/` - Custom node extensions (model downloader)
+Build locally:
+```bash
+nix run .#buildDocker      # CPU
+nix run .#buildDockerCuda  # CUDA
+```
 
-## Data Persistence
+**Note:** Docker on macOS runs CPU-only. For GPU acceleration on Apple Silicon, use `nix run` directly.
 
-User data is stored in a platform-specific location (configurable via `--base-directory` or `COMFY_USER_DIR`):
+## Development
 
-- **Linux**: `~/.config/comfy-ui/` (XDG convention)
-- **macOS**: `~/Library/Application Support/comfy-ui/` (Apple convention)
+```bash
+nix develop              # Dev shell with Python 3.12, ruff, pyright
+nix flake check          # Run all checks (build, lint, type-check, nixfmt)
+nix run .#update         # Check for ComfyUI updates
+```
 
-Directory structure:
+## Data Structure
+
 ```
 <data-directory>/
-├── models/          # Stable Diffusion models (checkpoints, loras, vae, etc.)
-├── output/          # Generated images and outputs
-├── input/           # Input files for processing
-├── user/            # User configuration and workflows
-├── custom_nodes/    # Custom node extensions
-└── temp/            # Temporary files
+├── models/       # checkpoints, loras, vae, controlnet, etc.
+├── output/       # Generated images
+├── input/        # Input files
+├── user/         # Workflows and settings
+├── custom_nodes/ # Extensions (model_downloader auto-linked)
+└── temp/
 ```
 
-This structure ensures your models, outputs, and custom nodes persist between application updates. ComfyUI runs directly from the Nix store, so no application files are copied to your data directory.
+ComfyUI runs from the Nix store; only user data lives in your data directory.
 
-## System Requirements
-
-### macOS
-- macOS 10.15+ (Intel or Apple Silicon)
-- Nix package manager
-
-### Linux
-- x86_64 Linux distribution
-- Nix package manager
-- NVIDIA GPU with drivers (optional, for CUDA acceleration)
-- glibc 2.27+
-
-## Platform Support
-
-### Apple Silicon Support
-
-- Uses stable PyTorch releases with MPS (Metal Performance Shaders) support
-- Enables FP16 precision mode for better performance
-- Sets optimal memory management parameters for macOS
-
-### Linux Support
-
-- CUDA support via `nix run .#cuda` for NVIDIA GPUs
-- Automatic library path configuration for system libraries
-- Falls back to CPU-only mode with the default package
-
-## Version Information
-
-This flake currently provides:
-
-- ComfyUI v0.5.1
-- Python 3.12
-- PyTorch stable releases (CUDA via `nix run .#cuda` or the `-cuda` Docker image)
-- Frontend/docs/template packages vendored as wheels pinned in `nix/versions.nix`
-
-To check for updates:
-```bash
-nix run .#update
-```
-
-## Model Downloading Patch
-
-This flake includes a custom patch for the model downloading experience. Unlike the default ComfyUI implementation, our patch ensures that when models are selected in the UI, they are automatically downloaded in the background without requiring manual intervention. This significantly improves the user experience by eliminating the need to manually manage model downloads, especially for new users who may not be familiar with the process of obtaining and placing model files.
-
-## Source Code Organization
-
-The custom code in this flake is minimal, focusing only on essential extensions:
-
-```
-src/
-└── custom_nodes/
-    └── model_downloader/   # Automatic model downloading functionality
-        ├── js/             # Frontend JavaScript components
-        └── ...             # Backend API implementation
-```
-
-The **model_downloader** custom node provides automatic downloading of models when selected in the UI, with WebSocket progress updates. It is automatically linked into your `custom_nodes/` directory on first run.
-
-## Docker Support
-
-This flake includes Docker support for running ComfyUI in a containerized environment while preserving all functionality. Multi-architecture images are available for both x86_64 (amd64) and ARM64 (aarch64) platforms.
-
-### Pre-built Images (GitHub Container Registry)
-
-Pre-built Docker images are automatically published to GitHub Container Registry on every release. This is the easiest way to get started:
-
-#### Pull and Run CPU Version (Multi-arch: amd64 + arm64)
-
-```bash
-# Pull the latest CPU version (automatically selects correct architecture)
-docker pull ghcr.io/utensils/comfyui-nix:latest
-
-# Run the container
-docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
-```
-
-#### Pull and Run CUDA (GPU) Version (x86_64 only)
-
-```bash
-# Pull the latest CUDA version
-docker pull ghcr.io/utensils/comfyui-nix:latest-cuda
-
-# Run with GPU support
-docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest-cuda
-```
-
-#### Available Tags
-
-- `latest` - Latest CPU version, multi-arch (amd64 + arm64)
-- `latest-cuda` - Latest CUDA version (x86_64/amd64 only)
-- `latest-amd64` - Latest CPU version for x86_64
-- `latest-arm64` - Latest CPU version for ARM64
-- `X.Y.Z` - Specific version (CPU, multi-arch)
-- `X.Y.Z-cuda` - Specific version (CUDA, x86_64 only)
-
-Visit the [packages page](https://github.com/utensils/comfyui-nix/pkgs/container/comfyui-nix) to see all available versions.
-
-### Apple Silicon (M1/M2/M3) Support
-
-The `latest` and `latest-arm64` tags work on Apple Silicon Macs via Docker Desktop:
-
-```bash
-# Works on Apple Silicon Macs
-docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
-```
-
-**Important**: Docker containers on macOS cannot access the Metal GPU (MPS). The Docker image runs **CPU-only** on Apple Silicon. For GPU acceleration on Apple Silicon, use `nix run` directly instead of Docker:
-
-```bash
-# For GPU acceleration on Apple Silicon, use nix directly (not Docker)
-nix run github:utensils/comfyui-nix
-```
-
-### Building the Docker Image Locally
-
-#### CPU Version
-
-Use the included `buildDocker` command to create a Docker image:
-
-```bash
-# Build the Docker image
-nix run .#buildDocker
-
-# Or from remote
-nix run github:utensils/comfyui-nix#buildDocker
-```
-
-This creates a Docker image named `comfy-ui:latest` in your local Docker daemon.
-
-#### CUDA (GPU) Version
-
-For Linux systems with NVIDIA GPUs, build the CUDA-enabled image:
-
-```bash
-# Build the CUDA-enabled Docker image
-nix run .#buildDockerCuda
-
-# Or from remote
-nix run github:utensils/comfyui-nix#buildDockerCuda
-```
-
-This creates a Docker image named `comfy-ui:cuda` with GPU acceleration support.
-
-### Running the Docker Container
-
-#### CPU Version
-
-Run the container with either the pre-built or locally-built image:
-
-```bash
-# Create a data directory for persistence
-mkdir -p ./data
-
-# Run pre-built image from GitHub Container Registry
-docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
-
-# Or run locally-built image
-docker run -p 8188:8188 -v "$PWD/data:/data" comfy-ui:latest
-```
-
-#### CUDA (GPU) Version
-
-For GPU-accelerated execution:
-
-```bash
-# Create a data directory for persistence
-mkdir -p ./data
-
-# Run pre-built CUDA image from GitHub Container Registry
-docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest-cuda
-
-# Or run locally-built CUDA image
-docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" comfy-ui:cuda
-```
-
-**Requirements for CUDA support:**
-- NVIDIA GPU with CUDA support
-- NVIDIA drivers installed on the host system
-- `nvidia-container-toolkit` package installed
-- Docker configured for GPU support
-
-To install nvidia-container-toolkit on Ubuntu/Debian:
-```bash
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
-sudo systemctl restart docker
-```
-
-### Docker Image Features
-
-- **Full functionality**: Includes all the features of the regular ComfyUI installation
-- **Nix runtime**: Docker images use the Nix-provided Python environment
-- **Persistence**: Data is stored in a mounted volume at `/data`
-- **Port exposure**: Web UI available on port 8188
-- **Essential utilities**: Includes bash, coreutils, git, and other necessary tools
-- **Proper environment**: All environment variables set correctly for containerized operation
-- **GPU support**: CUDA version includes proper environment variables for NVIDIA GPU access
-
-The Docker images use the same pure Nix-based launcher as the local installation, ensuring consistency across deployment methods.
-
-## Binary Cache (Cachix)
-
-To speed up builds, you can use the public Cachix cache:
+## Binary Cache
 
 ```bash
 cachix use comfyui
 ```
 
-If you are building locally and want to publish artifacts to the cache:
-
-```bash
-# Watch and upload new store paths
-cachix watch-store comfyui &
-
-# Build what you need
-nix build .#dockerImageCuda
-```
-
-### Automated Builds (CI/CD)
-
-Docker images are automatically built and published to GitHub Container Registry via GitHub Actions:
-
-- **Trigger events**: Push to main branch, version tags (v*), and pull requests
-- **Multi-architecture**: CPU images built for both amd64 and arm64 (via QEMU emulation)
-- **Build matrix**: CPU (multi-arch) and CUDA (x86_64 only) variants built in parallel
-- **Tagging strategy**:
-  - Main branch pushes: `latest` and `X.Y.Z` (version from `nix/versions.nix`)
-  - Version tags: `vX.Y.Z` and `latest`
-  - Pull requests: `pr-N` (for testing, not pushed to registry)
-  - Architecture-specific: `latest-amd64`, `latest-arm64`
-- **Registry**: All images are publicly accessible at `ghcr.io/utensils/comfyui-nix`
-
-The workflow uses Nix to ensure reproducible builds and leverages the same build configuration as local builds, guaranteeing consistency between development and production environments.
-
-## Useful Hints
-
-### Using a Custom Data Directory
-
-Use `--base-directory` to store all data (models, input, output, custom_nodes) on a separate drive:
-
-```bash
-nix run github:utensils/comfyui-nix -- --base-directory ~/AI
-```
-
-Expected structure in your base directory:
-```
-~/AI/
-├── models/          # checkpoints, loras, vae, text_encoders, etc.
-├── input/           # input files
-├── output/          # generated outputs
-├── custom_nodes/    # extensions
-└── user/            # workflows and settings
-```
-
-For advanced setups with non-standard directory structures, use `--extra-model-paths-config` with a YAML file to map custom paths.
-
-### Flux 2 Dev on RTX 4090
-
-Run Flux 2 Dev without offloading using GGUF quantization:
-
-```bash
-nix run github:utensils/comfyui-nix -- --base-directory ~/AI --listen 0.0.0.0 --use-pytorch-cross-attention --cuda-malloc --lowvram
-```
-
-**Models** (requires ComfyUI-GGUF custom node):
-
-```bash
-# GGUF model → unet/ or diffusion_models/
-curl -LO https://huggingface.co/orabazes/FLUX.2-dev-GGUF/resolve/main/flux2_dev_Q4_K_M.gguf
-
-# Text encoder → text_encoders/
-curl -LO https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/mistral_3_small_flux2_fp8.safetensors
-```
-
-**Performance:** ~50s/generation (20 steps), ~18.5GB VRAM, no offloading required.
-
 ## License
 
-This flake is provided under the MIT license. ComfyUI itself is licensed under GPL-3.0.
+MIT (this flake). ComfyUI is GPL-3.0.
