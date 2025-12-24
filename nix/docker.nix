@@ -1,4 +1,8 @@
-{ pkgs, lib }:
+{
+  pkgs,
+  lib,
+  versions,
+}:
 {
   mkDockerImage =
     {
@@ -36,7 +40,7 @@
     in
     pkgs.dockerTools.buildImage {
       inherit name tag;
-      created = "now";
+      created = versions.comfyui.releaseDate;
 
       copyToRoot = pkgs.buildEnv {
         name = "root";

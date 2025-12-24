@@ -18,20 +18,6 @@ nix run github:utensils/comfyui-nix -- --open
 - **CUDA**: `nix run github:utensils/comfyui-nix#cuda -- …` uses the CUDA-enabled Nix runtime (Linux/NVIDIA only).
 - API nodes are disabled by default to avoid missing cloud SDK deps; set `COMFY_ENABLE_API_NODES=true` if you want them (you must supply the required APIs/dependencies yourself).
 
-## Features
-
-- Provides ComfyUI packaged with Python 3.12
-- Fully reproducible environment through Nix flakes
-- Cross-platform support: macOS (Intel/Apple Silicon) and Linux
-- CUDA support via `nix run .#cuda` (Linux/NVIDIA only)
-- Persistent user data directory with automatic version upgrades
-- Improved model download experience with automatic backend downloads
-- Code quality tooling: ruff (linter/formatter), pyright (type checker)
-- CI validation with `nix flake check` (build, lint, type-check, nixfmt)
-- Built-in formatters: `nix fmt` (Nix files), `nix run .#format` (Python files)
-- Overlay for easy integration with other flakes
-- NixOS module for running ComfyUI as a service
-
 ## Additional Options
 
 ```bash

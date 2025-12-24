@@ -82,11 +82,12 @@
                 "data"
                 "dist"
                 "node_modules"
-                "result"
                 "tmp"
               ];
             in
-            !pkgs.lib.any (prefix: rel == prefix || pkgs.lib.hasPrefix (prefix + "/") rel) excluded;
+            # Exclude exact matches, subdirectories, and result* symlinks
+            !pkgs.lib.any (prefix: rel == prefix || pkgs.lib.hasPrefix (prefix + "/") rel) excluded
+            && !pkgs.lib.hasPrefix "result" rel;
         };
 
         packages =

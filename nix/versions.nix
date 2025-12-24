@@ -1,6 +1,7 @@
 {
   comfyui = {
     version = "0.5.1";
+    releaseDate = "2025-12-18T03:08:43Z";
     rev = "ba6080bbab070934ea6e870c5fc30dbf702eb445";
     hash = "sha256-mJf8p6ga9jQHXmHrQjeGs4fgAlRFnREQIPskNM0vwXQ=";
   };

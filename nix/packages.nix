@@ -120,10 +120,14 @@ let
   # Minimal launcher using writeShellApplication (Nix best practice)
   comfyUiLauncher = pkgs.writeShellApplication {
     name = "comfy-ui";
-    runtimeInputs = [
-      pkgs.coreutils
-      pkgs.gnused
-    ];
+    runtimeInputs =
+      [
+        pkgs.coreutils
+        pkgs.gnused
+      ]
+      ++ lib.optionals (!pkgs.stdenv.isDarwin) [
+        pkgs.xdg-utils # Provides xdg-open for --open flag on Linux
+      ];
     text = ''
       # Parse arguments - extract --base-directory, --open, --port, pass rest to ComfyUI
       BASE_DIR="''${COMFY_USER_DIR:-${defaultDataDir}}"
@@ -245,7 +249,7 @@ let
     };
   };
 
-  dockerLib = import ./docker.nix { inherit pkgs lib; };
+  dockerLib = import ./docker.nix { inherit pkgs lib versions; };
 
   dockerImage = dockerLib.mkDockerImage {
     name = "comfy-ui";
