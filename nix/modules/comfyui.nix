@@ -17,11 +17,15 @@ let
   env = cfg.environment;
   escapedArgs = lib.concatStringsSep " " (map lib.escapeShellArg args);
   execStart = "${cfg.package}/bin/comfy-ui ${escapedArgs}";
-  shouldCreateUser = cfg.createUser && cfg.user == "comfyui";
-  shouldCreateGroup = cfg.createUser && cfg.group == "comfyui";
+
+  # User/group creation: only create if createUser is true AND the user doesn't
+  # already exist in the system (i.e., not a pre-existing user like "nobody")
+  isSystemUser = cfg.user == "comfyui";
+  isSystemGroup = cfg.group == "comfyui";
+
   dataDirRule = "d ${cfg.dataDir} 0750 ${cfg.user} ${cfg.group} - -";
   isDefaultDataDir = cfg.dataDir == "/var/lib/comfyui";
-  serviceDescription = "ComfyUI service";
+  serviceDescription = "ComfyUI - A powerful and modular diffusion model GUI";
 in
 {
   options.services.comfyui = {
@@ -66,7 +70,11 @@ in
     createUser = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Whether to create the ComfyUI system user/group when using defaults.";
+      description = ''
+        Whether to create the ComfyUI system user and group.
+        When true and user/group are set to "comfyui" (default), creates a dedicated
+        system account. Set to false if using a pre-existing user account.
+      '';
     };
 
     openFirewall = lib.mkOption {
@@ -89,15 +97,17 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    users.users = lib.mkIf shouldCreateUser {
+    # Create system user/group only when using default "comfyui" names
+    users.users = lib.mkIf (cfg.createUser && isSystemUser) {
       ${cfg.user} = {
         isSystemUser = true;
         group = cfg.group;
         home = cfg.dataDir;
+        description = "ComfyUI service user";
       };
     };
 
-    users.groups = lib.mkIf shouldCreateGroup {
+    users.groups = lib.mkIf (cfg.createUser && isSystemGroup) {
       ${cfg.group} = { };
     };
 
@@ -118,6 +128,28 @@ in
           ExecStart = execStart;
           Restart = "on-failure";
           RestartSec = 5;
+
+          # Security hardening
+          NoNewPrivileges = true;
+          PrivateTmp = true;
+          ProtectSystem = "strict";
+          ProtectHome = true;
+          ProtectKernelTunables = true;
+          ProtectKernelModules = true;
+          ProtectControlGroups = true;
+          RestrictNamespaces = true;
+          RestrictRealtime = true;
+          RestrictSUIDSGID = true;
+          LockPersonality = true;
+
+          # Allow writes to data directory
+          ReadWritePaths = [ cfg.dataDir ];
+
+          # Allow GPU access (required for CUDA/ROCm)
+          SupplementaryGroups = [
+            "video"
+            "render"
+          ];
         }
         (lib.optionalAttrs isDefaultDataDir { StateDirectory = "comfyui"; })
       ];

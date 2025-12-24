@@ -68,10 +68,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `--debug` or `--verbose`: Enable detailed debug logging
 
 ### Important Environment Variables
-- `COMFY_USER_DIR`: Persistent storage directory (default: `~/.config/comfy-ui`; use `--base-directory` instead)
+- `COMFY_USER_DIR`: Override the default data directory (alternative to `--base-directory`)
 - `COMFY_ENABLE_API_NODES`: Set to `true` to allow built-in API nodes (requires you to provide their Python deps/credentials)
+- `COMFY_ALLOW_MANAGER`: Set to `1` to prevent auto-disabling of ComfyUI-Manager in pure mode
 - `LD_LIBRARY_PATH`: (Linux) Set automatically to include system libraries and NVIDIA drivers
-- `DYLD_LIBRARY_PATH`: (macOS) Set if needed for dynamic libraries
+- `DYLD_LIBRARY_PATH`: (macOS) Set automatically to include dynamic libraries
 
 ### Platform-Specific Configuration
 - Uses Nix-provided PyTorch packages (no runtime detection or installs)
@@ -79,7 +80,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Library Paths: Automatically includes `/run/opengl-driver/lib` on Linux for NVIDIA drivers
 
 ### Data Persistence Structure
-All data is stored in the configurable base directory (default `~/.config/comfy-ui/` or `--base-directory`):
+All data is stored in the configurable base directory (or `--base-directory`):
+- **Linux**: `~/.config/comfy-ui/` (XDG convention)
+- **macOS**: `~/Library/Application Support/comfy-ui/` (Apple convention)
+
+Directory structure:
 ```
 models/        - Model files (checkpoints, loras, vae, controlnet, embeddings, upscale_models, clip, etc.)
 output/        - Generated images and outputs
@@ -132,16 +137,23 @@ ComfyUI runs directly from the Nix store; no application files are copied to you
 - **Logging**: Configure with `logging.basicConfig` and create module-level loggers
 - **Module Structure**: For custom nodes, follow ComfyUI's extension system with proper `__init__.py` and `setup_js_api` function
 
-### Frontend (Vue 3)
-- **Component Order**: Organize in `<template>`, `<script>`, `<style>` order
-- **Props**: Use Vue 3.5 default prop declaration style with TypeScript
-- **Composition API**: Use `setup()`, `ref`, `reactive`, `computed`, and lifecycle hooks
-- **Styling**: Use Tailwind CSS for styling and responsive design
-- **i18n**: Use vue-i18n in composition API for string literals
-
 ### Custom Node Development
 - Install custom nodes to the persistent location (`~/.config/comfy-ui/custom_nodes/`)
 - The launcher automatically links bundled custom nodes on first run
 - Register API endpoints in the `setup_js_api` function
 - Frontend JavaScript should be placed in the node's `js/` directory
 - Use proper route checking to avoid duplicate endpoint registration
+
+### Nix Code
+- Format Nix files with `nix fmt` (uses nixfmt-rfc-style)
+- Use `writeShellApplication` for shell scripts (provides shellcheck validation)
+- Pin all external dependencies with hashes in `nix/versions.nix`
+
+## Binary Cache (Cachix)
+
+To speed up builds, use the public Cachix cache:
+```bash
+cachix use comfyui
+```
+
+The cache is automatically configured in the flake's `nixConfig`. CI publishes artifacts to this cache on main branch pushes.

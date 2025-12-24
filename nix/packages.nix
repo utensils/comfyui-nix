@@ -87,6 +87,36 @@ let
     pkgs.libGL
   ];
 
+  # Platform-specific default data directory
+  # macOS: ~/Library/Application Support/comfy-ui (Apple convention)
+  # Linux: ~/.config/comfy-ui (XDG convention)
+  defaultDataDir =
+    if pkgs.stdenv.isDarwin then
+      "$HOME/Library/Application Support/comfy-ui"
+    else
+      "$HOME/.config/comfy-ui";
+
+  # Platform-specific library path setup
+  libraryPathSetup =
+    if pkgs.stdenv.isDarwin then
+      ''
+        # macOS: Set DYLD_LIBRARY_PATH for dynamic libraries
+        export DYLD_LIBRARY_PATH="${libPath}''${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+      ''
+    else
+      ''
+        # Linux: Set LD_LIBRARY_PATH for dynamic libraries
+        export LD_LIBRARY_PATH="${libPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+        # Add NVIDIA driver libraries if available (NixOS)
+        if [[ -d "/run/opengl-driver/lib" ]]; then
+          export LD_LIBRARY_PATH="/run/opengl-driver/lib:$LD_LIBRARY_PATH"
+        fi
+      '';
+
+  # Platform-specific browser command
+  browserCommand = if pkgs.stdenv.isDarwin then "open" else "xdg-open";
+
   # Minimal launcher using writeShellApplication (Nix best practice)
   comfyUiLauncher = pkgs.writeShellApplication {
     name = "comfy-ui";
@@ -95,9 +125,10 @@ let
       pkgs.gnused
     ];
     text = ''
-      # Parse arguments - extract --base-directory and --open, pass rest to ComfyUI
-      BASE_DIR="''${COMFY_USER_DIR:-$HOME/.config/comfy-ui}"
+      # Parse arguments - extract --base-directory, --open, --port, pass rest to ComfyUI
+      BASE_DIR="''${COMFY_USER_DIR:-${defaultDataDir}}"
       OPEN_BROWSER=false
+      PORT=8188
       COMFY_ARGS=()
 
       while [[ $# -gt 0 ]]; do
@@ -108,6 +139,16 @@ let
             ;;
           --base-directory)
             BASE_DIR="$2"
+            shift 2
+            ;;
+          --port=*)
+            PORT="''${1#*=}"
+            COMFY_ARGS+=("$1")
+            shift
+            ;;
+          --port)
+            PORT="$2"
+            COMFY_ARGS+=("$1" "$2")
             shift 2
             ;;
           --open)
@@ -121,7 +162,7 @@ let
         esac
       done
 
-      # Expand ~ in BASE_DIR
+      # Expand ~ in BASE_DIR (handles both ~/path and ~user/path)
       BASE_DIR="''${BASE_DIR/#\~/$HOME}"
 
       # Create directory structure (idempotent)
@@ -138,6 +179,7 @@ let
       fi
 
       # Pure mode: disable ComfyUI-Manager to avoid writes into the Nix store.
+      # Set COMFY_ALLOW_MANAGER=1 to override this behavior.
       if [[ -d "$BASE_DIR/custom_nodes/ComfyUI-Manager" && -z "''${COMFY_ALLOW_MANAGER:-}" ]]; then
         if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-Manager.disabled" ]]; then
           mv "$BASE_DIR/custom_nodes/ComfyUI-Manager" "$BASE_DIR/custom_nodes/ComfyUI-Manager.disabled"
@@ -145,20 +187,12 @@ let
         fi
       fi
 
-      # Set library paths for GPU support
-      export LD_LIBRARY_PATH="${libPath}:''${LD_LIBRARY_PATH:-}"
-      export DYLD_LIBRARY_PATH="${libPath}:''${DYLD_LIBRARY_PATH:-}"
-
-      # Linux: Add NVIDIA driver libraries if available
-      if [[ -d "/run/opengl-driver/lib" ]]; then
-        export LD_LIBRARY_PATH="/run/opengl-driver/lib:$LD_LIBRARY_PATH"
-      fi
+      # Set platform-specific library paths for GPU support
+      ${libraryPathSetup}
 
       # Open browser if requested (background, after short delay)
       if [[ "$OPEN_BROWSER" == "true" ]]; then
-        (sleep 3 && ${
-          if pkgs.stdenv.isDarwin then "open" else "xdg-open"
-        } "http://127.0.0.1:8188" 2>/dev/null) &
+        (sleep 3 && ${browserCommand} "http://127.0.0.1:$PORT" 2>/dev/null) &
       fi
 
       # Run ComfyUI directly from Nix store

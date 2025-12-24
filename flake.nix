@@ -125,14 +125,22 @@
             pkgs.curl
           ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.apple_sdk.frameworks.Metal ];
 
-          shellHook = ''
-            echo "ComfyUI development environment activated"
-            echo "  ComfyUI version: ${versions.comfyui.version}"
-            export COMFY_USER_DIR="$HOME/.config/comfy-ui"
-            mkdir -p "$COMFY_USER_DIR"
-            echo "User data will be stored in $COMFY_USER_DIR"
-            export PYTHONPATH="$PWD:$PYTHONPATH"
-          '';
+          shellHook =
+            let
+              defaultDir =
+                if pkgs.stdenv.isDarwin then
+                  "$HOME/Library/Application Support/comfy-ui"
+                else
+                  "$HOME/.config/comfy-ui";
+            in
+            ''
+              echo "ComfyUI development environment activated"
+              echo "  ComfyUI version: ${versions.comfyui.version}"
+              export COMFY_USER_DIR="${defaultDir}"
+              mkdir -p "$COMFY_USER_DIR"
+              echo "User data will be stored in $COMFY_USER_DIR"
+              export PYTHONPATH="$PWD:$PYTHONPATH"
+            '';
         };
 
         formatter = pkgs.nixfmt-rfc-style;

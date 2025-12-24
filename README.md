@@ -43,13 +43,16 @@ nix run github:utensils/comfyui-nix/[commit-hash] -- --open
 
 - `--open`: Automatically opens ComfyUI in your browser when the server is ready
 - `--port=XXXX`: Run ComfyUI on a specific port (default: 8188)
-- `--base-directory PATH`: Set data directory for models, input, output, and custom_nodes (default: `~/.config/comfy-ui`). Quote paths with spaces: `--base-directory "/path/with spaces"`
+- `--base-directory PATH`: Set data directory for models, input, output, and custom_nodes. Quote paths with spaces: `--base-directory "/path/with spaces"`
+  - **Linux default**: `~/.config/comfy-ui` (XDG convention)
+  - **macOS default**: `~/Library/Application Support/comfy-ui` (Apple convention)
 - `--debug` or `--verbose`: Enable detailed debug logging
 
 ### Environment Variables
 
 - `COMFY_USER_DIR`: Override the default data directory (alternative to `--base-directory`)
-- `COMFY_ENABLE_API_NODES`: set to `true` to allow built-in API nodes (requires you to provide their Python deps/credentials)
+- `COMFY_ENABLE_API_NODES`: Set to `true` to allow built-in API nodes (requires you to provide their Python deps/credentials)
+- `COMFY_ALLOW_MANAGER`: Set to `1` to prevent auto-disabling of ComfyUI-Manager in pure mode
 
 ```bash
 # Example: CUDA runtime (Linux + NVIDIA)
@@ -170,7 +173,7 @@ Enable ComfyUI as a systemd service:
 | `dataDir` | string | `/var/lib/comfyui` | Base directory for models, input, output, custom nodes |
 | `user` | string | `"comfyui"` | User account to run ComfyUI under |
 | `group` | string | `"comfyui"` | Group to run ComfyUI under |
-| `createUser` | bool | `true` | Create the comfyui system user/group |
+| `createUser` | bool | `true` | Create the comfyui system user/group (only when using default "comfyui" names) |
 | `openFirewall` | bool | `false` | Open the configured port in the firewall |
 | `extraArgs` | list of strings | `[]` | Extra CLI arguments passed to ComfyUI |
 | `environment` | attrs | `{}` | Environment variables for the service |
@@ -190,10 +193,14 @@ This flake uses a modular, multi-file approach for better maintainability:
 
 ## Data Persistence
 
-User data is stored in `~/.config/comfy-ui` (configurable via `--base-directory` or `COMFY_USER_DIR`):
+User data is stored in a platform-specific location (configurable via `--base-directory` or `COMFY_USER_DIR`):
 
+- **Linux**: `~/.config/comfy-ui/` (XDG convention)
+- **macOS**: `~/Library/Application Support/comfy-ui/` (Apple convention)
+
+Directory structure:
 ```
-~/.config/comfy-ui/
+<data-directory>/
 ├── models/          # Stable Diffusion models (checkpoints, loras, vae, etc.)
 ├── output/          # Generated images and outputs
 ├── input/           # Input files for processing

@@ -46,7 +46,7 @@ let
 
   typeCheckScript = ''
     echo "Running pyright type checker..."
-    pyright --pythonpath ${packages.pythonRuntime}/bin/python src/
+    pyright --pythonpath ${packages.pythonRuntime}/bin src/
   '';
 
   checkAllScript = ''
@@ -57,7 +57,7 @@ let
     RUFF_EXIT=$?
     echo ""
     echo "==> Running pyright type checker..."
-    pyright --pythonpath ${packages.pythonRuntime}/bin/python src/
+    pyright --pythonpath ${packages.pythonRuntime}/bin src/
     PYRIGHT_EXIT=$?
     echo ""
     if [ $RUFF_EXIT -eq 0 ] && [ $PYRIGHT_EXIT -eq 0 ]; then
