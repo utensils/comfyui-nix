@@ -7,6 +7,7 @@ let
   lib = pkgs.lib;
   useCuda = cudaSupport && pkgs.stdenv.isLinux;
   sentencepieceNoGperf = pkgs.sentencepiece.override { withGPerfTools = false; };
+  ffmpegFull = pkgs.ffmpeg-full;
 in
 final: prev:
 lib.optionalAttrs (prev ? torch) (
@@ -58,6 +59,12 @@ lib.optionalAttrs (prev ? torch) (
 // lib.optionalAttrs (pkgs.stdenv.isDarwin && prev ? sentencepiece) {
   sentencepiece = prev.sentencepiece.overridePythonAttrs (old: {
     buildInputs = [ sentencepieceNoGperf.dev ];
+    nativeBuildInputs = old.nativeBuildInputs or [ ];
+  });
+}
+// lib.optionalAttrs (pkgs.stdenv.isDarwin && prev ? av) {
+  av = prev.av.overridePythonAttrs (old: {
+    buildInputs = [ ffmpegFull ];
     nativeBuildInputs = old.nativeBuildInputs or [ ];
   });
 }

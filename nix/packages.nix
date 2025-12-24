@@ -66,7 +66,7 @@ let
       optionals =
         torchPackages
         ++ lib.optionals (ps ? torchvision) [ ps.torchvision ]
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? torchaudio) [ ps.torchaudio ]
+        ++ lib.optionals (ps ? torchaudio) [ ps.torchaudio ]
         ++ lib.optionals (ps ? torchsde) [ ps.torchsde ]
         ++ lib.optionals (ps ? kornia) [ ps.kornia ]
         ++ lib.optionals (ps ? pydantic) [ ps.pydantic ]
