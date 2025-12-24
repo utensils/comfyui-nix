@@ -46,7 +46,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - **packages.nix**: Package definitions and inline launcher script (uses `writeShellApplication`)
   - **docker.nix**: Docker image helpers
   - **checks.nix**: `nix flake check` definitions
-  - **modules/comfyui.nix**: NixOS service module
+  - **modules/comfyui.nix**: NixOS service module with declarative custom nodes support
+  - **lib/custom-nodes.nix**: Helper functions for custom node management (future curated nodes)
 
 ### Key Components
 - **Model Downloader**: Non-blocking async download system using aiohttp with WebSocket progress updates
@@ -139,6 +140,27 @@ ComfyUI runs directly from the Nix store; no application files are copied to you
 - Register API endpoints in the `setup_js_api` function
 - Frontend JavaScript should be placed in the node's `js/` directory
 - Use proper route checking to avoid duplicate endpoint registration
+
+### NixOS Module: Declarative Custom Nodes
+The NixOS module supports pure, declarative custom node management via `services.comfyui.customNodes`:
+```nix
+services.comfyui = {
+  enable = true;
+  customNodes = {
+    # Each key = directory name in custom_nodes/
+    # Each value = derivation containing node source
+    ComfyUI-Impact-Pack = pkgs.fetchFromGitHub {
+      owner = "ltdrdata";
+      repo = "ComfyUI-Impact-Pack";
+      rev = "v1.0.0";
+      hash = "sha256-...";
+    };
+  };
+};
+```
+- Nodes are symlinked at service start (preStart script)
+- Fully reproducible and version-pinned
+- Future: curated nodes via `comfyui-nix.customNodes.*`
 
 ### Nix Code
 - Format Nix files with `nix fmt` (uses nixfmt-rfc-style)

@@ -26,6 +26,35 @@ let
   dataDirRule = "d ${cfg.dataDir} 0750 ${cfg.user} ${cfg.group} - -";
   isDefaultDataDir = cfg.dataDir == "/var/lib/comfyui";
   serviceDescription = "ComfyUI - A powerful and modular diffusion model GUI";
+
+  # Generate preStart script for symlinking custom nodes
+  customNodesPreStart = lib.optionalString (cfg.customNodes != { }) ''
+    # Create custom_nodes directory if it doesn't exist
+    mkdir -p "${cfg.dataDir}/custom_nodes"
+
+    # Symlink declarative custom nodes
+    ${lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (
+        name: src:
+        let
+          targetPath = "${cfg.dataDir}/custom_nodes/${name}";
+        in
+        ''
+          # Handle ${name}: remove if not a symlink or points elsewhere
+          if [[ -e "${targetPath}" || -L "${targetPath}" ]]; then
+            if [[ ! -L "${targetPath}" ]] || [[ "$(readlink "${targetPath}")" != "${src}" ]]; then
+              rm -rf "${targetPath}"
+            fi
+          fi
+          # Create symlink if needed
+          if [[ ! -e "${targetPath}" ]]; then
+            ln -s "${src}" "${targetPath}"
+            echo "Linked custom node: ${name} -> ${src}"
+          fi
+        ''
+      ) cfg.customNodes
+    )}
+  '';
 in
 {
   options.services.comfyui = {
@@ -94,6 +123,41 @@ in
       default = { };
       description = "Environment variables for the ComfyUI service.";
     };
+
+    customNodes = lib.mkOption {
+      type = lib.types.attrsOf lib.types.package;
+      default = { };
+      description = ''
+        Declarative custom nodes to install. Each attribute name becomes
+        the directory name under custom_nodes/, and the value should be
+        a derivation containing the node source (e.g., from fetchFromGitHub).
+
+        Nodes are symlinked into the data directory at service start.
+        This is the pure Nix way to manage custom nodes - fully reproducible
+        and version-pinned.
+
+        Note: Custom nodes with Python dependencies beyond ComfyUI's base
+        environment may require additional configuration. For complex nodes,
+        consider creating a custom derivation that bundles dependencies.
+      '';
+      example = lib.literalExpression ''
+        {
+          # Fetch a custom node from GitHub
+          ComfyUI-Impact-Pack = pkgs.fetchFromGitHub {
+            owner = "ltdrdata";
+            repo = "ComfyUI-Impact-Pack";
+            rev = "v1.0.0";
+            hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+          };
+
+          # Use a local path (for development)
+          my-custom-node = /path/to/my-node;
+
+          # Or reference a pre-packaged node (future)
+          # controlnet-aux = comfyui-nix.customNodes.controlnet-aux;
+        }
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -118,6 +182,9 @@ in
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
+
+      # Symlink declarative custom nodes before starting
+      preStart = customNodesPreStart;
 
       serviceConfig = lib.mkMerge [
         {

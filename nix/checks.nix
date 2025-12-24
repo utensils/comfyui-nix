@@ -40,14 +40,18 @@
   nixfmt =
     pkgs.runCommand "nixfmt-check"
       {
-        nativeBuildInputs = [ pkgs.nixfmt-rfc-style ];
+        nativeBuildInputs = [
+          pkgs.nixfmt-rfc-style
+          pkgs.findutils
+        ];
         src = source;
       }
       ''
         cp -r $src source
         chmod -R u+w source
         cd source
-        nixfmt --check flake.nix nix
+        # Find all .nix files explicitly to avoid deprecation warning
+        find . -name '*.nix' -type f -exec nixfmt --check {} +
         touch $out
       '';
 }

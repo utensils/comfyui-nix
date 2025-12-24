@@ -66,6 +66,29 @@ nix profile install github:utensils/comfyui-nix
 }
 ```
 
+### Declarative Custom Nodes
+
+Install custom nodes reproducibly using `customNodes`:
+
+```nix
+services.comfyui = {
+  enable = true;
+  customNodes = {
+    # Fetch from GitHub (pinned version)
+    ComfyUI-Impact-Pack = pkgs.fetchFromGitHub {
+      owner = "ltdrdata";
+      repo = "ComfyUI-Impact-Pack";
+      rev = "v1.0.0";
+      hash = "sha256-...";  # nix-prefetch-github ltdrdata ComfyUI-Impact-Pack --rev v1.0.0
+    };
+    # Local path (for development)
+    my-node = /path/to/node;
+  };
+};
+```
+
+Nodes are symlinked at service start. This is the pure Nix approach - fully reproducible and version-pinned.
+
 ## Docker
 
 Pre-built images on GitHub Container Registry:
