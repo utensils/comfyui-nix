@@ -25,7 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Install to profile**: `nix profile install github:utensils/comfyui-nix`
 
 ## Linting and Code Quality
-- **Run all checks**: `nix flake check` (runs all CI checks: build, lint, type-check, shellcheck)
+- **Run all checks**: `nix flake check` (runs all CI checks: build, lint, type-check, nixfmt)
 - **Lint code**: `nix run .#lint` (run ruff linter, check only)
 - **Format code**: `nix run .#format` (auto-format code with ruff)
 - **Fix linting issues**: `nix run .#lint-fix` (run ruff with auto-fix)
@@ -45,18 +45,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Directory Structure
 - **src/custom_nodes/**: Custom node extensions for ComfyUI
   - **model_downloader/**: Non-blocking async model download system with WebSocket progress updates
-- **src/patches/**: Runtime patches for ComfyUI behavior
-- **src/persistence/**: Data persistence module handling settings and models
-- **scripts/**: Modular launcher scripts:
-  - **launcher.sh**: Main entry point that orchestrates the launching process
-  - **config.sh**: Configuration variables and settings
-  - **logger.sh**: Logging utilities with different verbosity levels
-  - **install.sh**: Installation and setup procedures
-  - **persistence.sh**: Symlink creation and data persistence management
-  - **runtime.sh**: Runtime execution and process management
 - **nix/**: Flake helpers and modules
   - **versions.nix**: Version pins for ComfyUI and vendored wheels
-  - **packages.nix**: Packaging definitions
+  - **packages.nix**: Package definitions and inline launcher script (uses `writeShellApplication`)
   - **docker.nix**: Docker image helpers
   - **checks.nix**: `nix flake check` definitions
   - **modules/comfyui.nix**: NixOS service module
@@ -64,10 +55,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Key Components
 - **Model Downloader**: Non-blocking async download system using aiohttp with WebSocket progress updates
   - API endpoints: `POST /api/download_model`, `GET /api/download_progress/{id}`, `GET /api/list_downloads`
-- **Persistence Module**: Patches `folder_paths` module at runtime to redirect all model/data directories to `~/.config/comfy-ui/`
-- **Nix Integration**: Provides reproducible builds with Python 3.12 environment
-- **Modular Launcher**: Manages installation, configuration, and runtime with separated concerns
-- **Logging System**: Provides consistent, configurable logging across all components
+- **Pure Nix Launcher**: Minimal shell script using `writeShellApplication` (Nix best practice)
+  - Creates data directory structure on first run
+  - Links bundled model_downloader custom node
+  - Runs ComfyUI directly from Nix store with `--base-directory` and `--front-end-root` flags
+- **Nix Integration**: Fully reproducible builds with Python 3.12 environment
 
 ### Command Line Options
 - `--base-directory PATH`: Set data directory for models, input, output, custom_nodes (preferred method)
@@ -77,10 +69,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Important Environment Variables
 - `COMFY_USER_DIR`: Persistent storage directory (default: `~/.config/comfy-ui`; use `--base-directory` instead)
-- `COMFY_APP_DIR`: ComfyUI application directory (fixed at `~/.config/comfy-ui/app`)
-- `COMFY_SAVE_PATH`: User save path for outputs
 - `COMFY_ENABLE_API_NODES`: Set to `true` to allow built-in API nodes (requires you to provide their Python deps/credentials)
-- `COMFY_SKIP_TEMPLATE_INPUTS`: Set to `1`/`true` to skip downloading workflow template inputs at startup
 - `LD_LIBRARY_PATH`: (Linux) Set automatically to include system libraries and NVIDIA drivers
 - `DYLD_LIBRARY_PATH`: (macOS) Set if needed for dynamic libraries
 
@@ -90,19 +79,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Library Paths: Automatically includes `/run/opengl-driver/lib` on Linux for NVIDIA drivers
 
 ### Data Persistence Structure
-**Fixed locations** (always in `~/.config/comfy-ui/`):
+All data is stored in the configurable base directory (default `~/.config/comfy-ui/` or `--base-directory`):
 ```
-app/           - ComfyUI application code (auto-updated when flake changes)
-```
-
-**Configurable locations** (default `~/.config/comfy-ui/` or `--base-directory`):
-```
-models/        - Model files (checkpoints, loras, vae, controlnet, embeddings, upscale_models, clip, diffusers, etc.)
+models/        - Model files (checkpoints, loras, vae, controlnet, embeddings, upscale_models, clip, etc.)
 output/        - Generated images and outputs
-user/          - User configuration and custom nodes
 input/         - Input files for processing
-custom_nodes/  - Persistent custom node installations
+user/          - User configuration and workflows
+custom_nodes/  - Custom node installations (model_downloader auto-linked here)
+temp/          - Temporary files
 ```
+ComfyUI runs directly from the Nix store; no application files are copied to your data directory.
 
 ## CI/CD and Automation
 
@@ -155,18 +141,7 @@ custom_nodes/  - Persistent custom node installations
 
 ### Custom Node Development
 - Install custom nodes to the persistent location (`~/.config/comfy-ui/custom_nodes/`)
-- Create symlinks from the app directory to the persistent location
+- The launcher automatically links bundled custom nodes on first run
 - Register API endpoints in the `setup_js_api` function
 - Frontend JavaScript should be placed in the node's `js/` directory
 - Use proper route checking to avoid duplicate endpoint registration
-
-### Bash Scripts
-- **Modularity**: Each script should have a single responsibility
-- **Function-Based**: Organize code into functions rather than procedural scripts
-- **Error Handling**: Use proper traps and error reporting
-- **Logging**: Use the logging functions from logger.sh instead of direct echo statements
-- **Configuration**: Keep all configurable variables in config.sh
-- **Documentation**: Include clear comments and function documentation
-- **Strict Mode**: Use appropriate strictness flags (set -u -o pipefail)
-- **Source Guards**: Use guard clauses to prevent multiple sourcing (e.g., `[[ -n "${_SCRIPT_SOURCED:-}" ]] && return`)
-- **Cross-Platform**: Use `open_browser()` function from logger.sh instead of platform-specific commands

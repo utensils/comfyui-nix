@@ -26,8 +26,8 @@ nix run github:utensils/comfyui-nix -- --open
 - CUDA support via `nix run .#cuda` (Linux/NVIDIA only)
 - Persistent user data directory with automatic version upgrades
 - Improved model download experience with automatic backend downloads
-- Code quality tooling: ruff (linter/formatter), pyright (type checker), shellcheck
-- CI validation with `nix flake check` (build, lint, type-check, shellcheck, nixfmt)
+- Code quality tooling: ruff (linter/formatter), pyright (type checker)
+- CI validation with `nix flake check` (build, lint, type-check, nixfmt)
 - Built-in formatters: `nix fmt` (Nix files), `nix run .#format` (Python files)
 - Overlay for easy integration with other flakes
 - NixOS module for running ComfyUI as a service
@@ -48,8 +48,8 @@ nix run github:utensils/comfyui-nix/[commit-hash] -- --open
 
 ### Environment Variables
 
+- `COMFY_USER_DIR`: Override the default data directory (alternative to `--base-directory`)
 - `COMFY_ENABLE_API_NODES`: set to `true` to allow built-in API nodes (requires you to provide their Python deps/credentials)
-- `COMFY_SKIP_TEMPLATE_INPUTS`: set to `1`/`true` to skip downloading workflow template inputs at startup (default: enabled in Docker images)
 
 ```bash
 # Example: CUDA runtime (Linux + NVIDIA)
@@ -66,7 +66,7 @@ nix run github:utensils/comfyui-nix -- --base-directory ~/AI
 nix develop
 ```
 
-The development shell includes: Python 3.12, git, shellcheck, shfmt, nixfmt, ruff, pyright, jq, and curl.
+The development shell includes: Python 3.12, git, nixfmt, ruff, pyright, jq, and curl.
 
 ### Code Quality and CI
 
@@ -102,10 +102,9 @@ nix profile install github:utensils/comfyui-nix
 
 The flake is designed to be simple and extensible. You can customize it by:
 
-1. Adding Python packages in the `pythonRuntime` definition
-2. Modifying the launcher script in `scripts/launcher.sh`
-3. Pinning to a specific ComfyUI version by changing the version pins in `nix/versions.nix`
-4. Adding third-party custom nodes: package them via an overlay and add to your flake inputs/overlays
+1. Adding Python packages in the `pythonRuntime` definition in `nix/packages.nix`
+2. Pinning to a specific ComfyUI version by changing the version pins in `nix/versions.nix`
+3. Adding third-party custom nodes: package them via an overlay and add to your flake inputs/overlays
 
 ### Using the Overlay
 
@@ -181,34 +180,29 @@ Enable ComfyUI as a systemd service:
 This flake uses a modular, multi-file approach for better maintainability:
 
 - `flake.nix` - Main flake definition and package configuration
-- `scripts/` - Modular launcher scripts:
-  - `launcher.sh` - Main entry point that orchestrates the launching process
-  - `config.sh` - Configuration variables and settings
-  - `logger.sh` - Logging utilities with support for different verbosity levels
-  - `install.sh` - Installation and setup procedures
-  - `persistence.sh` - Symlink creation and data persistence management
-  - `runtime.sh` - Runtime execution and process management
 - `nix/` - Flake modules and helpers:
   - `versions.nix` - Version pins for ComfyUI and vendored wheels
-  - `packages.nix` - Package build definitions
+  - `packages.nix` - Package build definitions and inline launcher script
   - `docker.nix` - Docker image helpers
   - `checks.nix` - `nix flake check` definitions
   - `modules/comfyui.nix` - NixOS service module
-
-This modular structure makes the codebase much easier to maintain, debug, and extend as features are added. Each script has a single responsibility, improving code organization and readability.
+- `src/custom_nodes/` - Custom node extensions (model downloader)
 
 ## Data Persistence
 
-User data is stored in `~/.config/comfy-ui` with the following structure:
+User data is stored in `~/.config/comfy-ui` (configurable via `--base-directory` or `COMFY_USER_DIR`):
 
-- `app/` - ComfyUI application code (auto-updated when flake changes)
-- `models/` - Stable Diffusion models and other model files
-- `output/` - Generated images and other outputs
-- `user/` - User configuration and custom nodes
-- `input/` - Input files for processing
+```
+~/.config/comfy-ui/
+├── models/          # Stable Diffusion models (checkpoints, loras, vae, etc.)
+├── output/          # Generated images and outputs
+├── input/           # Input files for processing
+├── user/            # User configuration and workflows
+├── custom_nodes/    # Custom node extensions
+└── temp/            # Temporary files
+```
 
-This structure ensures your models, outputs, and custom nodes persist between application updates.
-Override with `COMFY_USER_DIR` or `--base-directory` as needed.
+This structure ensures your models, outputs, and custom nodes persist between application updates. ComfyUI runs directly from the Nix store, so no application files are copied to your data directory.
 
 ## System Requirements
 
@@ -256,39 +250,17 @@ This flake includes a custom patch for the model downloading experience. Unlike 
 
 ## Source Code Organization
 
-The codebase follows a modular structure under the `src` directory to improve maintainability and organization:
+The custom code in this flake is minimal, focusing only on essential extensions:
 
 ```
 src/
-├── custom_nodes/           # Custom node implementations
-│   ├── model_downloader/   # Automatic model downloading functionality
-│   │   ├── js/             # Frontend JavaScript components
-│   │   └── ...             # Backend implementation files
-│   └── main.py             # Entry point for custom nodes
-├── patches/                # Runtime patches for ComfyUI
-│   ├── custom_node_init.py # Custom node initialization
-│   └── main.py             # Entry point for patches
-└── persistence/            # Data persistence implementation
-    ├── persistence.py      # Core persistence logic
-    └── main.py             # Persistence entry point
+└── custom_nodes/
+    └── model_downloader/   # Automatic model downloading functionality
+        ├── js/             # Frontend JavaScript components
+        └── ...             # Backend API implementation
 ```
 
-### Component Descriptions
-
-- **custom_nodes**: Contains custom node implementations that extend ComfyUI's functionality
-  - **model_downloader**: Provides automatic downloading of models when selected in the UI
-    - **js**: Frontend components for download status and progress reporting
-    - **model_downloader_patch.py**: Backend API endpoints for model downloading
-
-- **patches**: Contains runtime patches that modify ComfyUI's behavior
-  - **custom_node_init.py**: Initializes custom nodes and registers their API endpoints
-  - **main.py**: Coordinates the loading and application of patches
-
-- **persistence**: Manages data persistence across ComfyUI runs
-  - **persistence.py**: Creates and maintains the directory structure and symlinks
-  - **main.py**: Handles the persistence setup before launching ComfyUI
-
-This structure ensures clear separation of concerns and makes the codebase easier to maintain and extend.
+The **model_downloader** custom node provides automatic downloading of models when selected in the UI, with WebSocket progress updates. It is automatically linked into your `custom_nodes/` directory on first run.
 
 ## Docker Support
 
@@ -426,14 +398,13 @@ sudo systemctl restart docker
 
 - **Full functionality**: Includes all the features of the regular ComfyUI installation
 - **Nix runtime**: Docker images use the Nix-provided Python environment
-- **Template inputs**: Docker images skip template input downloads by default; set `COMFY_SKIP_TEMPLATE_INPUTS=0` if you want them
 - **Persistence**: Data is stored in a mounted volume at `/data`
 - **Port exposure**: Web UI available on port 8188
 - **Essential utilities**: Includes bash, coreutils, git, and other necessary tools
 - **Proper environment**: All environment variables set correctly for containerized operation
 - **GPU support**: CUDA version includes proper environment variables for NVIDIA GPU access
 
-The Docker image follows the same modular structure as the regular installation, ensuring consistency across deployment methods.
+The Docker images use the same pure Nix-based launcher as the local installation, ensuring consistency across deployment methods.
 
 ## Binary Cache (Cachix)
 

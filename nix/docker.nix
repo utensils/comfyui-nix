@@ -13,7 +13,6 @@
       baseEnv = [
         "HOME=/root"
         "COMFY_USER_DIR=/data"
-        "COMFY_SKIP_TEMPLATE_INPUTS=1"
         "TMPDIR=/tmp"
         "PATH=/bin:/usr/bin"
         "PYTHONUNBUFFERED=1"
@@ -65,15 +64,10 @@
 
       config = {
         Cmd = [
-          "/bin/bash"
-          "-c"
-          (
-            if cudaSupport then
-              "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && /bin/comfy-ui --listen 0.0.0.0"
-            else
-              "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && /bin/comfy-ui --listen 0.0.0.0 --cpu"
-          )
-        ];
+          "/bin/comfy-ui"
+          "--listen"
+          "0.0.0.0"
+        ] ++ lib.optionals (!cudaSupport) [ "--cpu" ];
         Env = baseEnv ++ cudaEnv;
         ExposedPorts = {
           "8188/tcp" = { };

@@ -1,8 +1,6 @@
 {
   pkgs,
   packages,
-  linuxSystem,
-  isLinuxCrossCompile,
 }:
 let
   mkApp =
@@ -17,42 +15,6 @@ let
       program = "${script}/bin/${name}";
       meta = { inherit description; };
     };
-
-  buildDockerScript = ''
-    echo "Building Docker image for ComfyUI..."
-    docker load < ${packages.dockerImage}
-    echo "Docker image built successfully! You can now run it with:"
-    echo "docker run -p 8188:8188 -v \$PWD/data:/data comfy-ui:latest"
-  '';
-
-  buildDockerCudaScript = ''
-    echo "Building Docker image for ComfyUI with CUDA support..."
-    docker load < ${packages.dockerImageCuda}
-    echo "CUDA-enabled Docker image built successfully! You can now run it with:"
-    echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:cuda"
-    echo ""
-    echo "Note: Requires nvidia-container-toolkit and Docker GPU support."
-  '';
-
-  buildDockerLinuxScript = ''
-    echo "Building Linux Docker image for ComfyUI (cross-compiled from macOS)..."
-    echo "Target architecture: ${linuxSystem}"
-    docker load < ${packages.dockerImageLinux}
-    echo ""
-    echo "Linux Docker image built successfully! You can now run it with:"
-    echo "docker run -p 8188:8188 -v \$PWD/data:/data comfy-ui:latest"
-  '';
-
-  buildDockerLinuxCudaScript = ''
-    echo "Building Linux CUDA Docker image for ComfyUI (cross-compiled from macOS)..."
-    echo "Target architecture: ${linuxSystem}"
-    docker load < ${packages.dockerImageLinuxCuda}
-    echo ""
-    echo "Linux CUDA Docker image built successfully! You can now run it with:"
-    echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:cuda"
-    echo ""
-    echo "Note: Requires nvidia-container-toolkit and Docker GPU support."
-  '';
 
   updateScript = ''
     set -e
@@ -117,13 +79,6 @@ in
     };
   };
 
-  buildDocker = mkApp "build-docker" "Build ComfyUI Docker image (CPU)" buildDockerScript [
-    pkgs.docker
-  ];
-  buildDockerCuda =
-    mkApp "build-docker-cuda" "Build ComfyUI Docker image with CUDA support" buildDockerCudaScript
-      [ pkgs.docker ];
-
   update = mkApp "update-comfyui" "Check for ComfyUI updates" updateScript [
     pkgs.curl
     pkgs.jq
@@ -150,18 +105,21 @@ in
     };
   };
 }
-// (
-  if isLinuxCrossCompile then
-    {
-      buildDockerLinux =
-        mkApp "build-docker-linux" "Build Linux Docker image from macOS (cross-compile)"
-          buildDockerLinuxScript
-          [ pkgs.docker ];
-      buildDockerLinuxCuda =
-        mkApp "build-docker-linux-cuda" "Build Linux CUDA Docker image from macOS (cross-compile)"
-          buildDockerLinuxCudaScript
-          [ pkgs.docker ];
-    }
-  else
-    { }
-)
+// pkgs.lib.optionalAttrs (packages ? dockerImage) {
+  buildDocker = mkApp "build-docker" "Build ComfyUI Docker image (CPU)" ''
+    echo "Building Docker image for ComfyUI..."
+    docker load < ${packages.dockerImage}
+    echo "Docker image built successfully! You can now run it with:"
+    echo "docker run -p 8188:8188 -v \$PWD/data:/data comfy-ui:latest"
+  '' [ pkgs.docker ];
+}
+// pkgs.lib.optionalAttrs (packages ? dockerImageCuda) {
+  buildDockerCuda = mkApp "build-docker-cuda" "Build ComfyUI Docker image with CUDA support" ''
+    echo "Building Docker image for ComfyUI with CUDA support..."
+    docker load < ${packages.dockerImageCuda}
+    echo "CUDA-enabled Docker image built successfully! You can now run it with:"
+    echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:cuda"
+    echo ""
+    echo "Note: Requires nvidia-container-toolkit and Docker GPU support."
+  '' [ pkgs.docker ];
+}

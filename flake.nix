@@ -14,20 +14,6 @@
     }:
     let
       versions = import ./nix/versions.nix;
-
-      scriptsPath = builtins.path {
-        path = ./scripts;
-        name = "comfyui-nix-scripts";
-      };
-
-      linuxSystemFor =
-        system:
-        if system == "aarch64-darwin" then
-          "aarch64-linux"
-        else if system == "x86_64-darwin" then
-          "x86_64-linux"
-        else
-          system;
     in
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -66,7 +52,6 @@
             inherit
               pkgs
               versions
-              scriptsPath
               cudaSupport
               ;
             lib = pkgs.lib;
@@ -75,29 +60,6 @@
 
         nativePackages = mkComfyPackages pkgs { };
         nativePackagesCuda = mkComfyPackages pkgs { cudaSupport = true; };
-
-        linuxSystem = linuxSystemFor system;
-        isLinuxCrossCompile = system != linuxSystem;
-
-        linuxPkgs =
-          if isLinuxCrossCompile then
-            import nixpkgs {
-              system = linuxSystem;
-              config = {
-                allowUnfree = true;
-              };
-            }
-          else
-            null;
-
-        linuxPackages =
-          if isLinuxCrossCompile && linuxPkgs != null then mkComfyPackages linuxPkgs { } else null;
-
-        linuxPackagesCuda =
-          if isLinuxCrossCompile && linuxPkgs != null then
-            mkComfyPackages linuxPkgs { cudaSupport = true; }
-          else
-            null;
 
         pythonEnv = mkPythonEnv pkgs;
 
@@ -129,34 +91,17 @@
             cuda = nativePackagesCuda.default;
             pythonRuntimeCuda = nativePackagesCuda.pythonRuntime;
           }
-          // (
-            if pkgs.stdenv.isLinux then
-              {
-                dockerImage = nativePackages.dockerImage;
-                dockerImageCuda = nativePackagesCuda.dockerImageCuda;
-              }
-            else if isLinuxCrossCompile && linuxPackages != null then
-              {
-                dockerImage = linuxPackages.dockerImage;
-                dockerImageCuda = if linuxPackagesCuda != null then linuxPackagesCuda.dockerImageCuda else null;
-                dockerImageLinux = linuxPackages.dockerImage;
-                dockerImageLinuxCuda =
-                  if linuxPackagesCuda != null then linuxPackagesCuda.dockerImageCuda else null;
-              }
-            else
-              { }
-          );
+          # Docker images only exported on Linux (CI builds on Linux, cross-compile has platform issues)
+          // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+            dockerImage = nativePackages.dockerImage;
+            dockerImageCuda = nativePackagesCuda.dockerImageCuda;
+          };
       in
       {
         inherit packages;
 
         apps = import ./nix/apps.nix {
-          inherit
-            pkgs
-            packages
-            linuxSystem
-            isLinuxCrossCompile
-            ;
+          inherit pkgs packages;
         };
 
         devShells.default = pkgs.mkShell {
@@ -166,8 +111,6 @@
             pkgs.libGL
             pkgs.libGLU
             pkgs.git
-            pkgs.shellcheck
-            pkgs.shfmt
             pkgs.nixfmt-rfc-style
             pkgs.ruff
             pkgs.pyright

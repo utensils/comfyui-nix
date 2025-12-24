@@ -2,7 +2,6 @@
   pkgs,
   lib,
   versions,
-  scriptsPath,
   pythonOverrides,
   cudaSupport ? false,
 }:
@@ -22,17 +21,13 @@ let
     src = comfyuiSrcRaw;
     patches = [
       ../nix/patches/comfyui-mps-fp8-dequant.patch
+      ../nix/patches/comfyui-disable-api-canary.patch
     ];
   };
 
   modelDownloaderDir = builtins.path {
     path = ../src/custom_nodes/model_downloader;
     name = "comfyui-model-downloader";
-  };
-
-  persistenceDir = builtins.path {
-    path = ../src/persistence;
-    name = "comfyui-persistence";
   };
 
   pythonRuntime = python.withPackages (
@@ -84,106 +79,117 @@ let
     base ++ optionals
   );
 
-  configScript = pkgs.replaceVars "${scriptsPath}/config.sh" {
-    pythonEnv = pythonRuntime;
-    pythonRuntime = pythonRuntime;
-    pythonSitePackages = python.sitePackages;
-    comfyuiSrc = comfyuiSrc;
-    comfyuiVersion = versions.comfyui.version;
-  };
+  frontendRoot = "${pythonRuntime}/${python.sitePackages}/comfyui_frontend_package/static";
 
-  launcherScript = pkgs.replaceVars "${scriptsPath}/launcher.sh" {
-    libPath = lib.makeLibraryPath [
-      pkgs.stdenv.cc.cc.lib
-      pkgs.glib
-      pkgs.libGL
+  libPath = lib.makeLibraryPath [
+    pkgs.stdenv.cc.cc.lib
+    pkgs.glib
+    pkgs.libGL
+  ];
+
+  # Minimal launcher using writeShellApplication (Nix best practice)
+  comfyUiLauncher = pkgs.writeShellApplication {
+    name = "comfy-ui";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.gnused
     ];
+    text = ''
+      # Parse arguments - extract --base-directory and --open, pass rest to ComfyUI
+      BASE_DIR="''${COMFY_USER_DIR:-$HOME/.config/comfy-ui}"
+      OPEN_BROWSER=false
+      COMFY_ARGS=()
+
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          --base-directory=*)
+            BASE_DIR="''${1#*=}"
+            shift
+            ;;
+          --base-directory)
+            BASE_DIR="$2"
+            shift 2
+            ;;
+          --open)
+            OPEN_BROWSER=true
+            shift
+            ;;
+          *)
+            COMFY_ARGS+=("$1")
+            shift
+            ;;
+        esac
+      done
+
+      # Expand ~ in BASE_DIR
+      BASE_DIR="''${BASE_DIR/#\~/$HOME}"
+
+      # Create directory structure (idempotent)
+      mkdir -p "$BASE_DIR"/{models,output,input,user,custom_nodes,temp}
+      mkdir -p "$BASE_DIR/models"/{checkpoints,loras,vae,controlnet,embeddings,upscale_models,clip,clip_vision,diffusion_models,text_encoders,unet,configs,diffusers,vae_approx,gligen,hypernetworks,photomaker,style_models}
+
+      # Link our bundled model_downloader custom node
+      # Remove stale directory if it exists but isn't a symlink
+      if [[ -e "$BASE_DIR/custom_nodes/model_downloader" && ! -L "$BASE_DIR/custom_nodes/model_downloader" ]]; then
+        rm -rf "$BASE_DIR/custom_nodes/model_downloader"
+      fi
+      if [[ ! -e "$BASE_DIR/custom_nodes/model_downloader" ]]; then
+        ln -sf "${modelDownloaderDir}" "$BASE_DIR/custom_nodes/model_downloader"
+      fi
+
+      # Set library paths for GPU support
+      export LD_LIBRARY_PATH="${libPath}:''${LD_LIBRARY_PATH:-}"
+      export DYLD_LIBRARY_PATH="${libPath}:''${DYLD_LIBRARY_PATH:-}"
+
+      # Linux: Add NVIDIA driver libraries if available
+      if [[ -d "/run/opengl-driver/lib" ]]; then
+        export LD_LIBRARY_PATH="/run/opengl-driver/lib:$LD_LIBRARY_PATH"
+      fi
+
+      # Open browser if requested (background, after short delay)
+      if [[ "$OPEN_BROWSER" == "true" ]]; then
+        (sleep 3 && ${
+          if pkgs.stdenv.isDarwin then "open" else "xdg-open"
+        } "http://127.0.0.1:8188" 2>/dev/null) &
+      fi
+
+      # Run ComfyUI directly from Nix store
+      exec "${pythonRuntime}/bin/python" "${comfyuiSrc}/main.py" \
+        --base-directory "$BASE_DIR" \
+        --front-end-root "${frontendRoot}" \
+        --database-url "sqlite:///$BASE_DIR/user/comfyui.db" \
+        "''${COMFY_ARGS[@]}"
+    '';
   };
 
-  loggerScript = "${scriptsPath}/logger.sh";
-  installScript = "${scriptsPath}/install.sh";
-  persistenceShScript = "${scriptsPath}/persistence.sh";
-  runtimeScript = "${scriptsPath}/runtime.sh";
-  templateInputsScript = "${scriptsPath}/template_inputs.sh";
-
-  scriptDir = pkgs.runCommand "comfy-ui-scripts" { } ''
-    mkdir -p $out
-    cp ${configScript} $out/config.sh
-    cp ${loggerScript} $out/logger.sh
-    cp ${installScript} $out/install.sh
-    cp ${persistenceShScript} $out/persistence.sh
-    cp ${runtimeScript} $out/runtime.sh
-    cp ${templateInputsScript} $out/template_inputs.sh
-    cp ${launcherScript} $out/launcher.sh
-    chmod +x $out/*.sh
-  '';
-
+  # Package wraps the launcher for installation
   comfyUiPackage = pkgs.stdenv.mkDerivation {
     pname = "comfy-ui";
     version = versions.comfyui.version;
 
-    src = comfyuiSrc;
-
-    passthru = {
-      inherit comfyuiSrc;
-      version = versions.comfyui.version;
-    };
-
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    buildInputs = [
-      pkgs.libGL
-      pkgs.libGLU
-      pkgs.stdenv.cc.cc.lib
-    ];
-
+    dontUnpack = true;
     dontBuild = true;
     dontConfigure = true;
 
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+
     installPhase = ''
-      mkdir -p "$out/bin"
-      mkdir -p "$out/share/comfy-ui"
-
-      cp -r $src/* "$out/share/comfy-ui/"
-
-      mkdir -p "$out/share/comfy-ui/scripts"
-      cp -r ${scriptDir}/* "$out/share/comfy-ui/scripts/"
-
-      mkdir -p "$out/share/comfy-ui/persistence"
-      cp -r ${persistenceDir}/* "$out/share/comfy-ui/persistence/"
-
-      mkdir -p "$out/share/comfy-ui/model_downloader"
-      cp -r ${modelDownloaderDir}/* "$out/share/comfy-ui/model_downloader/"
-
-      makeWrapper "$out/share/comfy-ui/scripts/launcher.sh" "$out/bin/comfy-ui" \
-        --prefix PATH : "${
-          lib.makeBinPath [
-            pkgs.curl
-            pkgs.jq
-            pkgs.git
-            pkgs.coreutils
-          ]
-        }" \
-        --set-default LD_LIBRARY_PATH "${
-          lib.makeLibraryPath [
-            pkgs.stdenv.cc.cc.lib
-            pkgs.glib
-            pkgs.libGL
-          ]
-        }" \
-        --set-default DYLD_LIBRARY_PATH "${
-          lib.makeLibraryPath [
-            pkgs.stdenv.cc.cc.lib
-            pkgs.glib
-            pkgs.libGL
-          ]
-        }" \
-        --set-default PYTHON_RUNTIME "${pythonRuntime}"
-
-      ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"
+      mkdir -p $out/bin
+      ln -s ${comfyUiLauncher}/bin/comfy-ui $out/bin/comfy-ui
     '';
 
+    passthru = {
+      inherit
+        comfyuiSrc
+        pythonRuntime
+        modelDownloaderDir
+        frontendRoot
+        ;
+      version = versions.comfyui.version;
+    };
+
     meta = with lib; {
-      description = "ComfyUI with Python 3.12";
+      description = "ComfyUI - A powerful and modular diffusion model GUI";
       homepage = "https://github.com/comfyanonymous/ComfyUI";
       license = licenses.gpl3;
       platforms = platforms.linux ++ platforms.darwin;
@@ -222,5 +228,12 @@ let
 in
 {
   default = comfyUiPackage;
-  inherit dockerImage dockerImageCuda pythonRuntime;
+  inherit
+    dockerImage
+    dockerImageCuda
+    pythonRuntime
+    comfyuiSrc
+    modelDownloaderDir
+    frontendRoot
+    ;
 }

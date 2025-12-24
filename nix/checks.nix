@@ -36,21 +36,6 @@
         touch $out
       '';
 
-  shellcheck =
-    pkgs.runCommand "shellcheck"
-      {
-        nativeBuildInputs = [ pkgs.shellcheck ];
-        src = source;
-      }
-      ''
-        cp -r $src source
-        chmod -R u+w source
-        cd source/scripts
-        shellcheck -x launcher.sh config.sh install.sh
-        shellcheck logger.sh runtime.sh persistence.sh template_inputs.sh
-        touch $out
-      '';
-
   nixfmt =
     pkgs.runCommand "nixfmt-check"
       {
