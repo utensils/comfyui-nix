@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - flake-refactor-pure
     tags:
       - 'v*'
     paths-ignore:
@@ -14,7 +13,6 @@ on:
   pull_request:
     branches:
       - main
-      - flake-refactor-pure
     paths-ignore:
       - '**.md'
       - 'LICENSE'
@@ -154,8 +152,6 @@ jobs:
           # Generate Docker tags for this specific architecture
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest${{ matrix.tag_suffix }}${ARCH_SUFFIX}"
-          elif [[ "${{ github.ref }}" == "refs/heads/flake-refactor-pure" ]]; then
-            TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure${{ matrix.tag_suffix }}${ARCH_SUFFIX}"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG_VERSION=${GITHUB_REF#refs/tags/v}
             TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}${{ matrix.tag_suffix }}${ARCH_SUFFIX}"
@@ -231,11 +227,6 @@ jobs:
             VERSION_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}"
             AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-amd64"
             ARM64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm64"
-          elif [[ "${{ github.ref }}" == "refs/heads/flake-refactor-pure" ]]; then
-            MANIFEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure"
-            VERSION_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-${{ steps.meta.outputs.version }}"
-            AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-amd64"
-            ARM64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-arm64"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG_VERSION=${GITHUB_REF#refs/tags/v}
             MANIFEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}"
@@ -267,7 +258,7 @@ jobs:
           docker manifest push "$MANIFEST_TAG"
 
           # Also push version tag if on main
-          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == "refs/heads/flake-refactor-pure" ]]; then
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Creating multi-arch manifest: $VERSION_TAG"
             docker manifest create "$VERSION_TAG" "$AMD64_TAG" "$ARM64_TAG"
 
@@ -285,10 +276,6 @@ jobs:
             CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda"
             VERSION_CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}-cuda"
             CUDA_AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda-amd64"
-          elif [[ "${{ github.ref }}" == "refs/heads/flake-refactor-pure" ]]; then
-            CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-cuda"
-            VERSION_CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-${{ steps.meta.outputs.version }}-cuda"
-            CUDA_AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:flake-refactor-pure-cuda-amd64"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG_VERSION=${GITHUB_REF#refs/tags/v}
             CUDA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-cuda"
