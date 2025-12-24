@@ -33,6 +33,7 @@ let
   pythonRuntime = python.withPackages (
     ps:
     let
+      available = pkg: lib.meta.availableOn pkgs.stdenv.hostPlatform pkg;
       base = with ps; [
         pillow
         numpy
@@ -54,22 +55,22 @@ let
         pydantic-settings
       ];
       torchPackages =
-        if cudaSupport && ps ? torchWithCuda then
+        if cudaSupport && ps ? torchWithCuda && available ps.torchWithCuda then
           [ ps.torchWithCuda ]
         else
-          lib.optionals (ps ? torch) [ ps.torch ];
+          lib.optionals (ps ? torch && available ps.torch) [ ps.torch ];
       optionals =
         torchPackages
-        ++ lib.optionals (ps ? torchvision) [ ps.torchvision ]
-        ++ lib.optionals (ps ? torchaudio) [ ps.torchaudio ]
-        ++ lib.optionals (ps ? torchsde) [ ps.torchsde ]
-        ++ lib.optionals (ps ? kornia) [ ps.kornia ]
-        ++ lib.optionals (ps ? pydantic) [ ps.pydantic ]
-        ++ lib.optionals (ps ? spandrel) [ ps.spandrel ]
-        ++ lib.optionals (ps ? gitpython) [ ps.gitpython ]
-        ++ lib.optionals (ps ? toml) [ ps.toml ]
-        ++ lib.optionals (ps ? rich) [ ps.rich ]
-        ++ lib.optionals (ps ? "comfy-cli") [ ps."comfy-cli" ]
+        ++ lib.optionals (ps ? torchvision && available ps.torchvision) [ ps.torchvision ]
+        ++ lib.optionals (ps ? torchaudio && available ps.torchaudio) [ ps.torchaudio ]
+        ++ lib.optionals (ps ? torchsde && available ps.torchsde) [ ps.torchsde ]
+        ++ lib.optionals (ps ? kornia && available ps.kornia) [ ps.kornia ]
+        ++ lib.optionals (ps ? pydantic && available ps.pydantic) [ ps.pydantic ]
+        ++ lib.optionals (ps ? spandrel && available ps.spandrel) [ ps.spandrel ]
+        ++ lib.optionals (ps ? gitpython && available ps.gitpython) [ ps.gitpython ]
+        ++ lib.optionals (ps ? toml && available ps.toml) [ ps.toml ]
+        ++ lib.optionals (ps ? rich && available ps.rich) [ ps.rich ]
+        ++ lib.optionals (ps ? "comfy-cli" && available ps."comfy-cli") [ ps."comfy-cli" ]
         ++ [
           vendored.comfyuiFrontendPackage
           vendored.comfyuiWorkflowTemplates
@@ -135,6 +136,14 @@ let
       fi
       if [[ ! -e "$BASE_DIR/custom_nodes/model_downloader" ]]; then
         ln -sf "${modelDownloaderDir}" "$BASE_DIR/custom_nodes/model_downloader"
+      fi
+
+      # Pure mode: disable ComfyUI-Manager to avoid writes into the Nix store.
+      if [[ -d "$BASE_DIR/custom_nodes/ComfyUI-Manager" && -z "''${COMFY_ALLOW_MANAGER:-}" ]]; then
+        if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-Manager.disabled" ]]; then
+          mv "$BASE_DIR/custom_nodes/ComfyUI-Manager" "$BASE_DIR/custom_nodes/ComfyUI-Manager.disabled"
+          echo "ComfyUI-Manager disabled for pure mode (set COMFY_ALLOW_MANAGER=1 to keep it)"
+        fi
       fi
 
       # Set library paths for GPU support
