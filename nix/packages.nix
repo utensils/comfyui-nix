@@ -21,7 +21,6 @@ let
     src = comfyuiSrcRaw;
     patches = [
       ../nix/patches/comfyui-mps-fp8-dequant.patch
-      ../nix/patches/comfyui-disable-api-canary.patch
     ];
   };
 

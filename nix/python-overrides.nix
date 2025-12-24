@@ -64,3 +64,16 @@ lib.optionalAttrs (prev ? torch) (
 # Note: On Darwin, av uses ffmpeg 7.x and torchaudio uses ffmpeg 6.x.
 # These versions are mutually incompatible for building. The resulting runtime
 # warning about duplicate Objective-C classes is harmless in practice.
+
+# Override av (PyAV) to version 14.2.0 for comfy_api_nodes compatibility
+// lib.optionalAttrs (prev ? av) {
+  av = prev.av.overrideAttrs (old: rec {
+    version = "14.2.0";
+    src = pkgs.fetchFromGitHub {
+      owner = "PyAV-Org";
+      repo = "PyAV";
+      tag = "v${version}";
+      hash = "sha256-hgbQTkyRdZW8ik0az3qilLdPcuebjs6uWOygCaLhxCg=";
+    };
+  });
+}
