@@ -1,6 +1,13 @@
 {
   description = "A Nix flake for ComfyUI with Python 3.12";
 
+  nixConfig = {
+    extra-substituters = [ "https://comfyui.cachix.org" ];
+    extra-trusted-public-keys = [
+      "comfyui.cachix.org-1:YRLAAeLvPlXaADgyj9kPkQHDXEmiByNqqCoh0/NOiLs="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
