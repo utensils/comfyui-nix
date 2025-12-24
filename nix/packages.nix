@@ -11,11 +11,18 @@ let
 
   vendored = import ./vendored-packages.nix { inherit pkgs python versions; };
 
-  comfyuiSrc = pkgs.fetchFromGitHub {
+  comfyuiSrcRaw = pkgs.fetchFromGitHub {
     owner = "comfyanonymous";
     repo = "ComfyUI";
     rev = versions.comfyui.rev;
     hash = versions.comfyui.hash;
+  };
+
+  comfyuiSrc = pkgs.applyPatches {
+    src = comfyuiSrcRaw;
+    patches = [
+      ../nix/patches/comfyui-mps-fp8-dequant.patch
+    ];
   };
 
   modelDownloaderDir = builtins.path {
@@ -59,7 +66,7 @@ let
       optionals =
         torchPackages
         ++ lib.optionals (ps ? torchvision) [ ps.torchvision ]
-        ++ lib.optionals (ps ? torchaudio) [ ps.torchaudio ]
+        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? torchaudio) [ ps.torchaudio ]
         ++ lib.optionals (ps ? torchsde) [ ps.torchsde ]
         ++ lib.optionals (ps ? kornia) [ ps.kornia ]
         ++ lib.optionals (ps ? pydantic) [ ps.pydantic ]
@@ -136,7 +143,7 @@ let
       mkdir -p "$out/bin"
       mkdir -p "$out/share/comfy-ui"
 
-      cp -r ${comfyuiSrc}/* "$out/share/comfy-ui/"
+      cp -r $src/* "$out/share/comfy-ui/"
 
       mkdir -p "$out/share/comfy-ui/scripts"
       cp -r ${scriptDir}/* "$out/share/comfy-ui/scripts/"
