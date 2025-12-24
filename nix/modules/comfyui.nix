@@ -14,7 +14,7 @@ let
     "--base-directory"
     cfg.dataDir
   ] ++ cfg.extraArgs;
-  env = cfg.environment // lib.optionalAttrs cfg.mutable { COMFY_MODE = "mutable"; };
+  env = cfg.environment;
   escapedArgs = lib.concatStringsSep " " (map lib.escapeShellArg args);
   execStart = "${cfg.package}/bin/comfy-ui ${escapedArgs}";
   shouldCreateUser = cfg.createUser && cfg.user == "comfyui";
@@ -73,12 +73,6 @@ in
       type = lib.types.bool;
       default = false;
       description = "Whether to open the configured port in the firewall.";
-    };
-
-    mutable = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "Run ComfyUI in mutable mode (enables ComfyUI-Manager and pip installs).";
     };
 
     extraArgs = lib.mkOption {

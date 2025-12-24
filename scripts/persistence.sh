@@ -16,10 +16,7 @@ create_symlinks() {
     # Setup basic directory symlinks
     log_debug "Setting up basic directory symlinks"
     mkdir -p "$CODE_DIR/custom_nodes"
-    if [[ "$COMFY_MODE" == "mutable" ]]; then
-        ln -sf "$COMFY_MANAGER_DIR" "$CODE_DIR/custom_nodes/ComfyUI-Manager"
-    fi
-    
+
     # Remove existing directories before creating symlinks
     for dir in "output" "user" "input"; do
         if [ -d "$CODE_DIR/$dir" ] && [ ! -L "$CODE_DIR/$dir" ]; then
@@ -28,16 +25,6 @@ create_symlinks() {
         fi
         ln -sf "$BASE_DIR/$dir" "$CODE_DIR/$dir"
     done
-    
-    # Model downloader symlink
-    if [[ "$COMFY_MODE" == "mutable" ]]; then
-        log_debug "Setting up model downloader symlink"
-        if [ -e "$MODEL_DOWNLOADER_APP_DIR" ]; then
-            chmod -R u+w "$MODEL_DOWNLOADER_APP_DIR" 2>/dev/null || true
-            rm -rf "$MODEL_DOWNLOADER_APP_DIR"
-        fi
-        ln -sf "$MODEL_DOWNLOADER_PERSISTENT_DIR" "$MODEL_DOWNLOADER_APP_DIR"
-    fi
     
     # Add main models directory link for compatibility
     log_debug "Setting up models root symlink"
@@ -94,19 +81,6 @@ verify_symlinks() {
             failures=$((failures+1))
         fi
     done
-    
-    # Check custom node symlinks (only in mutable mode)
-    if [[ "$COMFY_MODE" == "mutable" ]]; then
-        if [ ! -L "$CODE_DIR/custom_nodes/ComfyUI-Manager" ]; then
-            log_error "Missing ComfyUI-Manager symlink"
-            failures=$((failures+1))
-        fi
-
-        if [ ! -L "$CODE_DIR/custom_nodes/model_downloader" ]; then
-            log_error "Missing model downloader symlink"
-            failures=$((failures+1))
-        fi
-    fi
     
     if [ $failures -eq 0 ]; then
         log_info "All symlinks verified successfully"

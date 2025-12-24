@@ -7,10 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **NEVER commit changes unless explicitly requested by the user.**
 
 ## Build/Run Commands
-- **Run application**: `nix run` (pure mode, default)
+- **Run application**: `nix run` (default)
 - **Run with browser**: `nix run -- --open` (automatically opens browser)
 - **Run with CUDA**: `nix run .#cuda` (Linux/NVIDIA only, uses Nix-provided CUDA PyTorch)
-- **Run in mutable mode**: `nix run .#mutable` (enables ComfyUI-Manager and pip installs)
 - **Run with custom port**: `nix run -- --port=8080` (specify custom port)
 - **Run with network access**: `nix run -- --listen 0.0.0.0` (allow external connections)
 - **Run with debug logging**: `nix run -- --debug` or `nix run -- --verbose`
@@ -39,8 +38,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - To update ComfyUI: modify `version`, `rev`, and `hash` in `nix/versions.nix`
 - Frontend/docs/template packages: vendored wheels pinned in `nix/versions.nix`
 - Python version: 3.12 (stable for ML workloads)
-- PyTorch: Stable releases (no nightly builds)
-- Note: Pure mode uses Nix-provided Python runtime dependencies; mutable mode installs extra deps via pip in a user venv.
+- PyTorch: Stable releases (no nightly builds), provided by Nix
 
 ## Project Architecture
 
@@ -78,20 +76,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `--debug` or `--verbose`: Enable detailed debug logging
 
 ### Important Environment Variables
-- `COMFY_USER_DIR`: Persistent storage directory (default: `~/.config/comfy-ui` in pure mode, `~/.config/comfy-ui/mutable` in mutable mode; use `--base-directory` instead)
+- `COMFY_USER_DIR`: Persistent storage directory (default: `~/.config/comfy-ui`; use `--base-directory` instead)
 - `COMFY_APP_DIR`: ComfyUI application directory (fixed at `~/.config/comfy-ui/app`)
 - `COMFY_SAVE_PATH`: User save path for outputs
-- `COMFY_MODE`: Set to `pure` (default) or `mutable` to control mode
-- `COMFY_ENABLE_API_NODES`: Set to `true` to allow built-in API nodes in pure mode (requires you to provide their Python deps/credentials)
-- `CUDA_VERSION`: CUDA version for PyTorch in mutable mode (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
+- `COMFY_ENABLE_API_NODES`: Set to `true` to allow built-in API nodes (requires you to provide their Python deps/credentials)
 - `COMFY_SKIP_TEMPLATE_INPUTS`: Set to `1`/`true` to skip downloading workflow template inputs at startup
 - `LD_LIBRARY_PATH`: (Linux) Set automatically to include system libraries and NVIDIA drivers
 - `DYLD_LIBRARY_PATH`: (macOS) Set if needed for dynamic libraries
 
 ### Platform-Specific Configuration
-- **Mutable mode**: Detects NVIDIA GPUs on Linux and configures CUDA, detects Apple Silicon and configures MPS
-- **Pure mode**: Uses Nix-provided PyTorch packages without runtime detection or installs
-- **Library Paths**: Automatically includes `/run/opengl-driver/lib` on Linux for NVIDIA drivers
+- Uses Nix-provided PyTorch packages (no runtime detection or installs)
+- CUDA support via `nix run .#cuda` (Linux/NVIDIA only)
+- Library Paths: Automatically includes `/run/opengl-driver/lib` on Linux for NVIDIA drivers
 
 ### Data Persistence Structure
 **Fixed locations** (always in `~/.config/comfy-ui/`):
@@ -99,12 +95,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 app/           - ComfyUI application code (auto-updated when flake changes)
 ```
 
-**Mutable-only location**:
-```
-venv/          - Python virtual environment
-```
-
-**Configurable locations** (default `~/.config/comfy-ui/` in pure mode, `~/.config/comfy-ui/mutable` in mutable mode, or `--base-directory`):
+**Configurable locations** (default `~/.config/comfy-ui/` or `--base-directory`):
 ```
 models/        - Model files (checkpoints, loras, vae, controlnet, embeddings, upscale_models, clip, diffusers, etc.)
 output/        - Generated images and outputs

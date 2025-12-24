@@ -14,23 +14,17 @@ nix run github:utensils/comfyui-nix -- --open
 
 ### Modes
 
-- Pure (default): `nix run github:utensils/comfyui-nix -- …` uses the Nix-packaged Python runtime and avoids runtime installs/network mutation.
-- CUDA (pure): `nix run github:utensils/comfyui-nix#cuda -- …` uses the CUDA-enabled Nix runtime (Linux/NVIDIA only).
-- Mutable (opt-in): `nix run github:utensils/comfyui-nix#mutable -- …` enables ComfyUI-Manager and pip installs in your `$COMFY_USER_DIR`. Use this when you explicitly want a writable environment.
-- Mutable state is isolated under `~/.config/comfy-ui/mutable` by default; override with `COMFY_USER_DIR` or `--base-directory` if you need a different path.
-- API nodes are disabled by default in pure mode to avoid missing cloud SDK deps; set `COMFY_ENABLE_API_NODES=true` if you want them (you must supply the required APIs/dependencies yourself).
+- **Default**: `nix run github:utensils/comfyui-nix -- …` uses the Nix-packaged Python runtime with all dependencies pre-built.
+- **CUDA**: `nix run github:utensils/comfyui-nix#cuda -- …` uses the CUDA-enabled Nix runtime (Linux/NVIDIA only).
+- API nodes are disabled by default to avoid missing cloud SDK deps; set `COMFY_ENABLE_API_NODES=true` if you want them (you must supply the required APIs/dependencies yourself).
 
 ## Features
 
 - Provides ComfyUI packaged with Python 3.12
-- Reproducible environment through Nix flakes
-- Pure-by-default runtime; opt-in mutable mode for ComfyUI-Manager/pip installs
+- Fully reproducible environment through Nix flakes
 - Cross-platform support: macOS (Intel/Apple Silicon) and Linux
-- Mutable mode auto-detects GPUs and installs appropriate PyTorch (CUDA on Linux, MPS on Apple Silicon)
-- Configurable CUDA version via `CUDA_VERSION` (mutable mode only)
+- CUDA support via `nix run .#cuda` (Linux/NVIDIA only)
 - Persistent user data directory with automatic version upgrades
-- Mutable mode includes ComfyUI-Manager for extension installation
-- Includes comfy-cli for command-line workflow management
 - Improved model download experience with automatic backend downloads
 - Code quality tooling: ruff (linter/formatter), pyright (type checker), shellcheck
 - CI validation with `nix flake check` (build, lint, type-check, shellcheck, nixfmt)
@@ -54,15 +48,11 @@ nix run github:utensils/comfyui-nix/[commit-hash] -- --open
 
 ### Environment Variables
 
-- `CUDA_VERSION`: CUDA version for PyTorch in mutable mode (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
-- `COMFY_ENABLE_API_NODES`: set to `true` to allow built-in API nodes in pure mode (requires you to provide their Python deps/credentials)
+- `COMFY_ENABLE_API_NODES`: set to `true` to allow built-in API nodes (requires you to provide their Python deps/credentials)
 - `COMFY_SKIP_TEMPLATE_INPUTS`: set to `1`/`true` to skip downloading workflow template inputs at startup (default: enabled in Docker images)
 
 ```bash
-# Example: Use CUDA 12.1
-CUDA_VERSION=cu121 nix run github:utensils/comfyui-nix
-
-# Example: Pure CUDA runtime (Linux + NVIDIA)
+# Example: CUDA runtime (Linux + NVIDIA)
 nix run github:utensils/comfyui-nix#cuda -- --listen 0.0.0.0
 
 # Example: Use custom data directory (e.g., on a separate drive)
@@ -115,9 +105,7 @@ The flake is designed to be simple and extensible. You can customize it by:
 1. Adding Python packages in the `pythonRuntime` definition
 2. Modifying the launcher script in `scripts/launcher.sh`
 3. Pinning to a specific ComfyUI version by changing the version pins in `nix/versions.nix`
-4. Adding third-party custom nodes:
-   - Preferred: package them via an overlay and add to your flake inputs/overlays.
-   - Mutable mode: install via ComfyUI-Manager/pip in `nix run .#mutable` (impure, user-local).
+4. Adding third-party custom nodes: package them via an overlay and add to your flake inputs/overlays
 
 ### Using the Overlay
 
@@ -164,7 +152,6 @@ Enable ComfyUI as a systemd service:
             listenAddress = "127.0.0.1";  # Use "0.0.0.0" for network access
             dataDir = "/var/lib/comfyui";
             openFirewall = false;  # Set true to open port in firewall
-            mutable = false;  # Set true to enable ComfyUI-Manager/pip installs
           };
         })
       ];
@@ -186,7 +173,6 @@ Enable ComfyUI as a systemd service:
 | `group` | string | `"comfyui"` | Group to run ComfyUI under |
 | `createUser` | bool | `true` | Create the comfyui system user/group |
 | `openFirewall` | bool | `false` | Open the configured port in the firewall |
-| `mutable` | bool | `false` | Enable mutable mode (ComfyUI-Manager/pip installs) |
 | `extraArgs` | list of strings | `[]` | Extra CLI arguments passed to ComfyUI |
 | `environment` | attrs | `{}` | Environment variables for the service |
 
@@ -222,7 +208,7 @@ User data is stored in `~/.config/comfy-ui` with the following structure:
 - `input/` - Input files for processing
 
 This structure ensures your models, outputs, and custom nodes persist between application updates.
-Mutable mode defaults to `~/.config/comfy-ui/mutable` for data storage; override with `COMFY_USER_DIR` or `--base-directory` as needed.
+Override with `COMFY_USER_DIR` or `--base-directory` as needed.
 
 ## System Requirements
 
@@ -246,19 +232,9 @@ Mutable mode defaults to `~/.config/comfy-ui/mutable` for data storage; override
 
 ### Linux Support
 
-- Automatic NVIDIA GPU detection and CUDA setup
-- Configurable CUDA version (default: 12.4, supports 11.8, 12.1, 12.4)
+- CUDA support via `nix run .#cuda` for NVIDIA GPUs
 - Automatic library path configuration for system libraries
-- Falls back to CPU-only mode if no GPU is detected
-
-### GPU Detection
-
-In mutable mode, the launcher detects your hardware and installs the appropriate PyTorch:
-- **Linux with NVIDIA GPU**: PyTorch with CUDA support (configurable via `CUDA_VERSION`)
-- **macOS with Apple Silicon**: PyTorch with MPS acceleration
-- **Other systems**: CPU-only PyTorch
-
-In pure mode, PyTorch is provided by Nix and no runtime detection or installs occur.
+- Falls back to CPU-only mode with the default package
 
 ## Version Information
 
@@ -266,9 +242,7 @@ This flake currently provides:
 
 - ComfyUI v0.5.1
 - Python 3.12
-- PyTorch stable releases (MPS on Apple Silicon in mutable mode; CUDA in the `-cuda` Docker image)
-- ComfyUI-Manager available in mutable mode
-- comfy-cli for command-line workflow management
+- PyTorch stable releases (CUDA via `nix run .#cuda` or the `-cuda` Docker image)
 - Frontend/docs/template packages vendored as wheels pinned in `nix/versions.nix`
 
 To check for updates:
@@ -451,14 +425,13 @@ sudo systemctl restart docker
 ### Docker Image Features
 
 - **Full functionality**: Includes all the features of the regular ComfyUI installation
-- **Pure mode by default**: Docker images run with the Nix runtime and skip pip installs on startup
+- **Nix runtime**: Docker images use the Nix-provided Python environment
 - **Template inputs**: Docker images skip template input downloads by default; set `COMFY_SKIP_TEMPLATE_INPUTS=0` if you want them
 - **Persistence**: Data is stored in a mounted volume at `/data`
 - **Port exposure**: Web UI available on port 8188
 - **Essential utilities**: Includes bash, coreutils, git, and other necessary tools
 - **Proper environment**: All environment variables set correctly for containerized operation
 - **GPU support**: CUDA version includes proper environment variables for NVIDIA GPU access
-- **CUDA runtime**: CUDA image uses Nix-provided CUDA PyTorch (no pip install on startup)
 
 The Docker image follows the same modular structure as the regular installation, ensuring consistency across deployment methods.
 
@@ -526,7 +499,7 @@ Run Flux 2 Dev without offloading using GGUF quantization:
 nix run github:utensils/comfyui-nix -- --base-directory ~/AI --listen 0.0.0.0 --use-pytorch-cross-attention --cuda-malloc --lowvram
 ```
 
-**Models** (install ComfyUI-GGUF via Manager first):
+**Models** (requires ComfyUI-GGUF custom node):
 
 ```bash
 # GGUF model → unet/ or diffusion_models/

@@ -177,27 +177,9 @@ let
             pkgs.libGL
           ]
         }" \
-        --set-default COMFY_MODE "pure" \
         --set-default PYTHON_RUNTIME "${pythonRuntime}"
 
       ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"
-
-      printf '%s\n' \
-        '#!/usr/bin/env bash' \
-        'VENV_DIR="''${HOME}/.config/comfy-ui/venv"' \
-        'COMFY_BIN="$VENV_DIR/bin/comfy"' \
-        "" \
-        'if [ ! -f "$COMFY_BIN" ]; then' \
-        '  echo "Error: comfy-cli not found at $COMFY_BIN"' \
-        '  echo ""' \
-        '  echo "The comfy command requires the ComfyUI environment to be set up first."' \
-        '  echo "Please run \"comfy-ui\" at least once to initialize the environment."' \
-        '  exit 1' \
-        'fi' \
-        "" \
-        'exec "$COMFY_BIN" "$@"' \
-        > "$out/bin/comfy"
-      chmod +x "$out/bin/comfy"
     '';
 
     meta = with lib; {

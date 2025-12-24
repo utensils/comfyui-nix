@@ -107,10 +107,6 @@ let
     fi
   '';
 
-  mutableScript = ''
-    export COMFY_MODE=mutable
-    exec ${packages.default}/bin/comfy-ui "$@"
-  '';
 in
 {
   default = {
@@ -143,11 +139,6 @@ in
     pkgs.ruff
     pkgs.pyright
   ];
-
-  mutable =
-    mkApp "comfy-ui-mutable" "Run ComfyUI in mutable mode (allows ComfyUI-Manager/pip installs)"
-      mutableScript
-      [ ];
 
 }
 // pkgs.lib.optionalAttrs (packages ? cuda) {

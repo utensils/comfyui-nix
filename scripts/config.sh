@@ -27,11 +27,6 @@ trap 'echo "ERROR in config.sh: Command failed with exit code $? at line $LINENO
 # Version and port configuration
 COMFY_VERSION="@comfyuiVersion@"
 COMFY_PORT="8188"
-COMFY_MODE="${COMFY_MODE:-pure}"
-
-# CUDA configuration (can be overridden via environment)
-# Supported versions: cu118, cu121, cu124, cpu
-CUDA_VERSION="${CUDA_VERSION:-cu124}"
 
 # Directory structure
 # Check for --base-directory in args first, otherwise use default
@@ -100,11 +95,7 @@ _parse_base_directory() {
 if [[ -n "${COMFY_USER_DIR:-}" ]]; then
   BASE_DIR="$COMFY_USER_DIR"
 else
-  if [[ "$COMFY_MODE" == "mutable" ]]; then
-    BASE_DIR="${HOME:-/root}/.config/comfy-ui/mutable"
-  else
-    BASE_DIR="${HOME:-/root}/.config/comfy-ui"
-  fi
+  BASE_DIR="${HOME:-/root}/.config/comfy-ui"
 fi
 _parsed_base_dir="$(_parse_base_directory "$@")"
 if [[ -n "$_parsed_base_dir" ]]; then
@@ -169,11 +160,8 @@ elif [[ ! -w "$_parent_dir" ]]; then
 fi
 unset _parent_dir _resolved_parent _resolved_base
 
-# App code and venv always live in .config (separate from data)
+# App code directory (separate from data)
 CODE_DIR="${HOME:-/root}/.config/comfy-ui/app"
-COMFY_VENV="${HOME:-/root}/.config/comfy-ui/venv"
-COMFY_MANAGER_DIR="$BASE_DIR/custom_nodes/ComfyUI-Manager"
-MODEL_DOWNLOADER_PERSISTENT_DIR="$BASE_DIR/custom_nodes/model_downloader"
 CUSTOM_NODE_DIR="$CODE_DIR/custom_nodes"
 MODEL_DOWNLOADER_APP_DIR="$CUSTOM_NODE_DIR/model_downloader"
 
@@ -222,18 +210,7 @@ declare -A DIRECTORIES=(
            $BASE_DIR/models/gligen $BASE_DIR/models/upscale_models $BASE_DIR/models/hypernetworks
            $BASE_DIR/models/photomaker $BASE_DIR/models/style_models $BASE_DIR/models/text_encoders"
   [input]="$BASE_DIR/input/img $BASE_DIR/input/video $BASE_DIR/input/mask"
-  [downloader]="$MODEL_DOWNLOADER_PERSISTENT_DIR/js"
 )
-
-# Python packages to install (as arrays for proper handling)
-# shellcheck disable=SC2034  # Used in install.sh
-BASE_PACKAGES=(pyyaml pillow numpy requests)
-# Core packages needed for ComfyUI v0.5.x+
-# shellcheck disable=SC2034  # Used in install.sh
-ADDITIONAL_PACKAGES=(spandrel av GitPython toml rich safetensors pydantic pydantic-settings alembic comfy-cli)
-
-# PyTorch installation will be determined dynamically based on GPU availability
-# This is set in install.sh based on platform detection
 
 # Function to parse command line arguments
 # Filters out arguments handled by this launcher, passes rest to ComfyUI
@@ -299,13 +276,13 @@ parse_arguments() {
     esac
   done
 
-  # Disable builtin API nodes by default in pure mode to avoid missing dep churn
-  if [[ "$COMFY_MODE" == "pure" && "${COMFY_ENABLE_API_NODES:-}" != "true" ]]; then
+  # Disable builtin API nodes by default to avoid missing dep churn
+  if [[ "${COMFY_ENABLE_API_NODES:-}" != "true" ]]; then
     ARGS+=("--disable-api-nodes")
   fi
 
-  # Force packaged frontend in pure mode unless user overrides it
-  if [[ "$COMFY_MODE" == "pure" && "$frontend_root_set" == "false" && "$frontend_version_set" == "false" ]]; then
+  # Force packaged frontend unless user overrides it
+  if [[ "$frontend_root_set" == "false" && "$frontend_version_set" == "false" ]]; then
     if [[ -d "$COMFY_FRONTEND_ROOT" ]]; then
       ARGS+=("--front-end-root" "$COMFY_FRONTEND_ROOT")
     else
@@ -318,15 +295,10 @@ parse_arguments() {
 export_config() {
   # Set COMFY_APP_DIR to CODE_DIR for Python persistence module
   COMFY_APP_DIR="$CODE_DIR"
-  if [[ "$COMFY_MODE" == "pure" ]]; then
-    PYTHON_BIN="$PYTHON_RUNTIME/bin/python"
-  else
-    PYTHON_BIN="$COMFY_VENV/bin/python"
-  fi
+  PYTHON_BIN="$PYTHON_RUNTIME/bin/python"
 
   # Export all defined variables to make them available to sourced scripts
-  export COMFY_VERSION COMFY_PORT BASE_DIR CODE_DIR COMFY_VENV COMFY_APP_DIR COMFY_MODE
-  export COMFY_MANAGER_DIR MODEL_DOWNLOADER_PERSISTENT_DIR
+  export COMFY_VERSION COMFY_PORT BASE_DIR CODE_DIR COMFY_APP_DIR
   export CUSTOM_NODE_DIR MODEL_DOWNLOADER_APP_DIR
   export OPEN_BROWSER PYTHON_ENV PYTHON_RUNTIME PYTHON_BIN
   export COMFYUI_SRC MODEL_DOWNLOADER_DIR COMFY_FRONTEND_ROOT

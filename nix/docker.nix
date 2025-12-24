@@ -12,7 +12,6 @@
     let
       baseEnv = [
         "HOME=/root"
-        "COMFY_MODE=pure"
         "COMFY_USER_DIR=/data"
         "COMFY_SKIP_TEMPLATE_INPUTS=1"
         "TMPDIR=/tmp"
@@ -24,9 +23,7 @@
       cudaEnv = lib.optionals cudaSupport [
         "NVIDIA_VISIBLE_DEVICES=all"
         "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
-        "CUDA_VERSION=${cudaVersion}"
       ];
-      cpuEnv = lib.optionals (!cudaSupport) [ "CUDA_VERSION=cpu" ];
       labels = {
         "org.opencontainers.image.title" = if cudaSupport then "ComfyUI CUDA" else "ComfyUI";
         "org.opencontainers.image.description" =
@@ -72,12 +69,12 @@
           "-c"
           (
             if cudaSupport then
-              "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && export PATH=\"/root/.config/comfy-ui/venv/bin:$PATH\" && /bin/comfy-ui --listen 0.0.0.0"
+              "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && /bin/comfy-ui --listen 0.0.0.0"
             else
-              "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && export PATH=\"/root/.config/comfy-ui/venv/bin:$PATH\" && /bin/comfy-ui --listen 0.0.0.0 --cpu"
+              "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && /bin/comfy-ui --listen 0.0.0.0 --cpu"
           )
         ];
-        Env = baseEnv ++ cpuEnv ++ cudaEnv;
+        Env = baseEnv ++ cudaEnv;
         ExposedPorts = {
           "8188/tcp" = { };
         };
