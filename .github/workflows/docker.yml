@@ -31,7 +31,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
       packages: write
@@ -49,17 +49,20 @@ jobs:
             nix_target: dockerImage
             platform: linux/amd64
             tag_suffix: ''
+            runner: ubuntu-latest
           - variant: cpu
             arch: aarch64-linux
             nix_target: dockerImage
             platform: linux/arm64
             tag_suffix: ''
+            runner: ubuntu-24.04-arm  # Native ARM runner, no QEMU
           # CUDA only for x86_64 (NVIDIA CUDA not available for ARM)
           - variant: cuda
             arch: x86_64-linux
             nix_target: dockerImageCuda
             platform: linux/amd64
             tag_suffix: '-cuda'
+            runner: ubuntu-latest
 
     steps:
       - name: Checkout repository
