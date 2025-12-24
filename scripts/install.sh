@@ -33,10 +33,13 @@ install_comfyui() {
 
     local version_file="$CODE_DIR/VERSION"
     local marker_file="$CODE_DIR/.comfyui_nix"
-    if [[ "$COMFY_MODE" == "pure" && -f "$version_file" && -f "$marker_file" ]]; then
+    local src_file="$CODE_DIR/.comfyui_nix_src"
+    if [[ "$COMFY_MODE" == "pure" && -f "$version_file" && -f "$marker_file" && -f "$src_file" ]]; then
         local installed_version
+        local installed_src
         installed_version=$(cat "$version_file" 2>/dev/null || echo "")
-        if [[ "$installed_version" == "$COMFY_VERSION" ]]; then
+        installed_src=$(cat "$src_file" 2>/dev/null || echo "")
+        if [[ "$installed_version" == "$COMFY_VERSION" && "$installed_src" == "$COMFYUI_SRC" ]]; then
             log_info "ComfyUI $COMFY_VERSION already installed (pure mode), skipping copy"
             return
         fi
@@ -52,6 +55,7 @@ install_comfyui() {
     log_info "Copying ComfyUI source code"
     cp -r "$COMFYUI_SRC"/* "$CODE_DIR/"
     echo "$COMFY_VERSION" > "$CODE_DIR/VERSION"
+    echo "$COMFYUI_SRC" > "$CODE_DIR/.comfyui_nix_src"
     touch "$CODE_DIR/.comfyui_nix"
 
     # Ensure proper permissions

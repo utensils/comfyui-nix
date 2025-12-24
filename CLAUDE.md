@@ -7,12 +7,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **NEVER commit changes unless explicitly requested by the user.**
 
 ## Build/Run Commands
-- **Run application**: `nix run` (builds and runs the app with Nix)
+- **Run application**: `nix run` (pure mode, default)
 - **Run with browser**: `nix run -- --open` (automatically opens browser)
+- **Run with CUDA**: `nix run .#cuda` (Linux/NVIDIA only, uses Nix-provided CUDA PyTorch)
+- **Run in mutable mode**: `nix run .#mutable` (enables ComfyUI-Manager and pip installs)
 - **Run with custom port**: `nix run -- --port=8080` (specify custom port)
 - **Run with network access**: `nix run -- --listen 0.0.0.0` (allow external connections)
 - **Run with debug logging**: `nix run -- --debug` or `nix run -- --verbose`
 - **Build with Nix**: `nix build` (builds the app without running)
+- **Check for updates**: `nix run .#update` (shows latest ComfyUI version and update instructions)
 - **Build Docker image**: `nix run .#buildDocker` (creates `comfy-ui:latest` image)
 - **Build CUDA Docker**: `nix run .#buildDockerCuda` (creates `comfy-ui:cuda` image)
 - **Pull pre-built Docker**: `docker pull ghcr.io/utensils/comfyui-nix:latest`
@@ -78,6 +81,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `COMFY_USER_DIR`: Persistent storage directory (default: `~/.config/comfy-ui` in pure mode, `~/.config/comfy-ui/mutable` in mutable mode; use `--base-directory` instead)
 - `COMFY_APP_DIR`: ComfyUI application directory (fixed at `~/.config/comfy-ui/app`)
 - `COMFY_SAVE_PATH`: User save path for outputs
+- `COMFY_MODE`: Set to `pure` (default) or `mutable` to control mode
+- `COMFY_ENABLE_API_NODES`: Set to `true` to allow built-in API nodes in pure mode (requires you to provide their Python deps/credentials)
 - `CUDA_VERSION`: CUDA version for PyTorch in mutable mode (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
 - `COMFY_SKIP_TEMPLATE_INPUTS`: Set to `1`/`true` to skip downloading workflow template inputs at startup
 - `LD_LIBRARY_PATH`: (Linux) Set automatically to include system libraries and NVIDIA drivers
