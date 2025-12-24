@@ -23,8 +23,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -43,6 +43,7 @@ output/
 input/
 temp/
 models/
+data/
 
 # Editor specific files
 .vscode/
@@ -54,8 +55,5 @@ models/
 .DS_Store
 Thumbs.db
 
-# Deciduous database (local)
-.deciduous/
-
-# Docker/Podman data directory
-data/
+# Codex local state
+.codex/

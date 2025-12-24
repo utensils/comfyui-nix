@@ -7,12 +7,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **NEVER commit changes unless explicitly requested by the user.**
 
 ## Build/Run Commands
-- **Run application**: `nix run` (builds and runs the app with Nix)
+- **Run application**: `nix run` (default)
 - **Run with browser**: `nix run -- --open` (automatically opens browser)
+- **Run with CUDA**: `nix run .#cuda` (Linux/NVIDIA only, uses Nix-provided CUDA PyTorch)
 - **Run with custom port**: `nix run -- --port=8080` (specify custom port)
 - **Run with network access**: `nix run -- --listen 0.0.0.0` (allow external connections)
 - **Run with debug logging**: `nix run -- --debug` or `nix run -- --verbose`
 - **Build with Nix**: `nix build` (builds the app without running)
+- **Check for updates**: `nix run .#update` (shows latest ComfyUI version and update instructions)
 - **Build Docker image**: `nix run .#buildDocker` (creates `comfy-ui:latest` image)
 - **Build CUDA Docker**: `nix run .#buildDockerCuda` (creates `comfy-ui:cuda` image)
 - **Pull pre-built Docker**: `docker pull ghcr.io/utensils/comfyui-nix:latest`
@@ -23,44 +25,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Install to profile**: `nix profile install github:utensils/comfyui-nix`
 
 ## Linting and Code Quality
-- **Run all checks**: `nix flake check` (runs all CI checks: build, lint, type-check, shellcheck)
-- **Lint code**: `nix run .#lint` (run ruff linter, check only)
-- **Format code**: `nix run .#format` (auto-format code with ruff)
-- **Fix linting issues**: `nix run .#lint-fix` (run ruff with auto-fix)
-- **Type check**: `nix run .#type-check` (run pyright type checker)
-- **Run all checks (verbose)**: `nix run .#check-all` (lint + type-check with output)
+- **Run all checks**: `nix flake check` (runs all CI checks: build, lint, type-check, nixfmt)
 - **Nix formatting**: `nix fmt` (format Nix files with nixfmt-rfc-style)
+- **Dev shell**: `nix develop` provides ruff and pyright for manual linting/type-checking
 
 ## Version Management
-- Current ComfyUI version: v0.5.1 (pinned in `flake.nix`)
-- To update ComfyUI: modify `rev` and `hash` in `comfyui-src` fetchFromGitHub block
-- Frontend package version: Managed by ComfyUI's requirements.txt (installed via pip in venv)
+- Current ComfyUI version: v0.5.1 (pinned in `nix/versions.nix`)
+- To update ComfyUI: modify `version`, `rev`, and `hash` in `nix/versions.nix`
+- Frontend/docs/template packages: vendored wheels pinned in `nix/versions.nix`
 - Python version: 3.12 (stable for ML workloads)
-- PyTorch: Stable releases (no nightly builds)
-- Note: The Nix pythonEnv only provides bootstrap tools (pip, setuptools, wheel). All runtime dependencies are installed via pip in the virtual environment.
+- PyTorch: Stable releases (no nightly builds), provided by Nix
 
 ## Project Architecture
 
 ### Directory Structure
 - **src/custom_nodes/**: Custom node extensions for ComfyUI
   - **model_downloader/**: Non-blocking async model download system with WebSocket progress updates
-- **src/patches/**: Runtime patches for ComfyUI behavior
-- **src/persistence/**: Data persistence module handling settings and models
-- **scripts/**: Modular launcher scripts:
-  - **launcher.sh**: Main entry point that orchestrates the launching process
-  - **config.sh**: Configuration variables and settings
-  - **logger.sh**: Logging utilities with different verbosity levels
-  - **install.sh**: Installation and setup procedures
-  - **persistence.sh**: Symlink creation and data persistence management
-  - **runtime.sh**: Runtime execution and process management
+- **nix/**: Flake helpers and modules
+  - **versions.nix**: Version pins for ComfyUI and vendored wheels
+  - **packages.nix**: Package definitions and inline launcher script (uses `writeShellApplication`)
+  - **docker.nix**: Docker image helpers
+  - **checks.nix**: `nix flake check` definitions
+  - **modules/comfyui.nix**: NixOS service module with declarative custom nodes support
+  - **lib/custom-nodes.nix**: Helper functions for custom node management (future curated nodes)
 
 ### Key Components
 - **Model Downloader**: Non-blocking async download system using aiohttp with WebSocket progress updates
   - API endpoints: `POST /api/download_model`, `GET /api/download_progress/{id}`, `GET /api/list_downloads`
-- **Persistence Module**: Patches `folder_paths` module at runtime to redirect all model/data directories to `~/.config/comfy-ui/`
-- **Nix Integration**: Provides reproducible builds with Python 3.12 environment
-- **Modular Launcher**: Manages installation, configuration, and runtime with separated concerns
-- **Logging System**: Provides consistent, configurable logging across all components
+- **Pure Nix Launcher**: Minimal shell script using `writeShellApplication` (Nix best practice)
+  - Creates data directory structure on first run
+  - Links bundled model_downloader custom node
+  - Runs ComfyUI directly from Nix store with `--base-directory` and `--front-end-root` flags
+- **Nix Integration**: Fully reproducible builds with Python 3.12 environment
 
 ### Command Line Options
 - `--base-directory PATH`: Set data directory for models, input, output, custom_nodes (preferred method)
@@ -69,33 +65,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `--debug` or `--verbose`: Enable detailed debug logging
 
 ### Important Environment Variables
-- `COMFY_USER_DIR`: Persistent storage directory (default: `~/.config/comfy-ui`, use `--base-directory` instead)
-- `COMFY_APP_DIR`: ComfyUI application directory (fixed at `~/.config/comfy-ui/app`)
-- `COMFY_SAVE_PATH`: User save path for outputs
-- `CUDA_VERSION`: CUDA version for PyTorch (default: `cu124`, options: `cu118`, `cu121`, `cu124`, `cpu`)
+- `COMFY_USER_DIR`: Override the default data directory (alternative to `--base-directory`)
+- `COMFY_ENABLE_API_NODES`: Set to `true` to allow built-in API nodes (requires you to provide their Python deps/credentials)
+- `COMFY_ALLOW_MANAGER`: Set to `1` to prevent auto-disabling of ComfyUI-Manager in pure mode
 - `LD_LIBRARY_PATH`: (Linux) Set automatically to include system libraries and NVIDIA drivers
-- `DYLD_LIBRARY_PATH`: (macOS) Set if needed for dynamic libraries
+- `DYLD_LIBRARY_PATH`: (macOS) Set automatically to include dynamic libraries
 
 ### Platform-Specific Configuration
-- **Linux**: Automatically detects NVIDIA GPUs and configures CUDA support
-- **macOS**: Detects Apple Silicon and configures MPS acceleration
-- **Library Paths**: Automatically includes `/run/opengl-driver/lib` on Linux for NVIDIA drivers
+- Uses Nix-provided PyTorch packages (no runtime detection or installs)
+- CUDA support via `nix run .#cuda` (Linux/NVIDIA only)
+- Library Paths: Automatically includes `/run/opengl-driver/lib` on Linux for NVIDIA drivers
 
 ### Data Persistence Structure
-**Fixed locations** (always in `~/.config/comfy-ui/`):
-```
-app/           - ComfyUI application code (auto-updated when flake changes)
-venv/          - Python virtual environment
-```
+All data is stored in the configurable base directory (or `--base-directory`):
+- **Linux**: `~/.config/comfy-ui/` (XDG convention)
+- **macOS**: `~/Library/Application Support/comfy-ui/` (Apple convention)
 
-**Configurable locations** (default `~/.config/comfy-ui/`, or `--base-directory`):
+Directory structure:
 ```
-models/        - Model files (checkpoints, loras, vae, controlnet, embeddings, upscale_models, clip, diffusers, etc.)
+models/        - Model files (checkpoints, loras, vae, controlnet, embeddings, upscale_models, clip, etc.)
 output/        - Generated images and outputs
-user/          - User configuration and custom nodes
 input/         - Input files for processing
-custom_nodes/  - Persistent custom node installations
+user/          - User configuration and workflows
+custom_nodes/  - Custom node installations (model_downloader auto-linked here)
+temp/          - Temporary files
 ```
+ComfyUI runs directly from the Nix store; no application files are copied to your data directory.
 
 ## CI/CD and Automation
 
@@ -108,11 +103,10 @@ custom_nodes/  - Persistent custom node installations
 - **Build Matrix**: CPU (multi-arch) and CUDA (x86_64 only) variants built in parallel
 - **Outputs**: Images published to `ghcr.io/utensils/comfyui-nix`
 - **Tags**:
-  - Main branch: `latest`, `X.Y.Z` (from flake.nix)
+  - Main branch: `latest`, `X.Y.Z` (from `nix/versions.nix`)
   - Version tags: `vX.Y.Z`, `latest`
   - Architecture-specific: `latest-amd64`, `latest-arm64`
   - Pull requests: `pr-N` (build only, no push)
-- **Caching**: Uses Cachix for Nix build caching (requires `CACHIX_AUTH_TOKEN` secret)
 
 #### Claude Code Integration (`.github/workflows/claude.yml`, `.github/workflows/claude-code-review.yml`)
 - **Purpose**: AI-assisted code review and issue responses
@@ -120,7 +114,6 @@ custom_nodes/  - Persistent custom node installations
 - **Requirements**: `CLAUDE_CODE_OAUTH_TOKEN` secret
 
 ### Secrets Required
-- `CACHIX_AUTH_TOKEN`: (Optional) For Nix build caching, speeds up CI
 - `CLAUDE_CODE_OAUTH_TOKEN`: For Claude Code GitHub integration
 - `GITHUB_TOKEN`: Automatically provided by GitHub for registry access
 
@@ -141,177 +134,44 @@ custom_nodes/  - Persistent custom node installations
 - **Logging**: Configure with `logging.basicConfig` and create module-level loggers
 - **Module Structure**: For custom nodes, follow ComfyUI's extension system with proper `__init__.py` and `setup_js_api` function
 
-### Frontend (Vue 3)
-- **Component Order**: Organize in `<template>`, `<script>`, `<style>` order
-- **Props**: Use Vue 3.5 default prop declaration style with TypeScript
-- **Composition API**: Use `setup()`, `ref`, `reactive`, `computed`, and lifecycle hooks
-- **Styling**: Use Tailwind CSS for styling and responsive design
-- **i18n**: Use vue-i18n in composition API for string literals
-
 ### Custom Node Development
 - Install custom nodes to the persistent location (`~/.config/comfy-ui/custom_nodes/`)
-- Create symlinks from the app directory to the persistent location
+- The launcher automatically links bundled custom nodes on first run
 - Register API endpoints in the `setup_js_api` function
 - Frontend JavaScript should be placed in the node's `js/` directory
 - Use proper route checking to avoid duplicate endpoint registration
 
-### Bash Scripts
-- **Modularity**: Each script should have a single responsibility
-- **Function-Based**: Organize code into functions rather than procedural scripts
-- **Error Handling**: Use proper traps and error reporting
-- **Logging**: Use the logging functions from logger.sh instead of direct echo statements
-- **Configuration**: Keep all configurable variables in config.sh
-- **Documentation**: Include clear comments and function documentation
-- **Strict Mode**: Use appropriate strictness flags (set -u -o pipefail)
-- **Source Guards**: Use guard clauses to prevent multiple sourcing (e.g., `[[ -n "${_SCRIPT_SOURCED:-}" ]] && return`)
-- **Cross-Platform**: Use `open_browser()` function from logger.sh instead of platform-specific commands
-
-## Decision Graph Workflow
-
-**THIS IS MANDATORY. Log decisions IN REAL-TIME, not retroactively.**
-
-### The Core Rule
-
+### NixOS Module: Declarative Custom Nodes
+The NixOS module supports pure, declarative custom node management via `services.comfyui.customNodes`:
+```nix
+services.comfyui = {
+  enable = true;
+  customNodes = {
+    # Each key = directory name in custom_nodes/
+    # Each value = derivation containing node source
+    ComfyUI-Impact-Pack = pkgs.fetchFromGitHub {
+      owner = "ltdrdata";
+      repo = "ComfyUI-Impact-Pack";
+      rev = "v1.0.0";
+      hash = "sha256-...";
+    };
+  };
+};
 ```
-BEFORE you do something -> Log what you're ABOUT to do
-AFTER it succeeds/fails -> Log the outcome
-CONNECT immediately -> Link every node to its parent
-AUDIT regularly -> Check for missing connections
-```
+- Nodes are symlinked at service start (preStart script)
+- Fully reproducible and version-pinned
+- Future: curated nodes via `comfyui-nix.customNodes.*`
 
-### Behavioral Triggers - MUST LOG WHEN:
+### Nix Code
+- Format Nix files with `nix fmt` (uses nixfmt-rfc-style)
+- Use `writeShellApplication` for shell scripts (provides shellcheck validation)
+- Pin all external dependencies with hashes in `nix/versions.nix`
 
-| Trigger | Log Type | Example |
-|---------|----------|---------|
-| User asks for a new feature | `goal` **with -p** | "Add dark mode" |
-| Choosing between approaches | `decision` | "Choose state management" |
-| About to write/edit code | `action` | "Implementing Redux store" |
-| Something worked or failed | `outcome` | "Redux integration successful" |
-| Notice something interesting | `observation` | "Existing code uses hooks" |
+## Binary Cache (Cachix)
 
-### CRITICAL: Capture User Prompts When Semantically Meaningful
-
-**Use `-p` / `--prompt` when a user request triggers new work or changes direction.** Don't add prompts to every node - only when a prompt is the actual catalyst.
-
+To speed up builds, use the public Cachix cache:
 ```bash
-# New feature request - capture the prompt on the goal
-deciduous add goal "Add auth" -c 90 -p "User asked: add login to the app"
-
-# Downstream work links back - no prompt needed (it flows via edges)
-deciduous add decision "Choose auth method" -c 75
-deciduous link <goal_id> <decision_id> -r "Deciding approach"
-
-# BUT if the user gives new direction mid-stream, capture that too
-deciduous add action "Switch to OAuth" -c 85 -p "User said: use OAuth instead"
+cachix use comfyui
 ```
 
-**When to capture prompts:**
-- Root `goal` nodes: YES - the original request
-- Major direction changes: YES - when user redirects the work
-- Routine downstream nodes: NO - they inherit context via edges
-
-Prompts are viewable in the TUI detail panel (`deciduous tui`) and flow through the graph via connections.
-
-### ⚠️ CRITICAL: Maintain Connections
-
-**The graph's value is in its CONNECTIONS, not just nodes.**
-
-| When you create... | IMMEDIATELY link to... |
-|-------------------|------------------------|
-| `outcome` | The action/goal it resolves |
-| `action` | The goal/decision that spawned it |
-| `option` | Its parent decision |
-| `observation` | Related goal/action |
-
-**Root `goal` nodes are the ONLY valid orphans.**
-
-### Quick Commands
-
-```bash
-deciduous add goal "Title" -c 90 -p "User's original request"
-deciduous add action "Title" -c 85
-deciduous link FROM TO -r "reason"  # DO THIS IMMEDIATELY!
-deciduous serve   # View live (auto-refreshes every 30s)
-deciduous sync    # Export for static hosting
-
-# Metadata flags
-# -c, --confidence 0-100   Confidence level
-# -p, --prompt "..."       Store the user prompt (use when semantically meaningful)
-# -f, --files "a.rs,b.rs"  Associate files
-# -b, --branch <name>      Git branch (auto-detected)
-# --commit <hash|HEAD>     Link to git commit (use HEAD for current commit)
-
-# Branch filtering
-deciduous nodes --branch main
-deciduous nodes -b feature-auth
-```
-
-### ⚠️ CRITICAL: Link Commits to Actions/Outcomes
-
-**After every git commit, link it to the decision graph!**
-
-```bash
-git commit -m "feat: add auth"
-deciduous add action "Implemented auth" -c 90 --commit HEAD
-deciduous link <goal_id> <action_id> -r "Implementation"
-```
-
-The `--commit HEAD` flag captures the commit hash and links it to the node. The web viewer will show commit messages, authors, and dates.
-
-### Git History & Deployment
-
-```bash
-# Export graph AND git history for web viewer
-deciduous sync
-
-# This creates:
-# - docs/graph-data.json (decision graph)
-# - docs/git-history.json (commit info for linked nodes)
-```
-
-To deploy to GitHub Pages:
-1. `deciduous sync` to export
-2. Push to GitHub
-3. Settings > Pages > Deploy from branch > /docs folder
-
-Your graph will be live at `https://<user>.github.io/<repo>/`
-
-### Branch-Based Grouping
-
-Nodes are auto-tagged with the current git branch. Configure in `.deciduous/config.toml`:
-```toml
-[branch]
-main_branches = ["main", "master"]
-auto_detect = true
-```
-
-### Audit Checklist (Before Every Sync)
-
-1. Does every **outcome** link back to what caused it?
-2. Does every **action** link to why you did it?
-3. Any **dangling outcomes** without parents?
-
-### Session Start Checklist
-
-```bash
-deciduous nodes    # What decisions exist?
-deciduous edges    # How are they connected? Any gaps?
-git status         # Current state
-```
-
-### Multi-User Sync
-
-Share decisions across teammates:
-
-```bash
-# Export your branch's decisions
-deciduous diff export --branch feature-x -o .deciduous/patches/my-feature.json
-
-# Apply patches from teammates (idempotent)
-deciduous diff apply .deciduous/patches/*.json
-
-# Preview before applying
-deciduous diff apply --dry-run .deciduous/patches/teammate.json
-```
-
-PR workflow: Export patch → commit patch file → PR → teammates apply.
+The cache is automatically configured in the flake's `nixConfig`. CI publishes artifacts to this cache on main branch pushes.

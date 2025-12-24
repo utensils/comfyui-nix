@@ -1,0 +1,16 @@
+--- a/comfy/quant_ops.py
++++ b/comfy/quant_ops.py
+@@ -431,6 +431,13 @@
+ 
+     @staticmethod
+     def dequantize(qdata, scale, orig_dtype, **kwargs):
++        # MPS doesn't support float8; dequantize on CPU then move back.
++        if qdata.device.type == "mps" and qdata.dtype in (torch.float8_e4m3fn, torch.float8_e5m2):
++            qdata_cpu = qdata.to("cpu")
++            scale_cpu = scale.to("cpu")
++            plain_tensor = torch.ops.aten._to_copy.default(qdata_cpu, dtype=orig_dtype)
++            plain_tensor.mul_(scale_cpu)
++            return plain_tensor.to("mps")
+         plain_tensor = torch.ops.aten._to_copy.default(qdata, dtype=orig_dtype)
+         plain_tensor.mul_(scale)
+         return plain_tensor

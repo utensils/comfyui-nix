@@ -1,6 +1,13 @@
 {
   description = "A Nix flake for ComfyUI with Python 3.12";
 
+  nixConfig = {
+    extra-substituters = [ "https://comfyui.cachix.org" ];
+    extra-trusted-public-keys = [
+      "comfyui.cachix.org-1:YRLAAeLvPlXaADgyj9kPkQHDXEmiByNqqCoh0/NOiLs="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
@@ -11,730 +18,145 @@
       self,
       nixpkgs,
       flake-utils,
-      ...
     }:
     let
-      # Version configuration - single source of truth
-      comfyuiVersion = "0.5.1";
-      comfyuiRev = "ba6080bbab070934ea6e870c5fc30dbf702eb445";
-      comfyuiHash = "sha256-mJf8p6ga9jQHXmHrQjeGs4fgAlRFnREQIPskNM0vwXQ=";
-
-      # Function to build packages for a given pkgs
-      # This allows us to build for different target systems (cross-compilation)
-      mkComfyPackages =
-        {
-          pkgs,
-          forDocker ? false,
-        }:
-        let
-          # ComfyUI source
-          comfyui-src = pkgs.fetchFromGitHub {
-            owner = "comfyanonymous";
-            repo = "ComfyUI";
-            rev = comfyuiRev;
-            hash = comfyuiHash;
-          };
-
-          # Model downloader custom node
-          modelDownloaderDir = ./src/custom_nodes/model_downloader;
-
-          # Python environment with minimal dependencies for bootstrapping
-          pythonEnv = pkgs.python312.buildEnv.override {
-            extraLibs = with pkgs.python312Packages; [
-              setuptools
-              wheel
-              pip
-            ];
-            ignoreCollisions = true;
-          };
-
-          # Copy our persistence scripts to the nix store
-          persistenceScript = ./src/persistence/persistence.py;
-          persistenceMainScript = ./src/persistence/main.py;
-
-          # Process script files - only use replaceVars for scripts with @var@ patterns
-          configScript = pkgs.replaceVars ./scripts/config.sh {
-            pythonEnv = pythonEnv;
-            comfyuiSrc = comfyui-src;
-          };
-
-          # Main launcher script with substitutions
-          # Include libraries needed by pip-installed packages (e.g., OpenCV):
-          # - stdenv.cc.cc.lib: libstdc++
-          # - glib: libgthread-2.0.so.0
-          # - libGL: libGL.so.1 (OpenGL)
-          launcherScript = pkgs.replaceVars ./scripts/launcher.sh {
-            libPath = pkgs.lib.makeLibraryPath [
-              pkgs.stdenv.cc.cc.lib
-              pkgs.glib
-              pkgs.libGL
-            ];
-          };
-
-          # Scripts without substitution patterns - copy directly
-          loggerScript = ./scripts/logger.sh;
-          installScript = ./scripts/install.sh;
-          persistenceShScript = ./scripts/persistence.sh;
-          runtimeScript = ./scripts/runtime.sh;
-          templateInputsScript = ./scripts/template_inputs.sh;
-
-          # Create a directory with all scripts
-          scriptDir = pkgs.runCommand "comfy-ui-scripts" { } ''
-            mkdir -p $out
-            cp ${configScript} $out/config.sh
-            cp ${loggerScript} $out/logger.sh
-            cp ${installScript} $out/install.sh
-            cp ${persistenceShScript} $out/persistence.sh
-            cp ${runtimeScript} $out/runtime.sh
-            cp ${templateInputsScript} $out/template_inputs.sh
-            cp ${launcherScript} $out/launcher.sh
-            chmod +x $out/*.sh
-          '';
-
-          # Main comfy-ui package
-          comfyUiPackage = pkgs.stdenv.mkDerivation {
-            pname = "comfy-ui";
-            version = comfyuiVersion;
-
-            src = comfyui-src;
-
-            passthru = {
-              inherit comfyui-src;
-              version = comfyuiVersion;
-            };
-
-            nativeBuildInputs = [
-              pkgs.makeWrapper
-              pythonEnv
-            ];
-            buildInputs = [
-              pkgs.libGL
-              pkgs.libGLU
-              pkgs.stdenv.cc.cc.lib
-            ];
-
-            dontBuild = true;
-            dontConfigure = true;
-
-            installPhase = ''
-                            mkdir -p "$out/bin"
-                            mkdir -p "$out/share/comfy-ui"
-
-                            cp -r ${comfyui-src}/* "$out/share/comfy-ui/"
-
-                            mkdir -p "$out/share/comfy-ui/scripts"
-                            cp -r ${scriptDir}/* "$out/share/comfy-ui/scripts/"
-
-                            # Copy persistence scripts
-                            mkdir -p "$out/share/comfy-ui/persistence"
-                            cp ${persistenceScript} "$out/share/comfy-ui/persistence/persistence.py"
-                            cp ${persistenceMainScript} "$out/share/comfy-ui/persistence/main.py"
-
-                            # Copy model downloader custom node
-                            mkdir -p "$out/share/comfy-ui/model_downloader"
-                            cp -r ${modelDownloaderDir}/* "$out/share/comfy-ui/model_downloader/"
-
-                            makeWrapper "$out/share/comfy-ui/scripts/launcher.sh" "$out/bin/comfy-ui" \
-                              --prefix PATH : "${
-                                pkgs.lib.makeBinPath [
-                                  pkgs.curl
-                                  pkgs.jq
-                                  pkgs.git
-                                  pkgs.coreutils
-                                ]
-                              }"
-
-                            ln -s "$out/bin/comfy-ui" "$out/bin/comfy-ui-launcher"
-
-                            # Create comfy-cli wrapper script
-                            cat > "$out/bin/comfy" << 'COMFY_WRAPPER'
-              #!/usr/bin/env bash
-              VENV_DIR="''${HOME}/.config/comfy-ui/venv"
-              COMFY_BIN="$VENV_DIR/bin/comfy"
-
-              if [ ! -f "$COMFY_BIN" ]; then
-                  echo "Error: comfy-cli not found at $COMFY_BIN"
-                  echo ""
-                  echo "The comfy command requires the ComfyUI environment to be set up first."
-                  echo "Please run 'comfy-ui' at least once to initialize the environment."
-                  exit 1
-              fi
-
-              exec "$COMFY_BIN" "$@"
-              COMFY_WRAPPER
-                            chmod +x "$out/bin/comfy"
-            '';
-
-            meta = with pkgs.lib; {
-              description = "ComfyUI with Python 3.12";
-              homepage = "https://github.com/comfyanonymous/ComfyUI";
-              license = licenses.gpl3;
-              platforms = platforms.all;
-              mainProgram = "comfy-ui";
-            };
-          };
-
-          # Docker image (CPU)
-          dockerImage = pkgs.dockerTools.buildImage {
-            name = "comfy-ui";
-            tag = "latest";
-            created = "now";
-
-            copyToRoot = pkgs.buildEnv {
-              name = "root";
-              paths = [
-                pkgs.bash
-                pkgs.coreutils
-                pkgs.netcat
-                pkgs.git
-                pkgs.curl
-                pkgs.jq
-                pkgs.cacert
-                pkgs.libGL
-                pkgs.libGLU
-                pkgs.stdenv.cc.cc.lib
-                comfyUiPackage
-              ];
-              pathsToLink = [
-                "/bin"
-                "/etc"
-                "/lib"
-                "/share"
-              ];
-            };
-
-            config = {
-              Cmd = [
-                "/bin/bash"
-                "-c"
-                "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && export PATH=\"/root/.config/comfy-ui/venv/bin:$PATH\" && /bin/comfy-ui --listen 0.0.0.0 --cpu"
-              ];
-              Env = [
-                "HOME=/root"
-                "COMFY_USER_DIR=/data"
-                "TMPDIR=/tmp"
-                "PATH=/bin:/usr/bin"
-                "PYTHONUNBUFFERED=1"
-                "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-                "LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib"
-                "CUDA_VERSION=cpu"
-              ];
-              ExposedPorts = {
-                "8188/tcp" = { };
-              };
-              WorkingDir = "/data";
-              Volumes = {
-                "/data" = { };
-                "/tmp" = { };
-              };
-              Healthcheck = {
-                Test = [
-                  "CMD"
-                  "nc"
-                  "-z"
-                  "localhost"
-                  "8188"
-                ];
-                Interval = 30000000000;
-                Timeout = 5000000000;
-                Retries = 3;
-                StartPeriod = 60000000000;
-              };
-              Labels = {
-                "org.opencontainers.image.title" = "ComfyUI";
-                "org.opencontainers.image.description" =
-                  "ComfyUI - The most powerful and modular diffusion model GUI";
-                "org.opencontainers.image.version" = comfyuiVersion;
-                "org.opencontainers.image.source" = "https://github.com/utensils/comfyui-nix";
-                "org.opencontainers.image.licenses" = "GPL-3.0";
-              };
-            };
-          };
-
-          # Docker image with CUDA support
-          dockerImageCuda = pkgs.dockerTools.buildImage {
-            name = "comfy-ui";
-            tag = "cuda";
-            created = "now";
-
-            copyToRoot = pkgs.buildEnv {
-              name = "root";
-              paths = [
-                pkgs.bash
-                pkgs.coreutils
-                pkgs.netcat
-                pkgs.git
-                pkgs.curl
-                pkgs.jq
-                pkgs.cacert
-                pkgs.libGL
-                pkgs.libGLU
-                pkgs.stdenv.cc.cc.lib
-                comfyUiPackage
-              ];
-              pathsToLink = [
-                "/bin"
-                "/etc"
-                "/lib"
-                "/share"
-              ];
-            };
-
-            config = {
-              Cmd = [
-                "/bin/bash"
-                "-c"
-                "mkdir -p /tmp /root/.config/comfy-ui /data && export COMFY_USER_DIR=/data && export TMPDIR=/tmp && export PATH=\"/root/.config/comfy-ui/venv/bin:$PATH\" && /bin/comfy-ui --listen 0.0.0.0"
-              ];
-              Env = [
-                "HOME=/root"
-                "COMFY_USER_DIR=/data"
-                "TMPDIR=/tmp"
-                "PATH=/bin:/usr/bin"
-                "PYTHONUNBUFFERED=1"
-                "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-                "LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib"
-                "NVIDIA_VISIBLE_DEVICES=all"
-                "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
-                "CUDA_VERSION=cu124"
-              ];
-              ExposedPorts = {
-                "8188/tcp" = { };
-              };
-              WorkingDir = "/data";
-              Volumes = {
-                "/data" = { };
-                "/tmp" = { };
-              };
-              Healthcheck = {
-                Test = [
-                  "CMD"
-                  "nc"
-                  "-z"
-                  "localhost"
-                  "8188"
-                ];
-                Interval = 30000000000;
-                Timeout = 5000000000;
-                Retries = 3;
-                StartPeriod = 60000000000;
-              };
-              Labels = {
-                "org.opencontainers.image.title" = "ComfyUI CUDA";
-                "org.opencontainers.image.description" = "ComfyUI with CUDA support for GPU acceleration";
-                "org.opencontainers.image.version" = comfyuiVersion;
-                "org.opencontainers.image.source" = "https://github.com/utensils/comfyui-nix";
-                "org.opencontainers.image.licenses" = "GPL-3.0";
-                "com.nvidia.volumes.needed" = "nvidia_driver";
-              };
-            };
-          };
-        in
-        {
-          default = comfyUiPackage;
-          inherit dockerImage dockerImageCuda;
-        };
-
-      # Map macOS systems to their Linux counterparts for cross-compilation
-      linuxSystemFor =
-        system:
-        if system == "aarch64-darwin" then
-          "aarch64-linux"
-        else if system == "x86_64-darwin" then
-          "x86_64-linux"
-        else
-          system;
+      versions = import ./nix/versions.nix;
     in
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        # Allow unfree packages
         pkgs = import nixpkgs {
           inherit system;
           config = {
             allowUnfree = true;
-            allowUnsupportedSystem = true;
           };
         };
 
-        # Build native packages
-        nativePackages = mkComfyPackages { inherit pkgs; };
+        pythonOverridesFor =
+          pkgs: cudaSupport: import ./nix/python-overrides.nix { inherit pkgs versions cudaSupport; };
 
-        # For macOS, also build Linux packages for Docker
-        linuxSystem = linuxSystemFor system;
-        isLinuxCrossCompile = system != linuxSystem;
+        mkPython =
+          pkgs: cudaSupport:
+          pkgs.python312.override { packageOverrides = pythonOverridesFor pkgs cudaSupport; };
 
-        linuxPkgs = import nixpkgs {
-          system = linuxSystem;
-          config = {
-            allowUnfree = true;
-            allowUnsupportedSystem = true;
+        mkPythonEnv =
+          pkgs:
+          let
+            python = mkPython pkgs false;
+          in
+          python.withPackages (ps: [
+            ps.setuptools
+            ps.wheel
+            ps.pip
+          ]);
+
+        mkComfyPackages =
+          pkgs:
+          {
+            cudaSupport ? false,
+          }:
+          import ./nix/packages.nix {
+            inherit
+              pkgs
+              versions
+              cudaSupport
+              ;
+            lib = pkgs.lib;
+            pythonOverrides = pythonOverridesFor pkgs cudaSupport;
           };
+
+        nativePackages = mkComfyPackages pkgs { };
+        nativePackagesCuda = mkComfyPackages pkgs { cudaSupport = true; };
+
+        pythonEnv = mkPythonEnv pkgs;
+
+        source = pkgs.lib.cleanSourceWith {
+          src = ./.;
+          filter =
+            path: type:
+            let
+              rel = pkgs.lib.removePrefix (toString ./. + "/") (toString path);
+              excluded = [
+                ".direnv"
+                ".git"
+                "data"
+                "dist"
+                "node_modules"
+                "tmp"
+              ];
+            in
+            # Exclude exact matches, subdirectories, and result* symlinks
+            !pkgs.lib.any (prefix: rel == prefix || pkgs.lib.hasPrefix (prefix + "/") rel) excluded
+            && !pkgs.lib.hasPrefix "result" rel;
         };
 
-        linuxPackages = mkComfyPackages {
-          pkgs = linuxPkgs;
-          forDocker = true;
-        };
-
-        # Python environment for dev shell (native only)
-        pythonEnv = pkgs.python312.buildEnv.override {
-          extraLibs = with pkgs.python312Packages; [
-            setuptools
-            wheel
-            pip
-          ];
-          ignoreCollisions = true;
-        };
-
-        # Define all packages
         packages =
           {
             default = nativePackages.default;
-            dockerImage = nativePackages.dockerImage;
-            dockerImageCuda = nativePackages.dockerImageCuda;
           }
-          // (
-            if isLinuxCrossCompile then
-              {
-                # Cross-compiled Linux Docker images (for macOS users)
-                dockerImageLinux = linuxPackages.dockerImage;
-                dockerImageLinuxCuda = linuxPackages.dockerImageCuda;
-              }
-            else
-              { }
-          );
+          // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+            cuda = nativePackagesCuda.default;
+            dockerImage = nativePackages.dockerImage;
+            dockerImageCuda = nativePackagesCuda.dockerImageCuda;
+          };
       in
       {
-        # Export packages
         inherit packages;
 
-        # Define apps
-        apps =
-          rec {
-            default = {
-              type = "app";
-              program = "${packages.default}/bin/comfy-ui";
-              meta = {
-                description = "Run ComfyUI with Nix";
-              };
-            };
-
-            # Build native Docker image (matches host architecture)
-            buildDocker =
-              let
-                script = pkgs.writeShellScriptBin "build-docker" ''
-                  echo "Building Docker image for ComfyUI..."
-                  # Load the Docker image directly
-                  ${pkgs.docker}/bin/docker load < ${packages.dockerImage}
-                  echo "Docker image built successfully! You can now run it with:"
-                  echo "docker run -p 8188:8188 -v \$PWD/data:/data comfy-ui:latest"
-                '';
-              in
-              {
-                type = "app";
-                program = "${script}/bin/build-docker";
-                meta = {
-                  description = "Build ComfyUI Docker image (CPU)";
-                };
-              };
-
-            # Build native CUDA Docker image
-            buildDockerCuda =
-              let
-                script = pkgs.writeShellScriptBin "build-docker-cuda" ''
-                  echo "Building Docker image for ComfyUI with CUDA support..."
-                  # Load the Docker image directly
-                  ${pkgs.docker}/bin/docker load < ${packages.dockerImageCuda}
-                  echo "CUDA-enabled Docker image built successfully! You can now run it with:"
-                  echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:cuda"
-                  echo ""
-                  echo "Note: Requires nvidia-container-toolkit and Docker GPU support."
-                '';
-              in
-              {
-                type = "app";
-                program = "${script}/bin/build-docker-cuda";
-                meta = {
-                  description = "Build ComfyUI Docker image with CUDA support";
-                };
-              };
-
-            # Update helper script
-            update = {
-              type = "app";
-              program = toString (
-                pkgs.writeShellScript "update-comfyui" ''
-                  set -e
-                  echo "Fetching latest ComfyUI release..."
-                  LATEST=$(curl -s https://api.github.com/repos/comfyanonymous/ComfyUI/releases/latest | ${pkgs.jq}/bin/jq -r '.tag_name')
-                  echo "Latest version: $LATEST"
-                  echo ""
-                  echo "To update, modify these values in flake.nix:"
-                  echo "  comfyuiVersion = \"''${LATEST#v}\";"
-                  echo ""
-                  echo "Then run: nix flake update"
-                  echo "And update the hash with: nix build 2>&1 | grep 'got:' | awk '{print \$2}'"
-                ''
-              );
-              meta = {
-                description = "Check for ComfyUI updates";
-              };
-            };
-
-            # Linting and formatting apps
-            lint =
-              let
-                script = pkgs.writeShellScriptBin "lint" ''
-                  echo "Running ruff linter..."
-                  ${pkgs.ruff}/bin/ruff check --no-cache src/
-                '';
-              in
-              {
-                type = "app";
-                program = "${script}/bin/lint";
-                meta = {
-                  description = "Run ruff linter on Python code";
-                };
-              };
-
-            format =
-              let
-                script = pkgs.writeShellScriptBin "format" ''
-                  echo "Formatting code with ruff..."
-                  ${pkgs.ruff}/bin/ruff format --no-cache src/
-                '';
-              in
-              {
-                type = "app";
-                program = "${script}/bin/format";
-                meta = {
-                  description = "Format Python code with ruff";
-                };
-              };
-
-            lint-fix =
-              let
-                script = pkgs.writeShellScriptBin "lint-fix" ''
-                  echo "Running ruff linter with auto-fix..."
-                  ${pkgs.ruff}/bin/ruff check --no-cache --fix src/
-                '';
-              in
-              {
-                type = "app";
-                program = "${script}/bin/lint-fix";
-                meta = {
-                  description = "Run ruff linter with auto-fix";
-                };
-              };
-
-            type-check =
-              let
-                script = pkgs.writeShellScriptBin "type-check" ''
-                  echo "Running pyright type checker..."
-                  ${pkgs.pyright}/bin/pyright src/
-                '';
-              in
-              {
-                type = "app";
-                program = "${script}/bin/type-check";
-                meta = {
-                  description = "Run pyright type checker on Python code";
-                };
-              };
-
-            check-all =
-              let
-                script = pkgs.writeShellScriptBin "check-all" ''
-                  echo "Running all checks..."
-                  echo ""
-                  echo "==> Running ruff linter..."
-                  ${pkgs.ruff}/bin/ruff check --no-cache src/
-                  RUFF_EXIT=$?
-                  echo ""
-                  echo "==> Running pyright type checker..."
-                  ${pkgs.pyright}/bin/pyright src/
-                  PYRIGHT_EXIT=$?
-                  echo ""
-                  if [ $RUFF_EXIT -eq 0 ] && [ $PYRIGHT_EXIT -eq 0 ]; then
-                    echo "All checks passed!"
-                    exit 0
-                  else
-                    echo "Some checks failed."
-                    exit 1
-                  fi
-                '';
-              in
-              {
-                type = "app";
-                program = "${script}/bin/check-all";
-                meta = {
-                  description = "Run all Python code checks (ruff + pyright)";
-                };
-              };
-          }
-          // (
-            # Add cross-compilation apps for macOS
-            if isLinuxCrossCompile then
-              {
-                # Build Linux Docker image from macOS
-                buildDockerLinux =
-                  let
-                    script = pkgs.writeShellScriptBin "build-docker-linux" ''
-                      echo "Building Linux Docker image for ComfyUI (cross-compiled from macOS)..."
-                      echo "Target architecture: ${linuxSystem}"
-                      # Load the Docker image directly
-                      ${pkgs.docker}/bin/docker load < ${packages.dockerImageLinux}
-                      echo ""
-                      echo "Linux Docker image built successfully! You can now run it with:"
-                      echo "docker run -p 8188:8188 -v \$PWD/data:/data comfy-ui:latest"
-                    '';
-                  in
-                  {
-                    type = "app";
-                    program = "${script}/bin/build-docker-linux";
-                    meta = {
-                      description = "Build Linux Docker image from macOS (cross-compile)";
-                    };
-                  };
-
-                # Build Linux CUDA Docker image from macOS
-                buildDockerLinuxCuda =
-                  let
-                    script = pkgs.writeShellScriptBin "build-docker-linux-cuda" ''
-                      echo "Building Linux CUDA Docker image for ComfyUI (cross-compiled from macOS)..."
-                      echo "Target architecture: ${linuxSystem}"
-                      # Load the Docker image directly
-                      ${pkgs.docker}/bin/docker load < ${packages.dockerImageLinuxCuda}
-                      echo ""
-                      echo "Linux CUDA Docker image built successfully! You can now run it with:"
-                      echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:cuda"
-                      echo ""
-                      echo "Note: Requires nvidia-container-toolkit and Docker GPU support."
-                    '';
-                  in
-                  {
-                    type = "app";
-                    program = "${script}/bin/build-docker-linux-cuda";
-                    meta = {
-                      description = "Build Linux CUDA Docker image from macOS (cross-compile)";
-                    };
-                  };
-              }
-            else
-              { }
-          );
-
-        # Define development shell
-        devShells.default = pkgs.mkShell {
-          packages =
-            [
-              pythonEnv
-              pkgs.stdenv.cc
-              pkgs.libGL
-              pkgs.libGLU
-              # Development tools
-              pkgs.git
-              pkgs.shellcheck
-              pkgs.shfmt
-              pkgs.nixfmt-rfc-style
-              # Python linting and type checking
-              pkgs.ruff
-              pkgs.pyright
-              # Utilities
-              pkgs.jq
-              pkgs.curl
-            ]
-            ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-              # macOS-specific tools
-              pkgs.darwin.apple_sdk.frameworks.Metal
-            ];
-
-          shellHook = ''
-            echo "ComfyUI development environment activated"
-            echo "  ComfyUI version: ${comfyuiVersion}"
-            export COMFY_USER_DIR="$HOME/.config/comfy-ui"
-            mkdir -p "$COMFY_USER_DIR"
-            echo "User data will be stored in $COMFY_USER_DIR"
-            export PYTHONPATH="$PWD:$PYTHONPATH"
-          '';
+        apps = import ./nix/apps.nix {
+          inherit pkgs packages;
         };
 
-        # Formatter for `nix fmt`
+        devShells.default = pkgs.mkShell {
+          packages = [
+            pythonEnv
+            pkgs.stdenv.cc
+            pkgs.libGL
+            pkgs.libGLU
+            pkgs.git
+            pkgs.nixfmt-rfc-style
+            pkgs.ruff
+            pkgs.pyright
+            pkgs.jq
+            pkgs.curl
+          ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.apple_sdk.frameworks.Metal ];
+
+          shellHook =
+            let
+              defaultDir =
+                if pkgs.stdenv.isDarwin then
+                  "$HOME/Library/Application Support/comfy-ui"
+                else
+                  "$HOME/.config/comfy-ui";
+            in
+            ''
+              echo "ComfyUI development environment activated"
+              echo "  ComfyUI version: ${versions.comfyui.version}"
+              export COMFY_USER_DIR="${defaultDir}"
+              mkdir -p "$COMFY_USER_DIR"
+              echo "User data will be stored in $COMFY_USER_DIR"
+              export PYTHONPATH="$PWD:$PYTHONPATH"
+            '';
+        };
+
         formatter = pkgs.nixfmt-rfc-style;
 
-        # Checks for CI (run with `nix flake check`)
-        checks = {
-          # Verify the package builds
-          package = packages.default;
-
-          # Python linting with ruff
-          ruff-check =
-            pkgs.runCommand "ruff-check"
-              {
-                nativeBuildInputs = [ pkgs.ruff ];
-                src = ./.;
-              }
-              ''
-                cp -r $src source
-                chmod -R u+w source
-                cd source
-                ${pkgs.ruff}/bin/ruff check --no-cache src/
-                touch $out
-              '';
-
-          # Python type checking with pyright
-          pyright-check =
-            pkgs.runCommand "pyright-check"
-              {
-                nativeBuildInputs = [ pkgs.pyright ];
-                src = ./.;
-              }
-              ''
-                cp -r $src source
-                chmod -R u+w source
-                cd source
-                ${pkgs.pyright}/bin/pyright src/
-                touch $out
-              '';
-
-          # Shell script linting with cross-file analysis
-          shellcheck =
-            pkgs.runCommand "shellcheck"
-              {
-                nativeBuildInputs = [ pkgs.shellcheck ];
-                src = ./.;
-              }
-              ''
-                cp -r $src source
-                chmod -R u+w source
-                cd source/scripts
-                shellcheck -x launcher.sh
-                shellcheck logger.sh runtime.sh persistence.sh
-                touch $out
-              '';
-
-          # Nix formatting check
-          nixfmt =
-            pkgs.runCommand "nixfmt-check"
-              {
-                nativeBuildInputs = [ pkgs.nixfmt-rfc-style ];
-                src = ./.;
-              }
-              ''
-                cp -r $src source
-                chmod -R u+w source
-                cd source
-                nixfmt --check flake.nix
-                touch $out
-              '';
+        checks = import ./nix/checks.nix {
+          inherit pkgs source packages;
+          pythonRuntime = nativePackages.pythonRuntime;
         };
       }
     )
     // {
-      # Overlay for integrating with other flakes
       overlays.default = final: prev: {
         comfy-ui = self.packages.${final.system}.default;
       };
+
+      nixosModules.default =
+        { ... }:
+        {
+          imports = [ ./nix/modules/comfyui.nix ];
+          nixpkgs.overlays = [ self.overlays.default ];
+        };
     };
 }
