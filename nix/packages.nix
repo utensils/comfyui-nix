@@ -126,8 +126,6 @@ let
           timm # PyTorch Image Models
           # Florence2 dependencies
           peft # Parameter-efficient fine-tuning
-          # bitsandbytes-NF4 dependencies
-          bitsandbytes # Quantization support
           # MMAudio dependencies
           librosa # Audio processing
           torchdiffeq # Differential equations solver
@@ -136,9 +134,6 @@ let
           ftfy # Text encoding fixes
           # PuLID dependencies
           onnxruntime # ONNX runtime
-          insightface # Face recognition
-          facexlib # Face processing library
-          xformers
         ]
         ++ [ ps."color-matcher" ]; # Color matching (hyphenated name needs quoting)
       # torch is overridden at the base level in python-overrides.nix when cudaSupport=true
@@ -156,6 +151,11 @@ let
         ++ lib.optionals (ps ? toml && available ps.toml) [ ps.toml ]
         ++ lib.optionals (ps ? rich && available ps.rich) [ ps.rich ]
         ++ lib.optionals (ps ? "comfy-cli" && available ps."comfy-cli") [ ps."comfy-cli" ]
+        # Linux-only packages (CUDA/mxnet dependencies)
+        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? bitsandbytes) [ ps.bitsandbytes ]
+        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? xformers) [ ps.xformers ]
+        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? insightface) [ ps.insightface ]
+        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? facexlib) [ ps.facexlib ]
         ++ [
           vendored.comfyuiFrontendPackage
           vendored.comfyuiWorkflowTemplates
