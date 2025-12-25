@@ -114,6 +114,8 @@ let
           sam2 # Meta AI SAM 2 model
           # KJNodes dependencies
           mss # Screen capture
+          # General ML utilities
+          accelerate # HuggingFace Accelerate for distributed training/inference
         ]
         ++ [ ps."color-matcher" ]; # Color matching (hyphenated name needs quoting)
       torchPackages =

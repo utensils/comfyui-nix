@@ -53,6 +53,9 @@ lib.optionalAttrs (prev ? torch) (
     // (lib.optionalAttrs (prev ? kornia) {
       kornia = prev.kornia.override { torch = prev.torchWithCuda; };
     })
+    // (lib.optionalAttrs (prev ? accelerate) {
+      accelerate = prev.accelerate.override { torch = prev.torchWithCuda; };
+    })
   )
 )
 // lib.optionalAttrs (pkgs.stdenv.isDarwin && prev ? sentencepiece) {

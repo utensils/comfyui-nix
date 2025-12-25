@@ -85,14 +85,24 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
             accept-flake-config = true
-      - name: Configure Cachix (push)
-        if: env.CACHIX_AUTH_TOKEN != ''
+      # For non-CUDA builds: use standard cachix push (auto-pushes all built paths)
+      - name: Configure Cachix (auto-push for non-CUDA)
+        if: env.CACHIX_AUTH_TOKEN != '' && matrix.packages != 'cuda'
         uses: cachix/cachix-action@v14
         with:
           name: comfyui
           authToken: ${{ env.CACHIX_AUTH_TOKEN }}
+
+      # For CUDA builds: pull-only mode, we'll manually push expensive deps
+      # This avoids filling the 5GB cache with the entire 10GB CUDA closure
+      - name: Configure Cachix (pull-only for CUDA)
+        if: matrix.packages == 'cuda'
+        uses: cachix/cachix-action@v14
+        with:
+          name: comfyui
+
       - name: Configure Cachix (pull-only fallback)
-        if: env.CACHIX_AUTH_TOKEN == ''
+        if: env.CACHIX_AUTH_TOKEN == '' && matrix.packages != 'cuda'
         uses: cachix/cachix-action@v14
         with:
           name: comfyui
@@ -100,6 +110,50 @@ jobs:
         run: |
           echo "Building ${{ matrix.packages }} for ${{ matrix.arch }}..."
           nix build .#packages.${{ matrix.arch }}.${{ matrix.packages }} --print-build-logs
+
+      # For CUDA builds, selectively push only the expensive packages to stay within Cachix limits
+      # These packages take time to build and caching them speeds up future CI runs
+      - name: Push expensive CUDA deps to Cachix
+        if: matrix.packages == 'cuda' && env.CACHIX_AUTH_TOKEN != ''
+        run: |
+          echo "Finding and caching expensive CUDA dependencies..."
+
+          # Get runtime closure
+          CLOSURE=$(nix path-info -r ./result)
+
+          # Also check for build-time deps that may still be in the store
+          # (nccl, magma are build-time only - not in runtime closure)
+          BUILD_DEPS=$(ls -d /nix/store/*-nccl-* /nix/store/*-magma-* /nix/store/*-cuda_nvcc-* 2>/dev/null | grep -v '\.drv$' | grep -v '\.lock$' || true)
+
+          # Combine runtime and build-time paths
+          ALL_PATHS=$(echo -e "${CLOSURE}\n${BUILD_DEPS}" | sort -u)
+
+          # Push packages that are expensive to build
+          # Priority 1: Build-time deps (nccl, cuda_nvcc take hours)
+          # Priority 2: Runtime deps (triton, CUDA libs)
+          PUSHED_PATHS=""
+          for pkg in nccl cuda_nvcc triton cudnn libcublas libcusolver libcusparse libcufft; do
+            PATHS=$(echo "$ALL_PATHS" | grep -E "[-/]$pkg-" || true)
+            if [[ -n "$PATHS" ]]; then
+              echo "Caching $pkg..."
+              echo "$PATHS" | xargs -r cachix push comfyui || true
+              PUSHED_PATHS="${PUSHED_PATHS} ${PATHS}"
+            fi
+          done
+
+          # Pin the pushed packages to prevent eviction (5GB cache limit)
+          # Pins ensure these expensive-to-build packages are never garbage collected
+          if [[ -n "$PUSHED_PATHS" ]]; then
+            echo "Pinning cached packages to prevent eviction..."
+            for path in $PUSHED_PATHS; do
+              STORE_HASH=$(basename "$path" | cut -d'-' -f1)
+              PKG_NAME=$(basename "$path" | cut -d'-' -f2-)
+              echo "Pinning $PKG_NAME ($STORE_HASH)..."
+              cachix pin comfyui "$PKG_NAME" "$path" || true
+            done
+          fi
+
+          echo "Expensive CUDA deps cached and pinned successfully"
 
   build:
     needs: [check, cache-packages]

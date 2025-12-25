@@ -4,7 +4,7 @@
   nixConfig = {
     extra-substituters = [ "https://comfyui.cachix.org" ];
     extra-trusted-public-keys = [
-      "comfyui.cachix.org-1:YRLAAeLvPlXaADgyj9kPkQHDXEmiByNqqCoh0/NOiLs="
+      "comfyui.cachix.org-1:33mf9VzoIjzVbp0zwj+fT51HG0y31ZTK3nzYZAX0rec="
     ];
   };
 
