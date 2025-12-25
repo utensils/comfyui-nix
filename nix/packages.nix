@@ -12,7 +12,12 @@ let
 
   # Import custom nodes for bundling
   customNodes = import ./custom-nodes.nix {
-    inherit pkgs lib python versions;
+    inherit
+      pkgs
+      lib
+      python
+      versions
+      ;
   };
 
   comfyuiSrcRaw = pkgs.fetchFromGitHub {
@@ -89,23 +94,28 @@ let
         pydantic-settings
       ];
       # ComfyUI Manager and common custom node dependencies
-      extras = with ps; [
-        pip # Required for comfyui-manager security check
-        uv # Required for comfyui-manager package management
-        chardet # Required for comfyui-manager to read requirements.txt files
-        pygithub # Required for comfyui-manager GitHub integration
-        typer # Required for comfyui-manager CLI
-        matrix-nio # Optional: enables ComfyUI-Manager matrix sharing feature
-        opencv4 # Required by many custom nodes for image processing (cv2)
-        imageio-ffmpeg # Required by VideoHelperSuite and other video nodes
-        # Impact Pack dependencies
-        scikit-image # Image processing (skimage)
-        piexif # EXIF metadata handling
-        matplotlib # Plotting and visualization
-        dill # Extended pickling
-        segment-anything # Meta AI SAM model
-        sam2 # Meta AI SAM 2 model
-      ];
+      extras =
+        with ps;
+        [
+          pip # Required for comfyui-manager security check
+          uv # Required for comfyui-manager package management
+          chardet # Required for comfyui-manager to read requirements.txt files
+          pygithub # Required for comfyui-manager GitHub integration
+          typer # Required for comfyui-manager CLI
+          matrix-nio # Optional: enables ComfyUI-Manager matrix sharing feature
+          opencv4 # Required by many custom nodes for image processing (cv2)
+          imageio-ffmpeg # Required by VideoHelperSuite and other video nodes
+          # Impact Pack dependencies
+          scikit-image # Image processing (skimage)
+          piexif # EXIF metadata handling
+          matplotlib # Plotting and visualization
+          dill # Extended pickling
+          segment-anything # Meta AI SAM model
+          sam2 # Meta AI SAM 2 model
+          # KJNodes dependencies
+          mss # Screen capture
+        ]
+        ++ [ ps."color-matcher" ]; # Color matching (hyphenated name needs quoting)
       torchPackages =
         if cudaSupport && ps ? torchWithCuda && available ps.torchWithCuda then
           [ ps.torchWithCuda ]
@@ -230,7 +240,7 @@ let
 
       # Link our bundled custom nodes
       # Remove stale directories if they exist but aren't symlinks
-      for node_dir in "model_downloader" "ComfyUI-Impact-Pack"; do
+      for node_dir in "model_downloader" "ComfyUI-Impact-Pack" "rgthree-comfy" "ComfyUI-KJNodes"; do
         if [[ -e "$BASE_DIR/custom_nodes/$node_dir" && ! -L "$BASE_DIR/custom_nodes/$node_dir" ]]; then
           rm -rf "$BASE_DIR/custom_nodes/$node_dir"
         fi
@@ -242,6 +252,12 @@ let
       fi
       if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-Impact-Pack" ]]; then
         ln -sf "${customNodes.impact-pack}" "$BASE_DIR/custom_nodes/ComfyUI-Impact-Pack"
+      fi
+      if [[ ! -e "$BASE_DIR/custom_nodes/rgthree-comfy" ]]; then
+        ln -sf "${customNodes.rgthree-comfy}" "$BASE_DIR/custom_nodes/rgthree-comfy"
+      fi
+      if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-KJNodes" ]]; then
+        ln -sf "${customNodes.kjnodes}" "$BASE_DIR/custom_nodes/ComfyUI-KJNodes"
       fi
 
       # Create default ComfyUI-Manager config if it doesn't exist

@@ -1,6 +1,6 @@
 # ComfyUI Nix Flake
 
-A pure Nix flake for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) with Python 3.12. Supports macOS (Intel/Apple Silicon) and Linux.
+A pure Nix flake for [ComfyUI] with Python 3.12. Supports macOS (Intel/Apple Silicon) and Linux.
 
 ![ComfyUI Demo](comfyui-demo.gif)
 
@@ -35,7 +35,7 @@ nix run github:utensils/comfyui-nix#cuda
 
 ## ComfyUI Manager
 
-The built-in [ComfyUI Manager](https://github.com/Comfy-Org/ComfyUI-Manager) is included and can be enabled with `--enable-manager`:
+The built-in [ComfyUI Manager] is included and can be enabled with `--enable-manager`:
 
 ```bash
 nix run github:utensils/comfyui-nix#cuda -- --enable-manager
@@ -65,14 +65,32 @@ A non-blocking async download node with WebSocket progress updates. Download mod
 
 ### ComfyUI Impact Pack
 
-[Impact Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack) (v8.28) - Detection, segmentation, and more. Includes:
+[Impact Pack] (v8.28) - Detection, segmentation, and more. Includes:
 
 - **SAM (Segment Anything Model)** - Meta AI's segmentation models
 - **SAM2** - Next-generation segmentation
 - **Detection nodes** - Face detection, object detection
 - **Masking tools** - Advanced mask manipulation
 
-All Python dependencies (segment-anything, sam2, scikit-image, opencv, etc.) are pre-built and included in the Nix environment.
+### rgthree-comfy
+
+[rgthree-comfy] (v1.0.0) - Quality of life nodes:
+
+- **Reroute nodes** - Better workflow organization
+- **Context nodes** - Pass multiple values through a single connection
+- **Power Lora Loader** - Advanced LoRA management
+- **Bookmark nodes** - Quick navigation in large workflows
+
+### ComfyUI-KJNodes
+
+[KJNodes] - Utility nodes for advanced workflows:
+
+- **Batch processing** - Efficient batch image handling
+- **Conditioning tools** - Advanced prompt manipulation
+- **Image utilities** - Resize, crop, color matching
+- **Mask operations** - Create and manipulate masks
+
+All Python dependencies (segment-anything, sam2, scikit-image, opencv, color-matcher, etc.) are pre-built and included in the Nix environment.
 
 ## Installation
 
@@ -210,3 +228,10 @@ cachix use comfyui
 ## License
 
 MIT (this flake). ComfyUI is GPL-3.0.
+
+<!-- Link references -->
+[ComfyUI]: https://github.com/comfyanonymous/ComfyUI
+[ComfyUI Manager]: https://github.com/Comfy-Org/ComfyUI-Manager
+[Impact Pack]: https://github.com/ltdrdata/ComfyUI-Impact-Pack
+[rgthree-comfy]: https://github.com/rgthree/rgthree-comfy
+[KJNodes]: https://github.com/kijai/ComfyUI-KJNodes

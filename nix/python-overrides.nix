@@ -78,6 +78,26 @@ lib.optionalAttrs (prev ? torch) (
   });
 }
 
+# color-matcher - not in older nixpkgs, needed for KJNodes
+// {
+  "color-matcher" = final.buildPythonPackage rec {
+    pname = "color-matcher";
+    version = versions.vendored."color-matcher".version;
+    format = "wheel";
+    src = pkgs.fetchurl {
+      url = versions.vendored."color-matcher".url;
+      hash = versions.vendored."color-matcher".hash;
+    };
+    propagatedBuildInputs = with final; [
+      numpy
+      pillow
+      scipy
+    ];
+    doCheck = false;
+    pythonImportsCheck = [ "color_matcher" ];
+  };
+}
+
 # Segment Anything Model (SAM) - not in nixpkgs
 // lib.optionalAttrs (prev ? torch) (
   let

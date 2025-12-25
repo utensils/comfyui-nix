@@ -79,6 +79,12 @@
       rev = "2b90b9f5ceec907a1c18123530e92e794ad901a4";
       hash = "sha256-pUPaUD/5wOhdJcNYPH9LV5oA1noDeWKconfpIFOyYBQ=";
     };
+
+    color-matcher = {
+      version = "0.6.0";
+      url = "https://files.pythonhosted.org/packages/a0/3a/f3c2c5012f59235ff5885db7cc75dc209eca90e42ae3728db56f8a9e28a4/color_matcher-0.6.0-py3-none-any.whl";
+      hash = "sha256-/WQvlBTDO38+vJb+CIjBxiAINhQmZFic4sy1LrzadzQ=";
+    };
   };
 
   # Custom nodes with pinned versions
@@ -89,6 +95,22 @@
       repo = "ComfyUI-Impact-Pack";
       rev = "8.28";
       hash = "sha256-V/gMPqo9Xx21+KpG5LPzP5bML9nGlHHMyVGoV+YgFWE=";
+    };
+
+    rgthree-comfy = {
+      version = "1.0.0";
+      owner = "rgthree";
+      repo = "rgthree-comfy";
+      rev = "v.1.0.0";
+      hash = "sha256-bzQcQ37v7ZrHDitZV6z3h/kdNbWxpLxNSvh0rSxnLss=";
+    };
+
+    kjnodes = {
+      version = "2025-12-21";
+      owner = "kijai";
+      repo = "ComfyUI-KJNodes";
+      rev = "79f529a84a8c20fe5dcdfa984c6be7a94102c014";
+      hash = "sha256-TMaKLAeXPDM1nPCpgern6N9Ea8xHSfizzQ3PZSQN1vQ=";
     };
   };
 }
