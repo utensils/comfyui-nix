@@ -397,13 +397,15 @@ let
       runHook postInstall
     '';
 
-    # Note: facexlib and insightface need pip install at runtime
+    # Face analysis dependencies - insightface works on all platforms via onnxruntime
+    # (mxnet dependency is removed in python-overrides.nix for cross-platform support)
     passthru.pythonDeps =
       ps: with ps; [
         onnxruntime
         ftfy
         timm
         insightface
+        facexlib
       ];
 
     meta = with lib; {

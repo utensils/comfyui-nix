@@ -167,6 +167,7 @@ lib.optionalAttrs (useCuda && prev ? torch) {
 }
 
 # facexlib - face processing library needed by PuLID
+# Patched to support FACEXLIB_MODELPATH env var for read-only Nix store compatibility
 // {
   facexlib = final.buildPythonPackage rec {
     pname = "facexlib";
@@ -178,6 +179,7 @@ lib.optionalAttrs (useCuda && prev ? torch) {
     };
     dontBuild = true;
     dontConfigure = true;
+    nativeBuildInputs = [ pkgs.gnused ];
     propagatedBuildInputs = with final; [
       numpy
       opencv4
@@ -187,9 +189,48 @@ lib.optionalAttrs (useCuda && prev ? torch) {
       filterpy
       numba
     ];
+
+    # Patch misc.py to respect FACEXLIB_MODELPATH environment variable
+    # This allows redirecting model downloads away from the read-only Nix store
+    postInstall = ''
+      miscPy="$out/${final.python.sitePackages}/facexlib/utils/misc.py"
+      if [[ -f "$miscPy" ]]; then
+        sed -i 's|^ROOT_DIR = os.path.dirname.*|_DEFAULT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\nROOT_DIR = os.environ.get("FACEXLIB_MODELPATH", _DEFAULT_ROOT)|' "$miscPy"
+      fi
+    '';
+
     doCheck = false;
     pythonImportsCheck = [ "facexlib" ];
   };
+}
+
+# insightface - override to remove mxnet dependency for cross-platform support
+# MXNet is only used for one CLI command (rec_add_mask_param.py) which we don't need.
+# Face analysis uses ONNX Runtime which works on all platforms including macOS.
+# This enables PuLID and other face-related nodes on macOS Apple Silicon.
+// lib.optionalAttrs (prev ? insightface) {
+  insightface = prev.insightface.overridePythonAttrs (old: {
+    # Remove mxnet from dependencies - it's only used for one legacy CLI command
+    # and prevents the package from working on macOS (mxnet is Linux-only in nixpkgs)
+    dependencies = builtins.filter (dep: dep.pname or "" != "mxnet") (old.dependencies or [ ]);
+
+    # Skip the problematic CLI test that requires mxnet
+    disabledTests = (old.disabledTests or [ ]) ++ [
+      "test_cli" # Uses rec_add_mask_param which requires mxnet
+    ];
+
+    # Verify the package works without mxnet (face analysis uses onnxruntime)
+    pythonImportsCheck = [
+      "insightface"
+      "insightface.app"
+      "insightface.model_zoo"
+    ];
+
+    meta = (old.meta or { }) // {
+      # Now works on all platforms since we removed mxnet dependency
+      platforms = lib.platforms.unix;
+    };
+  });
 }
 
 # Segment Anything Model (SAM) - not in nixpkgs
