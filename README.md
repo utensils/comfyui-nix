@@ -175,7 +175,7 @@ nix profile install github:utensils/comfyui-nix
 {
   inputs.comfyui-nix.url = "github:utensils/comfyui-nix";
   # Then: nixpkgs.overlays = [ comfyui-nix.overlays.default ];
-  # Provides: pkgs.comfy-ui
+  # Provides: pkgs.comfy-ui and pkgs.comfy-ui-cuda (Linux only)
 }
 ```
 
@@ -188,8 +188,9 @@ nix profile install github:utensils/comfyui-nix
 
   services.comfyui = {
     enable = true;
+    cuda = true;  # Enable NVIDIA GPU acceleration (recommended for most users)
     port = 8188;
-    listenAddress = "127.0.0.1";
+    listenAddress = "127.0.0.1";  # Use "0.0.0.0" for network access
     dataDir = "/var/lib/comfyui";
     openFirewall = false;
     # extraArgs = [ "--lowvram" ];
@@ -197,6 +198,19 @@ nix profile install github:utensils/comfyui-nix
   };
 }
 ```
+
+### Module Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enable` | `false` | Enable the ComfyUI service |
+| `cuda` | `false` | Enable NVIDIA GPU acceleration (Linux only, recommended) |
+| `port` | `8188` | Port for the web interface |
+| `listenAddress` | `"127.0.0.1"` | Listen address (`"0.0.0.0"` for network access) |
+| `dataDir` | `"/var/lib/comfyui"` | Data directory for models, outputs, custom nodes |
+| `openFirewall` | `false` | Open the port in the firewall |
+| `extraArgs` | `[]` | Additional CLI arguments |
+| `customNodes` | `{}` | Declarative custom nodes (see below) |
 
 ### Declarative Custom Nodes
 
