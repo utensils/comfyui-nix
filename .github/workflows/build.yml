@@ -53,6 +53,7 @@ jobs:
       - uses: cachix/cachix-action@v14
         with:
           name: comfyui
+          pushFilter: "-"  # Pull-only, no push credentials needed
       - run: nix flake check --print-build-logs
 
   # Cache packages (not Docker images) to Cachix
@@ -113,12 +114,14 @@ jobs:
         uses: cachix/cachix-action@v14
         with:
           name: comfyui
+          pushFilter: "-"
 
       - name: Configure Cachix (pull-only fallback)
         if: env.CACHIX_AUTH_TOKEN == '' && matrix.packages != 'cuda'
         uses: cachix/cachix-action@v14
         with:
           name: comfyui
+          pushFilter: "-"
       - name: Build and cache ${{ matrix.packages }} package (${{ matrix.arch }})
         run: |
           echo "Building ${{ matrix.packages }} for ${{ matrix.arch }}..."
@@ -223,6 +226,7 @@ jobs:
         uses: cachix/cachix-action@v14
         with:
           name: comfyui
+          pushFilter: "-"
 
       - name: Free disk space
         run: |
