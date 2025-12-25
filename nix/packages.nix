@@ -151,11 +151,12 @@ let
         ++ lib.optionals (ps ? toml && available ps.toml) [ ps.toml ]
         ++ lib.optionals (ps ? rich && available ps.rich) [ ps.rich ]
         ++ lib.optionals (ps ? "comfy-cli" && available ps."comfy-cli") [ ps."comfy-cli" ]
-        # Linux-only packages (CUDA/mxnet dependencies)
+        # Linux-only packages (CUDA dependencies)
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? bitsandbytes) [ ps.bitsandbytes ]
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? xformers) [ ps.xformers ]
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? insightface) [ ps.insightface ]
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? facexlib) [ ps.facexlib ]
+        # Face analysis packages - work on all platforms (insightface override removes mxnet)
+        ++ lib.optionals (ps ? insightface) [ ps.insightface ]
+        ++ lib.optionals (ps ? facexlib) [ ps.facexlib ]
         ++ [
           vendored.comfyuiFrontendPackage
           vendored.comfyuiWorkflowTemplates
@@ -270,9 +271,9 @@ let
       done
 
       # On macOS, remove Linux-only nodes if they were linked previously
+      # Note: PuLID now works on macOS via CoreML (insightface override removes mxnet dependency)
       if [[ "$(uname)" == "Darwin" ]]; then
         rm -f "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" 2>/dev/null || true
-        rm -f "$BASE_DIR/custom_nodes/PuLID_ComfyUI" 2>/dev/null || true
       fi
 
       # Clean up stale read-only web extension directories (from Nix store)
@@ -312,8 +313,9 @@ let
       if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-MMAudio" ]]; then
         ln -sf "${customNodes.mmaudio}" "$BASE_DIR/custom_nodes/ComfyUI-MMAudio"
       fi
-      # PuLID requires insightface which depends on mxnet (Linux-only)
-      if [[ "$(uname)" != "Darwin" && ! -e "$BASE_DIR/custom_nodes/PuLID_ComfyUI" ]]; then
+      # PuLID - face ID for consistent face generation
+      # Works on all platforms: Linux uses CUDA, macOS uses CoreML via onnxruntime
+      if [[ ! -e "$BASE_DIR/custom_nodes/PuLID_ComfyUI" ]]; then
         ln -sf "${customNodes.pulid}" "$BASE_DIR/custom_nodes/PuLID_ComfyUI"
       fi
       if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-WanVideoWrapper" ]]; then
@@ -345,6 +347,20 @@ let
       # Set model path for custom nodes that check this env var
       # (prevents them from trying to write to the read-only Nix store)
       export COMFYUI_MODEL_PATH="$BASE_DIR/models"
+
+      # Redirect PyTorch hub downloads to data directory
+      # This prevents attempts to write to the read-only Nix store
+      export TORCH_HOME="$BASE_DIR/.cache/torch"
+      mkdir -p "$TORCH_HOME"
+
+      # Redirect HuggingFace cache to data directory for model downloads
+      export HF_HOME="$BASE_DIR/.cache/huggingface"
+      mkdir -p "$HF_HOME"
+
+      # Redirect facexlib model downloads to data directory
+      # (facexlib is patched to respect this env var)
+      export FACEXLIB_MODELPATH="$BASE_DIR/.cache/facexlib"
+      mkdir -p "$FACEXLIB_MODELPATH/facexlib/weights"
 
       # Open browser if requested (background, after short delay)
       if [[ "$OPEN_BROWSER" == "true" ]]; then
