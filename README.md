@@ -23,6 +23,7 @@ nix run github:utensils/comfyui-nix#cuda
 | `--port=XXXX` | Custom port (default: 8188) |
 | `--base-directory PATH` | Data directory for models, outputs, custom nodes |
 | `--listen 0.0.0.0` | Allow network access |
+| `--enable-manager` | Enable built-in ComfyUI Manager |
 
 **Default data locations:**
 - Linux: `~/.config/comfy-ui`
@@ -32,7 +33,22 @@ nix run github:utensils/comfyui-nix#cuda
 - `COMFY_USER_DIR` - Override data directory
 - `COMFY_ENABLE_API_NODES=true` - Enable API nodes (you provide deps)
 
-**Built-in Manager:** ComfyUI now includes a built-in package manager. Pass `--enable-manager` to activate it.
+## ComfyUI Manager
+
+The built-in [ComfyUI Manager](https://github.com/Comfy-Org/ComfyUI-Manager) is included and can be enabled with `--enable-manager`:
+
+```bash
+nix run github:utensils/comfyui-nix#cuda -- --enable-manager
+```
+
+**How it stays pure:** The Nix store remains read-only. When custom nodes require additional Python dependencies, they install to `<data-directory>/.pip-packages/` instead of the Nix store. Python finds both Nix-provided packages and runtime-installed packages via `PYTHONPATH`.
+
+```
+Nix packages (read-only):     torch, pillow, numpy, transformers, etc.
+Runtime packages (mutable):   <data-directory>/.pip-packages/
+```
+
+A default manager config is created on first run with sensible defaults for personal use (`security_level=normal`, `network_mode=personal_cloud`).
 
 ## Installation
 
@@ -122,11 +138,12 @@ nix run .#update         # Check for ComfyUI updates
 
 ```
 <data-directory>/
-├── models/       # checkpoints, loras, vae, controlnet, etc.
-├── output/       # Generated images
-├── input/        # Input files
-├── user/         # Workflows and settings
-├── custom_nodes/ # Extensions (model_downloader auto-linked)
+├── models/        # checkpoints, loras, vae, controlnet, etc.
+├── output/        # Generated images
+├── input/         # Input files
+├── user/          # Workflows, settings, manager config
+├── custom_nodes/  # Extensions (model_downloader auto-linked)
+├── .pip-packages/ # Runtime-installed Python packages
 └── temp/
 ```
 

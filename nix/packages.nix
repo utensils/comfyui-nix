@@ -211,6 +211,13 @@ MANAGER_EOF
       # Set platform-specific library paths for GPU support
       ${libraryPathSetup}
 
+      # Configure pip to install packages to a mutable location
+      # This allows ComfyUI-Manager to install custom node dependencies
+      # while keeping the Nix store read-only
+      export PIP_TARGET="$BASE_DIR/.pip-packages"
+      export PYTHONPATH="$BASE_DIR/.pip-packages''${PYTHONPATH:+:$PYTHONPATH}"
+      mkdir -p "$PIP_TARGET"
+
       # Open browser if requested (background, after short delay)
       if [[ "$OPEN_BROWSER" == "true" ]]; then
         (sleep 3 && ${browserCommand} "http://127.0.0.1:$PORT" 2>/dev/null) &
