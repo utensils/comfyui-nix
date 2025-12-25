@@ -30,7 +30,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Dev shell**: `nix develop` provides ruff and pyright for manual linting/type-checking
 
 ## Version Management
-- Current ComfyUI version: v0.5.1 (pinned in `nix/versions.nix`)
+- Current ComfyUI version: v0.6.0 (pinned in `nix/versions.nix`)
 - To update ComfyUI: modify `version`, `rev`, and `hash` in `nix/versions.nix`
 - Frontend/docs/template packages: vendored wheels pinned in `nix/versions.nix`
 - Python version: 3.12 (stable for ML workloads)
