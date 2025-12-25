@@ -269,6 +269,17 @@ let
         fi
       done
 
+      # On macOS, remove Linux-only nodes if they were linked previously
+      if [[ "$(uname)" == "Darwin" ]]; then
+        rm -f "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" 2>/dev/null || true
+        rm -f "$BASE_DIR/custom_nodes/PuLID_ComfyUI" 2>/dev/null || true
+      fi
+
+      # Clean up stale read-only web extension directories (from Nix store)
+      if [[ -d "$BASE_DIR/web/extensions" ]]; then
+        find "$BASE_DIR/web/extensions" -maxdepth 1 -type d ! -writable -exec rm -rf {} \; 2>/dev/null || true
+      fi
+
       # Link bundled nodes
       if [[ ! -e "$BASE_DIR/custom_nodes/model_downloader" ]]; then
         ln -sf "${modelDownloaderDir}" "$BASE_DIR/custom_nodes/model_downloader"
@@ -291,7 +302,8 @@ let
       if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-Florence2" ]]; then
         ln -sf "${customNodes.florence2}" "$BASE_DIR/custom_nodes/ComfyUI-Florence2"
       fi
-      if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" ]]; then
+      # bitsandbytes requires CUDA (Linux-only)
+      if [[ "$(uname)" != "Darwin" && ! -e "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" ]]; then
         ln -sf "${customNodes.bitsandbytes-nf4}" "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4"
       fi
       if [[ ! -e "$BASE_DIR/custom_nodes/x-flux-comfyui" ]]; then
@@ -300,7 +312,8 @@ let
       if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-MMAudio" ]]; then
         ln -sf "${customNodes.mmaudio}" "$BASE_DIR/custom_nodes/ComfyUI-MMAudio"
       fi
-      if [[ ! -e "$BASE_DIR/custom_nodes/PuLID_ComfyUI" ]]; then
+      # PuLID requires insightface which depends on mxnet (Linux-only)
+      if [[ "$(uname)" != "Darwin" && ! -e "$BASE_DIR/custom_nodes/PuLID_ComfyUI" ]]; then
         ln -sf "${customNodes.pulid}" "$BASE_DIR/custom_nodes/PuLID_ComfyUI"
       fi
       if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-WanVideoWrapper" ]]; then
