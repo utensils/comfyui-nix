@@ -133,13 +133,22 @@ jobs:
           sudo rm -rf /var/lib/apt/lists/*
           sudo apt-get clean
           docker system prune -af || true
+          # Extra cleanup for CUDA builds (needs more disk space)
+          if [[ "${{ matrix.variant }}" == "cuda" ]]; then
+            sudo rm -rf /usr/local/share/powershell
+            sudo rm -rf /usr/local/share/chromium
+            sudo rm -rf /usr/local/share/vcpkg
+            sudo rm -rf /opt/ghc
+            sudo rm -rf /opt/az
+            sudo rm -rf /imagegeneration
+          fi
           df -h
 
-      # Add swap for CUDA builds to prevent OOM
+      # Add swap for CUDA builds to prevent OOM (smaller to save disk)
       - name: Add swap space
         if: matrix.variant == 'cuda'
         run: |
-          sudo fallocate -l 8G /swapfile
+          sudo fallocate -l 4G /swapfile
           sudo chmod 600 /swapfile
           sudo mkswap /swapfile
           sudo swapon /swapfile
