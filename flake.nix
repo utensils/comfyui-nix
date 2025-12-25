@@ -70,6 +70,13 @@
 
         pythonEnv = mkPythonEnv pkgs;
 
+        # Custom nodes with bundled dependencies
+        customNodes = import ./nix/custom-nodes.nix {
+          inherit pkgs versions;
+          lib = pkgs.lib;
+          python = mkPython pkgs false;
+        };
+
         source = pkgs.lib.cleanSourceWith {
           src = ./.;
           filter =
@@ -102,6 +109,11 @@
       in
       {
         inherit packages;
+
+        # Expose custom nodes as packages for direct use
+        legacyPackages = {
+          customNodes = customNodes;
+        };
 
         apps = import ./nix/apps.nix {
           inherit pkgs packages;
@@ -148,8 +160,16 @@
       }
     )
     // {
+      # System-independent lib with custom node helpers
+      lib = import ./nix/lib/custom-nodes.nix {
+        lib = nixpkgs.lib;
+        pkgs = nixpkgs.legacyPackages.x86_64-linux; # Default for lib evaluation
+      };
+
       overlays.default = final: prev: {
         comfy-ui = self.packages.${final.system}.default;
+        # Add custom nodes to overlay
+        comfyui-custom-nodes = self.legacyPackages.${final.system}.customNodes;
       };
 
       nixosModules.default =

@@ -67,8 +67,8 @@
       };
 
       config = {
+        Entrypoint = [ "/bin/comfy-ui" ];
         Cmd = [
-          "/bin/comfy-ui"
           "--listen"
           "0.0.0.0"
         ] ++ lib.optionals (!cudaSupport) [ "--cpu" ];

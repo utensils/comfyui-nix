@@ -66,5 +66,29 @@
       url = "https://files.pythonhosted.org/packages/2e/45/42fdbe83f6fa2daf9981cd10c024197644c731db99032634bb7efc0da69a/comfyui_manager-4.0.2-py3-none-any.whl";
       hash = "sha256-W5l22ZijI0vohlgjygsaqR/zXmINxlAUKbRFOtLmsj8=";
     };
+
+    # Python packages not in nixpkgs (vendored for custom nodes)
+    segment-anything = {
+      version = "1.0";
+      rev = "dca509fe793f601edb92606367a655c15ac00fdf";
+      hash = "sha256-28XHhv/hffVIpbxJKU8wfPvDB63l93Z6r9j1vBOz/P0=";
+    };
+
+    sam2 = {
+      version = "1.0";
+      rev = "2b90b9f5ceec907a1c18123530e92e794ad901a4";
+      hash = "sha256-pUPaUD/5wOhdJcNYPH9LV5oA1noDeWKconfpIFOyYBQ=";
+    };
+  };
+
+  # Custom nodes with pinned versions
+  customNodes = {
+    impact-pack = {
+      version = "8.28";
+      owner = "ltdrdata";
+      repo = "ComfyUI-Impact-Pack";
+      rev = "8.28";
+      hash = "sha256-V/gMPqo9Xx21+KpG5LPzP5bML9nGlHHMyVGoV+YgFWE=";
+    };
   };
 }

@@ -50,6 +50,30 @@ Runtime packages (mutable):   <data-directory>/.pip-packages/
 
 A default manager config is created on first run with sensible defaults for personal use (`security_level=normal`, `network_mode=personal_cloud`).
 
+## Bundled Custom Nodes
+
+The following custom nodes are bundled and automatically linked on first run:
+
+### Model Downloader
+
+A non-blocking async download node with WebSocket progress updates. Download models directly within ComfyUI without blocking the UI.
+
+**API Endpoints:**
+- `POST /api/download_model` - Start a download
+- `GET /api/download_progress/{id}` - Check progress
+- `GET /api/list_downloads` - List all downloads
+
+### ComfyUI Impact Pack
+
+[Impact Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack) (v8.28) - Detection, segmentation, and more. Includes:
+
+- **SAM (Segment Anything Model)** - Meta AI's segmentation models
+- **SAM2** - Next-generation segmentation
+- **Detection nodes** - Face detection, object detection
+- **Masking tools** - Advanced mask manipulation
+
+All Python dependencies (segment-anything, sam2, scikit-image, opencv, etc.) are pre-built and included in the Nix environment.
+
 ## Installation
 
 ```bash
@@ -106,10 +130,11 @@ services.comfyui = {
 
 Nodes are symlinked at service start. This is the pure Nix approach - fully reproducible and version-pinned.
 
-## Docker
+## Docker / Podman
 
 Pre-built images on GitHub Container Registry:
 
+**Docker:**
 ```bash
 # CPU (multi-arch: amd64 + arm64)
 docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
@@ -118,13 +143,40 @@ docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
 docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest-cuda
 ```
 
-Build locally:
+**Podman:**
+```bash
+# CPU
+podman run -p 8188:8188 -v "$PWD/data:/data:Z" ghcr.io/utensils/comfyui-nix:latest
+
+# CUDA (requires nvidia-container-toolkit and CDI configured)
+podman run --device nvidia.com/gpu=all -p 8188:8188 -v "$PWD/data:/data:Z" ghcr.io/utensils/comfyui-nix:latest-cuda
+```
+
+**Passing additional arguments:**
+
+When passing custom arguments, include `--listen 0.0.0.0` to maintain network access:
+
+```bash
+# Docker with manager enabled
+docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" \
+  ghcr.io/utensils/comfyui-nix:latest-cuda --listen 0.0.0.0 --enable-manager
+
+# Podman with manager enabled
+podman run --device nvidia.com/gpu=all -p 8188:8188 -v "$PWD/data:/data:Z" \
+  ghcr.io/utensils/comfyui-nix:latest-cuda --listen 0.0.0.0 --enable-manager
+```
+
+**Build locally:**
 ```bash
 nix run .#buildDocker      # CPU
 nix run .#buildDockerCuda  # CUDA
+
+# Load into Docker/Podman
+docker load < result
+podman load < result
 ```
 
-**Note:** Docker on macOS runs CPU-only. For GPU acceleration on Apple Silicon, use `nix run` directly.
+**Note:** Docker/Podman on macOS runs CPU-only. For GPU acceleration on Apple Silicon, use `nix run` directly.
 
 ## Development
 
@@ -142,7 +194,7 @@ nix run .#update         # Check for ComfyUI updates
 ├── output/        # Generated images
 ├── input/         # Input files
 ├── user/          # Workflows, settings, manager config
-├── custom_nodes/  # Extensions (model_downloader auto-linked)
+├── custom_nodes/  # Extensions (bundled nodes auto-linked)
 ├── .pip-packages/ # Runtime-installed Python packages
 └── temp/
 ```
