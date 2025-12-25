@@ -25,6 +25,31 @@ success() { echo -e "${GREEN}[OK]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
+# Show usage/help
+show_help() {
+    echo "Download PuLID models for ComfyUI"
+    echo ""
+    echo "Usage: $0 [OPTIONS] [data-directory]"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help    Show this help message and exit"
+    echo ""
+    echo "Arguments:"
+    echo "  data-directory    Custom data directory (optional)"
+    echo "                    Default: ~/.config/comfy-ui (Linux)"
+    echo "                             ~/Library/Application Support/comfy-ui (macOS)"
+    echo ""
+    echo "Examples:"
+    echo "  $0                           # Use platform default"
+    echo "  $0 ./data                    # Custom directory"
+    echo "  $0 ~/my-comfyui-data         # Absolute path"
+    echo ""
+    echo "Downloads:"
+    echo "  - PuLID adapter (~791 MB)"
+    echo "  - InsightFace AntelopeV2 models (~428 MB)"
+    exit 0
+}
+
 # Determine default data directory based on platform
 get_default_data_dir() {
     if [[ "$(uname)" == "Darwin" ]]; then
@@ -33,6 +58,11 @@ get_default_data_dir() {
         echo "$HOME/.config/comfy-ui"
     fi
 }
+
+# Handle help flag
+if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
+    show_help
+fi
 
 # Parse arguments
 DATA_DIR="${1:-$(get_default_data_dir)}"
