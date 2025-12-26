@@ -241,36 +241,12 @@ jobs:
       - name: Push to Cachix
         if: github.event_name != 'pull_request' && env.CACHIX_AUTH_TOKEN != ''
         run: |
-          echo "Pushing store paths to Cachix..."
-
-          # Get runtime closure from Docker image result
-          CLOSURE=$(nix path-info -r ./result)
-          echo "$CLOSURE" | cachix push comfyui || true
-
-          # For CUDA builds, also push build-time deps and pin expensive packages
+          # For CUDA builds, include build-time dependencies (magma, triton, etc.)
           if [[ "${{ matrix.variant }}" == "cuda" ]]; then
-            BUILD_DEPS=$(ls -d /nix/store/*-nccl-* /nix/store/*-magma-* /nix/store/*-cuda_nvcc-* 2>/dev/null | grep -v '\.drv$' | grep -v '\.lock$' || true)
-            if [[ -n "$BUILD_DEPS" ]]; then
-              echo "Pushing build-time dependencies..."
-              echo "$BUILD_DEPS" | xargs -r cachix push comfyui || true
-            fi
-
-            ALL_PATHS=$(echo -e "${CLOSURE}\n${BUILD_DEPS}" | sort -u)
-
-            echo "Pinning expensive packages..."
-            for pkg in nccl cuda_nvcc triton cudnn libcublas libcusolver libcusparse libcufft torch torchvision transformers; do
-              PATHS=$(echo "$ALL_PATHS" | grep -E "[-/]$pkg-" || true)
-              if [[ -n "$PATHS" ]]; then
-                for path in $PATHS; do
-                  PKG_NAME=$(basename "$path" | cut -d'-' -f2-)
-                  echo "Pinning $PKG_NAME..."
-                  cachix pin comfyui "$PKG_NAME" "$path" || true
-                done
-              fi
-            done
+            ./scripts/push-to-cachix.sh --build-deps ./result
+          else
+            ./scripts/push-to-cachix.sh ./result
           fi
-
-          echo "Cachix push complete"
 
       - name: Generate build summary
         run: |

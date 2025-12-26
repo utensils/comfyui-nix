@@ -405,6 +405,23 @@ nix flake check          # Run all checks (build, lint, type-check, nixfmt)
 nix run .#update         # Check for ComfyUI updates
 ```
 
+### Building CUDA Packages from Source
+
+CUDA builds (PyTorch, magma, triton, bitsandbytes) are memory-intensive. If you're building from source and experience OOM kills, limit parallelism:
+
+```bash
+# Recommended for 32-64GB RAM
+nix build .#cuda --max-jobs 2 --cores 12
+
+# Conservative for 16-32GB RAM
+nix build .#cuda --max-jobs 1 --cores 8
+
+# Minimal for <16GB RAM (slow but safe)
+nix build .#cuda --max-jobs 1 --cores 4
+```
+
+Use the [binary cache](#binary-cache) when possible to avoid building CUDA packages entirely.
+
 ## Data Structure
 
 ```
