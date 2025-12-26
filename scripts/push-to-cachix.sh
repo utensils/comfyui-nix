@@ -177,9 +177,34 @@ if [[ "$DRY_RUN" == true ]]; then
         echo "    ... and $((TOTAL_COUNT - 20)) more"
     fi
 else
-    info "Pushing to Cachix..."
+    info "Pushing to Cachix (cachix push)..."
     echo ""
     echo "$ALL_PATHS" | cachix push "$CACHE_NAME"
+    echo ""
+
+    # Verify a sample of paths were actually uploaded
+    info "Verifying uploads..."
+    SAMPLE_PATHS=$(echo "$ALL_PATHS" | shuf | head -5)
+    VERIFY_FAILED=0
+    while IFS= read -r path; do
+        [[ -z "$path" ]] && continue
+        HASH=$(basename "$path" | cut -d- -f1)
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://${CACHE_NAME}.cachix.org/${HASH}.narinfo" 2>/dev/null || echo "000")
+        if [[ "$HTTP_CODE" == "200" ]]; then
+            echo "    ✓ $(basename "$path")"
+        else
+            echo "    ✗ $(basename "$path") (HTTP $HTTP_CODE)"
+            VERIFY_FAILED=$((VERIFY_FAILED + 1))
+        fi
+    done <<< "$SAMPLE_PATHS"
+    echo ""
+
+    if [[ $VERIFY_FAILED -gt 0 ]]; then
+        warn "Some paths may not have been uploaded! Check cache settings on cachix.org"
+        warn "Possible issue: upstream cache filtering (paths in cache.nixos.org are skipped)"
+    else
+        success "Verification passed!"
+    fi
     echo ""
     success "Push complete!"
 fi
