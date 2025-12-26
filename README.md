@@ -97,6 +97,18 @@ nix run github:utensils/comfyui-nix#cuda-sm90
 
 The [cuda-maintainers cache](https://github.com/SomeoneSerge/nixpkgs-cuda-ci) builds for common architectures. Using matching architecture-specific packages maximizes cache hits and minimizes build time.
 
+## Why a Nix Flake?
+
+ComfyUI's standard installation relies on pip and manual dependency management, which doesn't integrate well with NixOS's declarative approach. This flake provides:
+
+- **NixOS compatibility**: A first-class option for NixOS users who previously had no clean way to run ComfyUI
+- **Reproducible builds**: Pinned dependencies ensure the same environment across machines and over time
+- **No Python conflicts**: Isolated environment avoids polluting system Python or conflicting with other projects
+- **Declarative configuration**: NixOS module for running ComfyUI as a system service with declarative custom nodes
+- **Cross-platform**: Works on NixOS, non-NixOS Linux, and macOS (Intel & Apple Silicon)
+
+![60% of the time, it works every time](https://media1.tenor.com/m/gMN1vJ8ILUwAAAAC/every-time-60percent.gif)
+
 ## ComfyUI Manager
 
 The built-in [ComfyUI Manager] is included and can be enabled with `--enable-manager`:
