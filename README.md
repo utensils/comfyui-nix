@@ -18,7 +18,7 @@ nix run github:utensils/comfyui-nix -- --open
 
 For CUDA (Linux/NVIDIA):
 
-> **⚠️ Important:** CUDA builds compile PyTorch, triton, and other large packages from source, which takes **multiple hours** and requires significant RAM. **[Set up the binary cache](#binary-cache) first** to download pre-built binaries instead.
+> **⚠️ Important:** CUDA builds compile PyTorch, triton, and other large packages from source, which can take **multiple hours** and requires significant RAM. **[Set up the binary cache](#binary-cache) first** to download pre-built binaries instead.
 
 ```bash
 # RTX GPUs (2000/3000/4000 series) - default
@@ -455,7 +455,7 @@ ComfyUI runs from the Nix store; only user data lives in your data directory.
 
 ## Binary Cache
 
-> **⚠️ Highly recommended for CUDA users:** Without the binary cache, CUDA builds compile PyTorch, magma, triton, bitsandbytes, and other CUDA packages from source. This takes **multiple hours** and requires significant RAM (32GB+ recommended). With the cache, you download pre-built binaries in minutes.
+> **⚠️ Highly recommended for CUDA users:** Without the binary cache, CUDA builds compile PyTorch, magma, triton, bitsandbytes, and other CUDA packages from source. This can take **multiple hours** and requires significant RAM (32GB+ recommended). With the cache, you download pre-built binaries in minutes.
 
 **Quick setup (recommended):**
 
