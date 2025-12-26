@@ -421,19 +421,21 @@ let
       version = versions.comfyui.version;
       # Expose heavy packages for Docker layer optimization
       # These are added to contents separately so buildLayeredImage creates distinct layers
-      heavyDeps = [
-        python.pkgs.torch
-        python.pkgs.torchvision
-        python.pkgs.torchaudio
-        python.pkgs.transformers
-        python.pkgs.numpy
-        python.pkgs.pillow
-        python.pkgs.scipy
-        python.pkgs.opencv4
-        python.pkgs.huggingface-hub
-        python.pkgs.safetensors
-        python.pkgs.accelerate
-      ] ++ lib.optionals (python.pkgs ? xformers) [ python.pkgs.xformers ]
+      heavyDeps =
+        [
+          python.pkgs.torch
+          python.pkgs.torchvision
+          python.pkgs.torchaudio
+          python.pkgs.transformers
+          python.pkgs.numpy
+          python.pkgs.pillow
+          python.pkgs.scipy
+          python.pkgs.opencv4
+          python.pkgs.huggingface-hub
+          python.pkgs.safetensors
+          python.pkgs.accelerate
+        ]
+        ++ lib.optionals (python.pkgs ? xformers) [ python.pkgs.xformers ]
         ++ lib.optionals (python.pkgs ? bitsandbytes) [ python.pkgs.bitsandbytes ]
         ++ lib.optionals (python.pkgs ? triton) [ python.pkgs.triton ];
     };

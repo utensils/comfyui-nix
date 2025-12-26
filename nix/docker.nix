@@ -58,7 +58,12 @@
           pkgs.stdenv.cc.cc.lib
           comfyUiPackage
         ];
-        pathsToLink = [ "/bin" "/lib" "/share" "/etc" ];
+        pathsToLink = [
+          "/bin"
+          "/lib"
+          "/share"
+          "/etc"
+        ];
       };
 
       config = {
