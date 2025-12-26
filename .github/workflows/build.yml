@@ -10,6 +10,7 @@ on:
       - '**.md'
       - 'LICENSE'
       - '.gitignore'
+      - 'scripts/**'
   pull_request:
     branches:
       - main
@@ -17,6 +18,7 @@ on:
       - '**.md'
       - 'LICENSE'
       - '.gitignore'
+      - 'scripts/**'
   workflow_dispatch:
 
 concurrency:

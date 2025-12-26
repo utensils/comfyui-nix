@@ -61,8 +61,8 @@ CUDA builds are available for Linux with NVIDIA GPUs. The default `#cuda` includ
 | `#cuda` | All | All GPUs | Works on any NVIDIA GPU |
 | `#cuda-sm61` | 6.1 | Pascal | GTX 1080, 1070, 1060 |
 | `#cuda-sm75` | 7.5 | Turing | RTX 2080, 2070, GTX 1660 |
-| `#cuda-sm86` | 8.6 | Ampere | RTX 3080, 3090, 3070 |
-| `#cuda-sm89` | 8.9 | Ada Lovelace | RTX 4090, 4080, 4070 |
+| `#cuda-sm86` | 8.6 | Ampere | RTX 3080, 3090, A10, A40 |
+| `#cuda-sm89` | 8.9 | Ada Lovelace | RTX 4090, 4080, L4, L40s |
 | `#cuda-sm70` | 7.0 | Volta | V100 (data center) |
 | `#cuda-sm80` | 8.0 | Ampere DC | A100 (data center) |
 | `#cuda-sm90` | 9.0 | Hopper | H100 (data center) |
