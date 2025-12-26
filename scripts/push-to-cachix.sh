@@ -157,11 +157,14 @@ info "Total unique paths to push: ${BOLD}$TOTAL_COUNT${NC}"
 # Show expensive packages being pushed
 echo ""
 info "Notable packages:"
-echo "$ALL_PATHS" | grep -E '(torch|magma|triton|nccl|cudnn|xformers|onnxruntime|opencv|transformers)' | while read -r path; do
-    pkg_name=$(basename "$path")
-    pkg_size=$(nix path-info -S "$path" 2>/dev/null | awk '{print $2}' | numfmt --to=iec-i --suffix=B 2>/dev/null || echo "?")
-    echo "    - $pkg_name ($pkg_size)"
-done | head -15
+NOTABLE=$(echo "$ALL_PATHS" | grep -E '(torch|magma|triton|nccl|cudnn|xformers|onnxruntime|opencv|transformers)' | head -15 || true)
+if [[ -n "$NOTABLE" ]]; then
+    while read -r path; do
+        pkg_name=$(basename "$path")
+        pkg_size=$(nix path-info -S "$path" 2>/dev/null | awk '{print $2}' | numfmt --to=iec-i --suffix=B 2>/dev/null || echo "?")
+        echo "    - $pkg_name ($pkg_size)"
+    done <<< "$NOTABLE"
+fi
 echo ""
 
 # Dry run or actual push
