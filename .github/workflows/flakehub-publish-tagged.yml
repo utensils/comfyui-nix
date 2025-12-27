@@ -26,4 +26,6 @@ jobs:
           visibility: "public"
           name: "utensils/comfyui"
           tag: "${{ inputs.tag }}"
-          include-output-paths: true
+          # Disabled: FlakeHub evaluation hits broken packages (open-clip-torch)
+          # that our flake config allows but FlakeHub doesn't respect
+          include-output-paths: false
