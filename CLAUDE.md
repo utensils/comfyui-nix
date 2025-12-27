@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Run Docker container**: `docker run -p 8188:8188 -v $PWD/data:/data comfy-ui:latest`
 - **Run CUDA Docker**: `docker run --gpus all -p 8188:8188 -v $PWD/data:/data comfy-ui:cuda`
 - **Develop with Nix**: `nix develop` (opens development shell)
-- **Install to profile**: `nix profile install github:utensils/comfyui-nix`
+- **Add to profile**: `nix profile add github:utensils/comfyui-nix` (ad-hoc, prefer system config)
 
 ## Linting and Code Quality
 - **Run all checks**: `nix flake check` (runs all CI checks: build, lint, type-check, nixfmt)

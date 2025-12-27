@@ -242,26 +242,83 @@ All Python dependencies (segment-anything, sam2, scikit-image, opencv, color-mat
 
 ## Installation
 
-```bash
-# Install to profile
-nix profile install github:utensils/comfyui-nix
+### NixOS / nix-darwin Configuration (Recommended)
 
-# Or use the overlay in your flake
+Add ComfyUI as a package in your system configuration:
+
+```nix
+# flake.nix
 {
-  inputs.comfyui-nix.url = "github:utensils/comfyui-nix";
-  # Then: nixpkgs.overlays = [ comfyui-nix.overlays.default ];
-  # Provides:
-  #   pkgs.comfy-ui              - CPU build
-  #   pkgs.comfy-ui-cuda         - All GPU architectures (default)
-  #   pkgs.comfy-ui-cuda-sm61    - Pascal (GTX 1080)
-  #   pkgs.comfy-ui-cuda-sm70    - Volta (V100)
-  #   pkgs.comfy-ui-cuda-sm75    - Turing (RTX 2080)
-  #   pkgs.comfy-ui-cuda-sm80    - Ampere DC (A100)
-  #   pkgs.comfy-ui-cuda-sm86    - Ampere (RTX 3080)
-  #   pkgs.comfy-ui-cuda-sm89    - Ada (RTX 4080)
-  #   pkgs.comfy-ui-cuda-sm90    - Hopper (H100)
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    comfyui-nix.url = "github:utensils/comfyui-nix";
+  };
+
+  outputs = { nixpkgs, comfyui-nix, ... }: {
+    # NixOS
+    nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [{
+        nixpkgs.overlays = [ comfyui-nix.overlays.default ];
+        environment.systemPackages = [ pkgs.comfy-ui ];
+        # Or for CUDA: pkgs.comfy-ui-cuda
+      }];
+    };
+
+    # nix-darwin (macOS)
+    darwinConfigurations.myhost = darwin.lib.darwinSystem {
+      system = "aarch64-darwin";
+      modules = [{
+        nixpkgs.overlays = [ comfyui-nix.overlays.default ];
+        environment.systemPackages = [ pkgs.comfy-ui ];
+      }];
+    };
+  };
 }
 ```
+
+**Without overlay** (reference the package directly):
+
+```nix
+{ pkgs, inputs, ... }: {
+  environment.systemPackages = [
+    inputs.comfyui-nix.packages.${pkgs.system}.default  # CPU
+    # inputs.comfyui-nix.packages.${pkgs.system}.cuda   # CUDA (Linux)
+  ];
+}
+```
+
+### Available Overlay Packages
+
+The overlay provides these packages:
+
+| Package                  | Description                                        |
+| ------------------------ | -------------------------------------------------- |
+| `pkgs.comfy-ui`          | CPU + Apple Silicon (Metal) - use this for macOS   |
+| `pkgs.comfy-ui-cuda`     | All NVIDIA GPU architectures (Linux only)          |
+| `pkgs.comfy-ui-cuda-sm61`| Pascal (GTX 1080, 1070, 1060)                      |
+| `pkgs.comfy-ui-cuda-sm70`| Volta (V100)                                       |
+| `pkgs.comfy-ui-cuda-sm75`| Turing (RTX 2080, 2070, GTX 1660)                  |
+| `pkgs.comfy-ui-cuda-sm80`| Ampere DC (A100)                                   |
+| `pkgs.comfy-ui-cuda-sm86`| Ampere (RTX 3080, 3090)                            |
+| `pkgs.comfy-ui-cuda-sm89`| Ada Lovelace (RTX 4090, 4080)                      |
+| `pkgs.comfy-ui-cuda-sm90`| Hopper (H100)                                      |
+
+> **Note:** On macOS with Apple Silicon, the base `comfy-ui` package automatically uses Metal for GPU acceleration. No separate CUDA package is needed.
+
+### Profile Installation (Ad-hoc)
+
+For quick testing without modifying your system configuration:
+
+```bash
+# CPU / Apple Silicon
+nix profile add github:utensils/comfyui-nix
+
+# CUDA (Linux/NVIDIA only)
+nix profile add github:utensils/comfyui-nix#cuda
+```
+
+> **Note:** Profile installation is convenient for trying ComfyUI but isn't declarative. For reproducible setups, add the package to your NixOS/nix-darwin configuration instead.
 
 ## NixOS Module
 
