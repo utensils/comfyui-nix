@@ -224,27 +224,26 @@ jobs:
             nix build .#packages.${{ matrix.arch }}.${{ matrix.nix_target }} --print-build-logs
           fi
 
-          docker load < result
-          docker images | grep comfy-ui
+          echo "Docker image built: $(readlink result)"
+          ls -lh result
 
       - name: Tag and push Docker image
         if: github.event_name != 'pull_request'
         run: |
-          if [[ "${{ matrix.variant }}" == "cuda" ]]; then
-            IMAGE_ID=$(docker images comfy-ui:cuda -q | head -n1)
-          else
-            IMAGE_ID=$(docker images comfy-ui:latest -q | head -n1)
-          fi
-
-          echo "Tagging and pushing: ${{ steps.meta.outputs.tag }}"
-          docker tag "$IMAGE_ID" "${{ steps.meta.outputs.tag }}"
+          # Use skopeo to push directly from the nix-built docker-archive
+          # This avoids loading into Docker's local storage, saving disk space
+          # (critical for large CUDA images ~8GB+)
+          echo "Pushing image using skopeo: ${{ steps.meta.outputs.tag }}"
 
           # Retry logic for large image pushes (GHCR can timeout on large layers)
           MAX_RETRIES=5
           RETRY_DELAY=30
           for i in $(seq 1 $MAX_RETRIES); do
             echo "Push attempt $i of $MAX_RETRIES..."
-            if docker push "${{ steps.meta.outputs.tag }}"; then
+            if nix run nixpkgs#skopeo -- copy \
+                --dest-creds="${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+                "docker-archive:$(readlink result)" \
+                "docker://${{ steps.meta.outputs.tag }}"; then
               echo "Push succeeded on attempt $i"
               break
             fi
