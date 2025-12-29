@@ -16,6 +16,8 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Pinned nixpkgs for CUDA/Darwin stability (before cuDNN badPlatforms regression)
+    nixpkgs-cuda.url = "github:NixOS/nixpkgs/2631b0b7abcea6e640ce31cd78ea58910d31e650";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -23,6 +25,7 @@
     {
       self,
       nixpkgs,
+      nixpkgs-cuda,
       flake-utils,
     }:
     let
@@ -161,9 +164,10 @@
         };
 
         # Helper to create nixpkgs with specific CUDA capabilities
+        # Uses pinned nixpkgs-cuda for stability (avoids cuDNN badPlatforms regression)
         mkCudaPkgs =
           targetSystem: capabilities:
-          import nixpkgs {
+          import nixpkgs-cuda {
             system = targetSystem;
             config = {
               allowUnfree = true;
@@ -175,20 +179,12 @@
           };
 
         # Helper to create nixpkgs with specific ROCm GPU targets
-        # NOTE: ROCm support in nixpkgs is still maturing - some packages may be
-        # marked as broken or deprecated. We allow these to enable ROCm builds.
         mkRocmPkgs =
           targetSystem: targets:
           import nixpkgs {
             system = targetSystem;
             config = {
               allowUnfree = true;
-              # ROCm packages may have various issues in nixpkgs:
-              # - torch may be marked as broken
-              # - miopengemm may be deprecated
-              # We allow these to enable experimental ROCm support
-              allowBroken = true;
-              permittedInsecurePackages = [ ]; # In case any ROCm deps are marked insecure
               allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
               rocmSupport = true;
               rocmTargets = targets;
@@ -208,16 +204,12 @@
         pkgsCuda = mkCudaPkgs system allCudaCapabilities;
 
         # ROCm pkgs with all targets (default for #rocm, same as Docker)
-        # NOTE: ROCm support is experimental and may not build on all nixpkgs versions
         pkgsRocm = mkRocmPkgs system allRocmTargets;
 
         # ROCm availability check
-        # Currently disabled because nixpkgs ROCm PyTorch support has issues:
-        # - miopengemm is deprecated (moved to rocmPackages_5)
-        # - torch may be marked as broken with rocmSupport
-        # This will be enabled when nixpkgs upstream fixes these issues.
-        # Users can test ROCm manually by setting rocmAvailable = true below.
-        rocmAvailable = false; # TODO: Enable when nixpkgs ROCm support matures
+        # ROCm support is available on Linux x86_64 systems with AMD GPUs.
+        # Requires nixpkgs with ROCm 6.3.3+ (merged in PR #367695, April 2025).
+        rocmAvailable = pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isx86_64;
 
         # Linux pkgs for cross-building Docker images from any system
         pkgsLinuxX86 = import nixpkgs {
@@ -231,7 +223,8 @@
         pkgsLinuxX86Cuda = mkCudaPkgs "x86_64-linux" allCudaCapabilities;
         # Docker images use same targets as #rocm for cache sharing
         pkgsLinuxX86Rocm = mkRocmPkgs "x86_64-linux" allRocmTargets;
-        pkgsLinuxArm64 = import nixpkgs {
+        # Uses pinned nixpkgs-cuda for stability (avoids kornia-rs badPlatforms regression)
+        pkgsLinuxArm64 = import nixpkgs-cuda {
           system = "aarch64-linux";
           config = {
             allowUnfree = true;
@@ -508,9 +501,8 @@
             self.packages.${final.system}.cuda
           else
             throw "comfy-ui-cuda is only available on Linux";
-        # ROCm variant (Linux only, experimental) - includes all GPU targets
+        # ROCm variant (Linux x86_64 only) - includes all GPU targets
         # Use comfy-ui-rocm-gfx* for optimized single-architecture builds
-        # NOTE: ROCm support depends on nixpkgs having working ROCm packages
         comfy-ui-rocm =
           if final.stdenv.isLinux && self.packages.${final.system} ? rocm then
             self.packages.${final.system}.rocm
@@ -556,8 +548,7 @@
             self.packages.${final.system}.cuda-sm90
           else
             throw "CUDA packages are only available on Linux";
-        # Architecture-specific ROCm packages (Linux only, experimental)
-        # NOTE: These are only available when nixpkgs ROCm support is working
+        # Architecture-specific ROCm packages (Linux x86_64 only)
         # RDNA Consumer GPUs
         comfy-ui-rocm-gfx1010 =
           if final.stdenv.isLinux && self.packages.${final.system} ? rocm-gfx1010 then
