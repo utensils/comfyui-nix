@@ -19,8 +19,23 @@ lib.optionalAttrs (useCuda && prev ? torch) {
 }
 # ROCm torch base override - same approach as CUDA
 # When rocmSupport=true in nixpkgs config, torch is built with ROCm/HIP support
+# We explicitly set gpuTargets to include gfx1010/gfx1011 (RDNA1) which AMD doesn't
+# officially support but can work with community patches
 // lib.optionalAttrs (useRocm && prev ? torch) {
-  torch = prev.torch.override { rocmSupport = true; };
+  torch = prev.torch.override {
+    rocmSupport = true;
+    # Include RDNA1 (gfx1010/1011) targets for Radeon RX 5000 series / Pro 5600M
+    # These are NOT officially supported by AMD but may work
+    gpuTargets = [
+      "gfx900"   # Vega 10
+      "gfx906"   # Vega 20 / MI50
+      "gfx908"   # CDNA MI100
+      "gfx90a"   # CDNA2 MI210/250
+      "gfx1010"  # RDNA1 (RX 5600/5700, Pro 5600M) - unofficial
+      "gfx1030"  # RDNA2 (RX 6800/6900)
+      "gfx1100"  # RDNA3 (RX 7900)
+    ];
+  };
 }
 # Spandrel and other packages that need explicit torch handling
 // lib.optionalAttrs (prev ? torch) {
