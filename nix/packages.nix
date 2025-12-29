@@ -4,6 +4,7 @@
   versions,
   pythonOverrides,
   cudaSupport ? false,
+  rocmSupport ? false,
 }:
 let
   python = pkgs.python312.override { packageOverrides = pythonOverrides; };
@@ -203,6 +204,17 @@ let
         # Add NVIDIA driver libraries if available (NixOS)
         if [[ -d "/run/opengl-driver/lib" ]]; then
           export LD_LIBRARY_PATH="/run/opengl-driver/lib:$LD_LIBRARY_PATH"
+        fi
+
+        # Add ROCm libraries if available (for AMD GPU support)
+        # Standard ROCm installation path
+        if [[ -d "/opt/rocm/lib" ]]; then
+          export LD_LIBRARY_PATH="/opt/rocm/lib:$LD_LIBRARY_PATH"
+        fi
+        # NixOS ROCm path (when using nixpkgs rocm packages)
+        if [[ -d "/run/opengl-driver/lib" ]]; then
+          # HIP runtime is typically in opengl-driver on NixOS
+          export HSA_OVERRIDE_GFX_VERSION="''${HSA_OVERRIDE_GFX_VERSION:-}"
         fi
       '';
 
@@ -485,12 +497,23 @@ let
       "com.nvidia.volumes.needed" = "nvidia_driver";
     };
   };
+
+  dockerImageRocm = dockerLib.mkDockerImage {
+    name = "comfy-ui";
+    tag = "rocm";
+    comfyUiPackage = comfyUiPackage;
+    rocmSupport = true;
+    extraLabels = {
+      "org.opencontainers.image.version" = versions.comfyui.version;
+    };
+  };
 in
 {
   default = comfyUiPackage;
   inherit
     dockerImage
     dockerImageCuda
+    dockerImageRocm
     pythonRuntime
     comfyuiSrc
     modelDownloaderDir

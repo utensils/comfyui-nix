@@ -8,7 +8,7 @@ let
   cfg = config.services.comfyui;
 
   # Architecture-to-package mapping for cudaArch option
-  archPackages = {
+  cudaArchPackages = {
     # Consumer GPUs
     sm61 = pkgs.comfy-ui-cuda-sm61; # Pascal (GTX 1080, 1070, 1060)
     sm75 = pkgs.comfy-ui-cuda-sm75; # Turing (RTX 2080, 2070, GTX 1660)
@@ -20,17 +20,44 @@ let
     sm90 = pkgs.comfy-ui-cuda-sm90; # Hopper (H100)
   };
 
+  # Architecture-to-package mapping for rocmArch option
+  rocmArchPackages = {
+    # RDNA Consumer GPUs
+    gfx1010 = pkgs.comfy-ui-rocm-gfx1010; # RDNA (RX 5600, RX 5700, Pro 5600M)
+    gfx1030 = pkgs.comfy-ui-rocm-gfx1030; # RDNA2 (RX 6800, RX 6900, RX 6700)
+    gfx1100 = pkgs.comfy-ui-rocm-gfx1100; # RDNA3 (RX 7900 XTX, RX 7900 XT)
+    gfx1101 = pkgs.comfy-ui-rocm-gfx1101; # RDNA3 (RX 7800 XT, RX 7700 XT)
+    gfx1102 = pkgs.comfy-ui-rocm-gfx1102; # RDNA3 (RX 7600)
+    # Vega GPUs
+    gfx900 = pkgs.comfy-ui-rocm-gfx900; # Vega 10 (RX Vega 56/64)
+    gfx906 = pkgs.comfy-ui-rocm-gfx906; # Vega 20 (Radeon VII, MI50)
+    # Data center / CDNA GPUs
+    gfx908 = pkgs.comfy-ui-rocm-gfx908; # CDNA (MI100)
+    gfx90a = pkgs.comfy-ui-rocm-gfx90a; # CDNA2 (MI210, MI250)
+    gfx942 = pkgs.comfy-ui-rocm-gfx942; # CDNA3 (MI300)
+  };
+
   # Determine which package to use based on configuration
+  # Priority: cudaCapabilities > cudaArch > cuda > rocmTargets > rocmArch > rocm > CPU
   resolvePackage =
     if cfg.cudaCapabilities != null then
-      # Custom capabilities - build on demand
+      # Custom CUDA capabilities - build on demand
       pkgs.comfyui-nix.mkComfyUIWithCuda cfg.cudaCapabilities
     else if cfg.cudaArch != null then
-      # Pre-built architecture-specific package
-      archPackages.${cfg.cudaArch}
+      # Pre-built CUDA architecture-specific package
+      cudaArchPackages.${cfg.cudaArch}
     else if cfg.cuda then
       # Default CUDA (RTX: SM 7.5, 8.6, 8.9)
       pkgs.comfy-ui-cuda
+    else if cfg.rocmTargets != null then
+      # Custom ROCm targets - build on demand
+      pkgs.comfyui-nix.mkComfyUIWithRocm cfg.rocmTargets
+    else if cfg.rocmArch != null then
+      # Pre-built ROCm architecture-specific package
+      rocmArchPackages.${cfg.rocmArch}
+    else if cfg.rocm then
+      # Default ROCm (all common targets)
+      pkgs.comfy-ui-rocm
     else
       # CPU-only
       pkgs.comfy-ui;
@@ -167,6 +194,86 @@ in
       ];
     };
 
+    rocm = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Enable ROCm support for AMD GPUs. This provides GPU acceleration
+        for AMD Radeon graphics cards.
+
+        When enabled, uses the ROCm-enabled PyTorch (via HIP) and enables
+        GPU acceleration. Requires AMD GPU drivers and ROCm to be installed.
+
+        By default, ROCm builds target common GPU architectures.
+        For specific GPUs, use `rocmArch` or `rocmTargets` options.
+
+        Note: ROCm support requires Linux. It is not available on macOS.
+      '';
+    };
+
+    rocmArch = lib.mkOption {
+      type = lib.types.nullOr (
+        lib.types.enum [
+          "gfx900"
+          "gfx906"
+          "gfx908"
+          "gfx90a"
+          "gfx942"
+          "gfx1010"
+          "gfx1030"
+          "gfx1100"
+          "gfx1101"
+          "gfx1102"
+        ]
+      );
+      default = null;
+      description = ''
+        Select a pre-built ROCm architecture-specific package.
+        This is faster than `rocmTargets` as it uses cached builds.
+
+        Available architectures:
+        - `gfx900`: Vega 10 (RX Vega 56/64)
+        - `gfx906`: Vega 20 (Radeon VII, MI50) - data center
+        - `gfx908`: CDNA (MI100) - data center
+        - `gfx90a`: CDNA2 (MI210, MI250) - data center
+        - `gfx942`: CDNA3 (MI300) - data center
+        - `gfx1010`: RDNA (RX 5600, RX 5700, Pro 5600M)
+        - `gfx1030`: RDNA2 (RX 6800, RX 6900, RX 6700)
+        - `gfx1100`: RDNA3 (RX 7900 XTX, RX 7900 XT)
+        - `gfx1101`: RDNA3 (RX 7800 XT, RX 7700 XT)
+        - `gfx1102`: RDNA3 (RX 7600)
+
+        When set, overrides the default ROCm build. Implies `rocm = true`.
+      '';
+      example = "gfx1030";
+    };
+
+    rocmTargets = lib.mkOption {
+      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+      default = null;
+      description = ''
+        Custom list of ROCm GPU targets to build for.
+        This triggers an on-demand build with the specified architectures.
+
+        Use this when you need multiple architectures or a specific combination
+        not covered by pre-built packages. Note: this will compile from source
+        which can take significant time.
+
+        Common target values:
+        - "gfx900": Vega 10 (RX Vega 56/64)
+        - "gfx906": Vega 20 (Radeon VII)
+        - "gfx1010": RDNA (RX 5600, 5700)
+        - "gfx1030": RDNA2 (RX 6800, 6900)
+        - "gfx1100": RDNA3 (RX 7900 XTX/XT)
+
+        When set, this takes precedence over `rocm` and `rocmArch`.
+      '';
+      example = [
+        "gfx1010"
+        "gfx1030"
+      ];
+    };
+
     enableManager = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -183,19 +290,25 @@ in
       type = lib.types.package;
       default = resolvePackage;
       defaultText = lib.literalExpression ''
-        # Resolved based on cudaCapabilities > cudaArch > cuda > CPU
+        # Resolved based on: cudaCapabilities > cudaArch > cuda > rocmTargets > rocmArch > rocm > CPU
         if cudaCapabilities != null then mkComfyUIWithCuda cudaCapabilities
         else if cudaArch != null then pkgs.comfy-ui-cuda-''${cudaArch}
         else if cuda then pkgs.comfy-ui-cuda
+        else if rocmTargets != null then mkComfyUIWithRocm rocmTargets
+        else if rocmArch != null then pkgs.comfy-ui-rocm-''${rocmArch}
+        else if rocm then pkgs.comfy-ui-rocm
         else pkgs.comfy-ui
       '';
       description = ''
-        ComfyUI package to run. Automatically set based on CUDA configuration:
+        ComfyUI package to run. Automatically set based on GPU configuration:
 
         1. `cudaCapabilities` set: builds with custom CUDA capabilities
-        2. `cudaArch` set: uses pre-built architecture-specific package
-        3. `cuda = true`: uses default RTX package (SM 7.5, 8.6, 8.9)
-        4. Otherwise: CPU-only build
+        2. `cudaArch` set: uses pre-built CUDA architecture-specific package
+        3. `cuda = true`: uses default CUDA package (SM 7.5, 8.6, 8.9)
+        4. `rocmTargets` set: builds with custom ROCm GPU targets
+        5. `rocmArch` set: uses pre-built ROCm architecture-specific package
+        6. `rocm = true`: uses default ROCm package (all common targets)
+        7. Otherwise: CPU-only build
 
         Can be overridden for fully custom builds.
       '';

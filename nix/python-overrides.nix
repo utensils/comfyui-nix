@@ -2,10 +2,12 @@
   pkgs,
   versions,
   cudaSupport ? false,
+  rocmSupport ? false,
 }:
 let
   lib = pkgs.lib;
   useCuda = cudaSupport && pkgs.stdenv.isLinux;
+  useRocm = rocmSupport && pkgs.stdenv.isLinux;
   sentencepieceNoGperf = pkgs.sentencepiece.override { withGPerfTools = false; };
 in
 final: prev:
@@ -14,6 +16,11 @@ final: prev:
 # will automatically get the CUDA version. This prevents torch version collisions.
 lib.optionalAttrs (useCuda && prev ? torch) {
   torch = prev.torch.override { cudaSupport = true; };
+}
+# ROCm torch base override - same approach as CUDA
+# When rocmSupport=true in nixpkgs config, torch is built with ROCm/HIP support
+// lib.optionalAttrs (useRocm && prev ? torch) {
+  torch = prev.torch.override { rocmSupport = true; };
 }
 # Spandrel and other packages that need explicit torch handling
 // lib.optionalAttrs (prev ? torch) {
@@ -43,8 +50,9 @@ lib.optionalAttrs (useCuda && prev ? torch) {
     doCheck = false;
   };
 }
-# CUDA-specific package overrides - use final.torch (our overridden CUDA torch)
-// lib.optionalAttrs useCuda (
+# CUDA/ROCm-specific package overrides - use final.torch (our overridden GPU torch)
+# These ensure all torch-dependent packages use the correct GPU-enabled torch
+// lib.optionalAttrs (useCuda || useRocm) (
   lib.optionalAttrs (prev ? torchvision) {
     torchvision = prev.torchvision.override { torch = final.torch; };
   }
