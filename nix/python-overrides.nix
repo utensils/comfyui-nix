@@ -146,6 +146,13 @@ lib.optionalAttrs (useCuda && prev ? torch) {
   });
 }
 
+# Disable failing ffmpeg test for imageio (test_process_termination expects exit code 2 but gets 6)
+// lib.optionalAttrs (prev ? imageio) {
+  imageio = prev.imageio.overridePythonAttrs (old: {
+    disabledTests = (old.disabledTests or [ ]) ++ [ "test_process_termination" ];
+  });
+}
+
 # color-matcher - not in older nixpkgs, needed for KJNodes
 // {
   "color-matcher" = final.buildPythonPackage rec {

@@ -285,7 +285,7 @@
             pkgs.shellcheck
             pkgs.jq
             pkgs.curl
-          ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.apple_sdk.frameworks.Metal ];
+          ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.apple-sdk_14 ];
 
           shellHook =
             let
