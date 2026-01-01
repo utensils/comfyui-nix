@@ -98,13 +98,26 @@
             config = {
               allowUnfree = true;
               allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
-              # Allow unsupported system to work around nixpkgs cudnn badPlatforms issue
-              # See: https://github.com/NixOS/nixpkgs/issues/458799
+              # Work around nixpkgs cudnn badPlatforms issue
+              # cudnn 9.13.0 is incorrectly marked as unsupported on x86_64-linux
               allowUnsupportedSystem = true;
               cudaSupport = true;
               cudaCapabilities = capabilities;
               cudaForwardCompat = false; # Don't add PTX for forward compat
             };
+            overlays = [
+              # Disable cuda_compat on x86_64-linux - it's only for aarch64 Jetson devices
+              # and incorrectly gets pulled into dependency tree on x86_64
+              # See: https://github.com/NixOS/nixpkgs/issues/458799
+              (final: prev: {
+                cudaPackages = prev.cudaPackages.overrideScope (
+                  cfinal: cprev:
+                  nixpkgs.lib.optionalAttrs (targetSystem == "x86_64-linux") {
+                    cuda_compat = null;
+                  }
+                );
+              })
+            ];
           };
 
         # Base pkgs without CUDA (for CPU builds and non-CUDA deps)
@@ -125,8 +138,6 @@
           config = {
             allowUnfree = true;
             allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
-            # Allow unsupported system to work around nixpkgs badPlatforms issues
-            allowUnsupportedSystem = true;
           };
         };
         # Docker images use same capabilities as #cuda for cache sharing
@@ -136,7 +147,7 @@
           config = {
             allowUnfree = true;
             allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
-            # Allow unsupported system to work around nixpkgs kornia-rs badPlatforms issue
+            # Work around nixpkgs kornia-rs badPlatforms issue on aarch64-linux
             allowUnsupportedSystem = true;
           };
         };
