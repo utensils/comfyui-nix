@@ -230,6 +230,11 @@ let
         pkgs.xdg-utils # Provides xdg-open for --open flag on Linux
       ];
     text = ''
+      # Increase file descriptor limit for aiohttp/grpc DNS resolver
+      # macOS default (256) is too low; Linux (1024) may also be insufficient
+      # ComfyUI-Manager's concurrent HTTP requests with c-ares DNS can exhaust FDs
+      ulimit -n 10240 2>/dev/null || true
+
       # Parse arguments - extract --base-directory, --open, --port, pass rest to ComfyUI
       BASE_DIR="''${COMFY_USER_DIR:-${defaultDataDir}}"
       OPEN_BROWSER=false
