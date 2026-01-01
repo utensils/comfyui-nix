@@ -98,6 +98,9 @@
             config = {
               allowUnfree = true;
               allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
+              # Allow unsupported system to work around nixpkgs cudnn badPlatforms issue
+              # See: https://github.com/NixOS/nixpkgs/issues/458799
+              allowUnsupportedSystem = true;
               cudaSupport = true;
               cudaCapabilities = capabilities;
               cudaForwardCompat = false; # Don't add PTX for forward compat
@@ -122,6 +125,8 @@
           config = {
             allowUnfree = true;
             allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
+            # Allow unsupported system to work around nixpkgs badPlatforms issues
+            allowUnsupportedSystem = true;
           };
         };
         # Docker images use same capabilities as #cuda for cache sharing
@@ -131,6 +136,8 @@
           config = {
             allowUnfree = true;
             allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
+            # Allow unsupported system to work around nixpkgs kornia-rs badPlatforms issue
+            allowUnsupportedSystem = true;
           };
         };
 
@@ -216,38 +223,37 @@
             && !pkgs.lib.hasPrefix "result" rel;
         };
 
-        packages =
+        packages = {
+          default = nativePackages.default;
+          comfyui = nativePackages.default;
+          # Cross-platform Docker image builds (use remote builder on non-Linux)
+          # These are always available regardless of host system
+          dockerImageLinux = linuxX86Packages.dockerImage;
+          dockerImageLinuxCuda = linuxX86PackagesCuda.dockerImageCuda;
+          dockerImageLinuxArm64 = linuxArm64Packages.dockerImage;
+        }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux (
           {
-            default = nativePackages.default;
-            comfyui = nativePackages.default;
-            # Cross-platform Docker image builds (use remote builder on non-Linux)
-            # These are always available regardless of host system
-            dockerImageLinux = linuxX86Packages.dockerImage;
-            dockerImageLinuxCuda = linuxX86PackagesCuda.dockerImageCuda;
-            dockerImageLinuxArm64 = linuxArm64Packages.dockerImage;
+            # Default CUDA includes all GPU architectures for max compatibility
+            cuda = nativePackagesCuda.default;
+            dockerImage = nativePackages.dockerImage;
+            dockerImageCuda = nativePackagesCuda.dockerImageCuda;
           }
-          // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux (
-            {
-              # Default CUDA includes all GPU architectures for max compatibility
-              cuda = nativePackagesCuda.default;
-              dockerImage = nativePackages.dockerImage;
-              dockerImageCuda = nativePackagesCuda.dockerImageCuda;
-            }
-            # Architecture-specific CUDA packages
-            # Consumer GPUs
-            // {
-              cuda-sm61 = archPackages.sm61.default; # Pascal (GTX 1080)
-              cuda-sm75 = archPackages.sm75.default; # Turing (RTX 2080)
-              cuda-sm86 = archPackages.sm86.default; # Ampere (RTX 3080)
-              cuda-sm89 = archPackages.sm89.default; # Ada (RTX 4080)
-            }
-            # Data center GPUs
-            // {
-              cuda-sm70 = archPackages.sm70.default; # Volta (V100)
-              cuda-sm80 = archPackages.sm80.default; # Ampere DC (A100)
-              cuda-sm90 = archPackages.sm90.default; # Hopper (H100)
-            }
-          );
+          # Architecture-specific CUDA packages
+          # Consumer GPUs
+          // {
+            cuda-sm61 = archPackages.sm61.default; # Pascal (GTX 1080)
+            cuda-sm75 = archPackages.sm75.default; # Turing (RTX 2080)
+            cuda-sm86 = archPackages.sm86.default; # Ampere (RTX 3080)
+            cuda-sm89 = archPackages.sm89.default; # Ada (RTX 4080)
+          }
+          # Data center GPUs
+          // {
+            cuda-sm70 = archPackages.sm70.default; # Volta (V100)
+            cuda-sm80 = archPackages.sm80.default; # Ampere DC (A100)
+            cuda-sm90 = archPackages.sm90.default; # Hopper (H100)
+          }
+        );
       in
       {
         inherit packages;
@@ -285,7 +291,8 @@
             pkgs.shellcheck
             pkgs.jq
             pkgs.curl
-          ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.apple-sdk_14 ];
+          ]
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.apple-sdk_14 ];
 
           shellHook =
             let
