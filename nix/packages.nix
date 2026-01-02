@@ -56,10 +56,11 @@ let
     pillow>=9.0.0
     safetensors>=0.3.0
     # Prevent ComfyUI-Manager from trying to "restore" vendored packages
-    comfyui-frontend-package>=${versions.vendored.frontendPackage.version}
-    comfyui-workflow-templates>=${versions.vendored.workflowTemplates.version}
-    comfyui-embedded-docs>=${versions.vendored.embeddedDocs.version}
-    comfyui-manager>=${versions.vendored.manager.version}
+    # Use exact pinning to ensure reproducibility
+    comfyui-frontend-package==${versions.vendored.frontendPackage.version}
+    comfyui-workflow-templates==${versions.vendored.workflowTemplates.version}
+    comfyui-embedded-docs==${versions.vendored.embeddedDocs.version}
+    comfyui-manager==${versions.vendored.manager.version}
   '';
 
   # Default ComfyUI-Manager configuration
@@ -155,6 +156,8 @@ let
         ++ lib.optionals (ps ? torchvision && available ps.torchvision) [ ps.torchvision ]
         ++ lib.optionals (ps ? torchaudio && available ps.torchaudio) [ ps.torchaudio ]
         ++ lib.optionals (ps ? torchsde && available ps.torchsde) [ ps.torchsde ]
+        # kornia excluded on macOS: kornia-rs has Cargo build issues unrelated to torch
+        # See: https://github.com/NixOS/nixpkgs/issues/458799
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? kornia && available ps.kornia) [ ps.kornia ]
         ++ lib.optionals (ps ? pydantic && available ps.pydantic) [ ps.pydantic ]
         ++ lib.optionals (ps ? spandrel && available ps.spandrel) [ ps.spandrel ]
