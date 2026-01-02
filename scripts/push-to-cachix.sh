@@ -152,7 +152,7 @@ fi
 
 # Filter out Rust/Cargo build artifacts that aren't useful for consumers
 # These are intermediate files that cause upload issues and aren't needed
-ALL_PATHS=$(echo "$ALL_PATHS" | grep -vE '(Cargo\.lock|Cargo\.toml|\.cargo-checksum\.json)$')
+ALL_PATHS=$(echo "$ALL_PATHS" | grep -vE '/(Cargo\.lock|Cargo\.toml|\.cargo-checksum\.json)$')
 TOTAL_COUNT=$(echo "$ALL_PATHS" | grep -c '^' || echo 0)
 
 echo ""

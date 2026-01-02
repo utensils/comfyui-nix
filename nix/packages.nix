@@ -156,9 +156,11 @@ let
         ++ lib.optionals (ps ? torchvision && available ps.torchvision) [ ps.torchvision ]
         ++ lib.optionals (ps ? torchaudio && available ps.torchaudio) [ ps.torchaudio ]
         ++ lib.optionals (ps ? torchsde && available ps.torchsde) [ ps.torchsde ]
-        # kornia excluded on macOS: kornia-rs has Cargo build issues unrelated to torch
+        # kornia excluded on macOS and aarch64-linux: kornia-rs has Cargo/badPlatforms issues
         # See: https://github.com/NixOS/nixpkgs/issues/458799
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? kornia && available ps.kornia) [ ps.kornia ]
+        ++ lib.optionals (
+          pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64 && ps ? kornia && available ps.kornia
+        ) [ ps.kornia ]
         ++ lib.optionals (ps ? pydantic && available ps.pydantic) [ ps.pydantic ]
         ++ lib.optionals (ps ? spandrel && available ps.spandrel) [ ps.spandrel ]
         ++ lib.optionals (ps ? gitpython && available ps.gitpython) [ ps.gitpython ]
