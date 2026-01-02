@@ -155,7 +155,7 @@ let
         ++ lib.optionals (ps ? torchvision && available ps.torchvision) [ ps.torchvision ]
         ++ lib.optionals (ps ? torchaudio && available ps.torchaudio) [ ps.torchaudio ]
         ++ lib.optionals (ps ? torchsde && available ps.torchsde) [ ps.torchsde ]
-        ++ lib.optionals (ps ? kornia && available ps.kornia) [ ps.kornia ]
+        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? kornia && available ps.kornia) [ ps.kornia ]
         ++ lib.optionals (ps ? pydantic && available ps.pydantic) [ ps.pydantic ]
         ++ lib.optionals (ps ? spandrel && available ps.spandrel) [ ps.spandrel ]
         ++ lib.optionals (ps ? gitpython && available ps.gitpython) [ ps.gitpython ]

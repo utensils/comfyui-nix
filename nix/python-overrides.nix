@@ -6,12 +6,18 @@
 let
   lib = pkgs.lib;
   useCuda = cudaSupport && pkgs.stdenv.isLinux;
+  useDarwinArm64 = pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isAarch64;
   sentencepieceNoGperf = pkgs.sentencepiece.override { withGPerfTools = false; };
 
   # Pre-built PyTorch CUDA wheels from pytorch.org
   # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time)
   # The wheels bundle CUDA 12.4 libraries, so no separate CUDA toolkit needed at runtime
   cudaWheels = versions.pytorchWheels.cu124;
+
+  # Pre-built PyTorch wheels for macOS Apple Silicon
+  # PyTorch 2.5.1 is used instead of 2.9.x due to MPS bugs on macOS 26 (Tahoe)
+  # See: https://github.com/pytorch/pytorch/issues/167679
+  darwinWheels = versions.pytorchWheels.darwinArm64;
 
   # Common build inputs for PyTorch wheels (manylinux compatibility)
   wheelBuildInputs = [
@@ -201,6 +207,91 @@ lib.optionalAttrs useCuda {
       homepage = "https://pytorch.org/audio";
       license = lib.licenses.bsd2;
       platforms = [ "x86_64-linux" ];
+    };
+  };
+}
+# macOS Apple Silicon - use PyTorch 2.5.1 wheels to avoid MPS bugs on macOS 26 (Tahoe)
+# PyTorch 2.9.x in nixpkgs has known issues with MPS on macOS 26
+// lib.optionalAttrs useDarwinArm64 {
+  torch = final.buildPythonPackage {
+    pname = "torch";
+    version = darwinWheels.torch.version;
+    format = "wheel";
+    src = pkgs.fetchurl {
+      url = darwinWheels.torch.url;
+      hash = darwinWheels.torch.hash;
+    };
+    dontBuild = true;
+    dontConfigure = true;
+    propagatedBuildInputs = with final; [
+      filelock
+      typing-extensions
+      sympy
+      networkx
+      jinja2
+      fsspec
+    ];
+    pythonImportsCheck = [ "torch" ];
+    doCheck = false;
+
+    passthru = {
+      cudaSupport = false;
+      rocmSupport = false;
+    };
+
+    meta = {
+      description = "PyTorch ${darwinWheels.torch.version} for macOS Apple Silicon (MPS)";
+      homepage = "https://pytorch.org";
+      license = lib.licenses.bsd3;
+      platforms = [ "aarch64-darwin" ];
+    };
+  };
+
+  torchvision = final.buildPythonPackage {
+    pname = "torchvision";
+    version = darwinWheels.torchvision.version;
+    format = "wheel";
+    src = pkgs.fetchurl {
+      url = darwinWheels.torchvision.url;
+      hash = darwinWheels.torchvision.hash;
+    };
+    dontBuild = true;
+    dontConfigure = true;
+    propagatedBuildInputs = with final; [
+      torch
+      numpy
+      pillow
+    ];
+    pythonImportsCheck = [ "torchvision" ];
+    doCheck = false;
+    meta = {
+      description = "TorchVision ${darwinWheels.torchvision.version} for macOS Apple Silicon";
+      homepage = "https://pytorch.org/vision";
+      license = lib.licenses.bsd3;
+      platforms = [ "aarch64-darwin" ];
+    };
+  };
+
+  torchaudio = final.buildPythonPackage {
+    pname = "torchaudio";
+    version = darwinWheels.torchaudio.version;
+    format = "wheel";
+    src = pkgs.fetchurl {
+      url = darwinWheels.torchaudio.url;
+      hash = darwinWheels.torchaudio.hash;
+    };
+    dontBuild = true;
+    dontConfigure = true;
+    propagatedBuildInputs = with final; [
+      torch
+    ];
+    pythonImportsCheck = [ "torchaudio" ];
+    doCheck = false;
+    meta = {
+      description = "TorchAudio ${darwinWheels.torchaudio.version} for macOS Apple Silicon";
+      homepage = "https://pytorch.org/audio";
+      license = lib.licenses.bsd2;
+      platforms = [ "aarch64-darwin" ];
     };
   };
 }

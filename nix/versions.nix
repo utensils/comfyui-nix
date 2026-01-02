@@ -94,10 +94,30 @@
     };
   };
 
-  # Pre-built PyTorch CUDA wheels from pytorch.org
+  # Pre-built PyTorch wheels from pytorch.org
   # These avoid compiling PyTorch from source (which requires 30-60GB RAM)
-  # Wheels bundle CUDA libraries, so no separate CUDA toolkit needed at runtime
+  # CUDA wheels bundle CUDA libraries, so no separate CUDA toolkit needed at runtime
+  # macOS wheels use PyTorch 2.5.1 to avoid MPS issues on macOS 26 (Tahoe)
   pytorchWheels = {
+    # macOS Apple Silicon (arm64) - PyTorch 2.5.1 (2.9.x has MPS bugs on macOS 26)
+    darwinArm64 = {
+      torch = {
+        version = "2.5.1";
+        url = "https://download.pytorch.org/whl/cpu/torch-2.5.1-cp312-none-macosx_11_0_arm64.whl";
+        hash = "sha256-jHEt9hEBlk6xGRCoRlFAEfC29ZIMVdv1Z7/4o0Fj1bE=";
+      };
+      torchvision = {
+        version = "0.20.1";
+        url = "https://download.pytorch.org/whl/cpu/torchvision-0.20.1-cp312-cp312-macosx_11_0_arm64.whl";
+        hash = "sha256-GjElb/lF1k8Aa7MGgTp8laUx/ha/slNcg33UwQRTPXo=";
+      };
+      torchaudio = {
+        version = "2.5.1";
+        url = "https://download.pytorch.org/whl/cpu/torchaudio-2.5.1-cp312-cp312-macosx_11_0_arm64.whl";
+        hash = "sha256-8cv9/Ru9++conUenTzb/bF2HwyBWBiAv71p/tpP2HPA=";
+      };
+    };
+    # Linux x86_64 CUDA 12.4
     cu124 = {
       torch = {
         version = "2.5.1";
