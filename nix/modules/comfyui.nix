@@ -34,17 +34,16 @@ let
     else
       # CPU-only
       pkgs.comfy-ui;
-  args =
-    [
-      "--listen"
-      cfg.listenAddress
-      "--port"
-      (toString cfg.port)
-      "--base-directory"
-      cfg.dataDir
-    ]
-    ++ lib.optional cfg.enableManager "--enable-manager"
-    ++ cfg.extraArgs;
+  args = [
+    "--listen"
+    cfg.listenAddress
+    "--port"
+    (toString cfg.port)
+    "--base-directory"
+    cfg.dataDir
+  ]
+  ++ lib.optional cfg.enableManager "--enable-manager"
+  ++ cfg.extraArgs;
   env = cfg.environment;
   escapedArgs = lib.concatStringsSep " " (map lib.escapeShellArg args);
   execStart = "${cfg.package}/bin/comfy-ui ${escapedArgs}";

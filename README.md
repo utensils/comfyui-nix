@@ -18,20 +18,11 @@ nix run github:utensils/comfyui-nix -- --open
 
 For CUDA (Linux/NVIDIA):
 
-> **⚠️ Important:** CUDA builds compile PyTorch, triton, and other large packages from source, which can take **multiple hours** and requires significant RAM. **[Set up the binary cache](#binary-cache) first** to download pre-built binaries instead.
-
 ```bash
-# RTX GPUs (2000/3000/4000 series) - default
 nix run github:utensils/comfyui-nix#cuda
-
-# GTX 1080/1070/1060 (Pascal)
-nix run github:utensils/comfyui-nix#cuda-sm61
-
-# Data center GPUs (H100)
-nix run github:utensils/comfyui-nix#cuda-sm90
 ```
 
-See [CUDA GPU Support](#cuda-gpu-support) for all available architectures.
+CUDA builds use pre-built PyTorch wheels from pytorch.org, so builds are fast (~2GB download) and support all GPU architectures from Pascal (GTX 1080) through Hopper (H100) in a single package.
 
 ## Options
 
@@ -56,46 +47,18 @@ All [ComfyUI CLI options] are supported. Common examples:
 
 ## CUDA GPU Support
 
-CUDA builds are available for Linux with NVIDIA GPUs. The default `#cuda` includes all GPU architectures for maximum compatibility and cache sharing with Docker images. For optimized builds targeting your specific GPU, use architecture-specific packages.
+CUDA builds are available for Linux with NVIDIA GPUs. The `#cuda` package uses pre-built PyTorch wheels from pytorch.org which:
 
-> **📦 Before running any CUDA package:** [Set up the binary cache](#binary-cache) to avoid hours of compilation.
-
-### Available Architectures
-
-| Package      | SM  | GPU Generation | Example GPUs             |
-| ------------ | --- | -------------- | ------------------------ |
-| `#cuda`      | All | All GPUs       | Works on any NVIDIA GPU  |
-| `#cuda-sm61` | 6.1 | Pascal         | GTX 1080, 1070, 1060     |
-| `#cuda-sm75` | 7.5 | Turing         | RTX 2080, 2070, GTX 1660 |
-| `#cuda-sm86` | 8.6 | Ampere         | RTX 3080, 3090, A10, A40 |
-| `#cuda-sm89` | 8.9 | Ada Lovelace   | RTX 4090, 4080, L4, L40s |
-| `#cuda-sm70` | 7.0 | Volta          | V100 (data center)       |
-| `#cuda-sm80` | 8.0 | Ampere DC      | A100 (data center)       |
-| `#cuda-sm90` | 9.0 | Hopper         | H100 (data center)       |
-
-### Usage
+- **Fast builds**: Downloads ~2GB of pre-built wheels instead of compiling for hours
+- **Low memory**: No 30-60GB RAM requirement for compilation
+- **All architectures**: Supports Pascal (GTX 1080) through Hopper (H100) in one package
+- **Bundled runtime**: CUDA 12.4 libraries included in wheels (no separate toolkit needed)
 
 ```bash
-# All GPUs (default - works everywhere, best cache hits)
 nix run github:utensils/comfyui-nix#cuda
-
-# GTX 1080 (Pascal architecture)
-nix run github:utensils/comfyui-nix#cuda-sm61
-
-# A100 data center GPU
-nix run github:utensils/comfyui-nix#cuda-sm80
-
-# H100 data center GPU
-nix run github:utensils/comfyui-nix#cuda-sm90
 ```
 
-### Why Architecture-Specific Builds?
-
-- **Faster builds**: Building for one architecture is much faster than all architectures
-- **Better cache hits**: Pre-built packages for each architecture in the binary cache
-- **Smaller closures**: Only the kernels you need are included
-
-The [cuda-maintainers cache](https://github.com/SomeoneSerge/nixpkgs-cuda-ci) builds for common architectures. Using matching architecture-specific packages maximizes cache hits and minimizes build time.
+This single package works on any NVIDIA GPU from the past ~8 years.
 
 ## Why a Nix Flake?
 
@@ -292,17 +255,10 @@ Add ComfyUI as a package in your system configuration:
 
 The overlay provides these packages:
 
-| Package                  | Description                                        |
-| ------------------------ | -------------------------------------------------- |
-| `pkgs.comfy-ui`          | CPU + Apple Silicon (Metal) - use this for macOS   |
-| `pkgs.comfy-ui-cuda`     | All NVIDIA GPU architectures (Linux only)          |
-| `pkgs.comfy-ui-cuda-sm61`| Pascal (GTX 1080, 1070, 1060)                      |
-| `pkgs.comfy-ui-cuda-sm70`| Volta (V100)                                       |
-| `pkgs.comfy-ui-cuda-sm75`| Turing (RTX 2080, 2070, GTX 1660)                  |
-| `pkgs.comfy-ui-cuda-sm80`| Ampere DC (A100)                                   |
-| `pkgs.comfy-ui-cuda-sm86`| Ampere (RTX 3080, 3090)                            |
-| `pkgs.comfy-ui-cuda-sm89`| Ada Lovelace (RTX 4090, 4080)                      |
-| `pkgs.comfy-ui-cuda-sm90`| Hopper (H100)                                      |
+| Package              | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `pkgs.comfy-ui`      | CPU + Apple Silicon (Metal) - use this for macOS |
+| `pkgs.comfy-ui-cuda` | NVIDIA GPUs (Linux only, all architectures)      |
 
 > **Note:** On macOS with Apple Silicon, the base `comfy-ui` package automatically uses Metal for GPU acceleration. No separate CUDA package is needed.
 
@@ -343,50 +299,22 @@ nix profile add github:utensils/comfyui-nix#cuda
 
 ### Module Options
 
-| Option             | Default              | Description                                                                    |
-| ------------------ | -------------------- | ------------------------------------------------------------------------------ |
-| `enable`           | `false`              | Enable the ComfyUI service                                                     |
-| `cuda`             | `false`              | Enable NVIDIA GPU acceleration (targets RTX by default)                        |
-| `cudaArch`         | `null`               | Pre-built architecture: `sm61`, `sm70`, `sm75`, `sm80`, `sm86`, `sm89`, `sm90` |
-| `cudaCapabilities` | `null`               | Custom CUDA capabilities list (triggers source build)                          |
-| `enableManager`    | `false`              | Enable the built-in ComfyUI Manager                                            |
-| `port`             | `8188`               | Port for the web interface                                                     |
-| `listenAddress`    | `"127.0.0.1"`        | Listen address (`"0.0.0.0"` for network access)                                |
-| `dataDir`          | `"/var/lib/comfyui"` | Data directory for models, outputs, custom nodes                               |
-| `user`             | `"comfyui"`          | User account to run ComfyUI under                                              |
-| `group`            | `"comfyui"`          | Group to run ComfyUI under                                                     |
-| `createUser`       | `true`               | Create the comfyui system user/group                                           |
-| `openFirewall`     | `false`              | Open the port in the firewall                                                  |
-| `extraArgs`        | `[]`                 | Additional CLI arguments                                                       |
-| `environment`      | `{}`                 | Environment variables for the service                                          |
-| `customNodes`      | `{}`                 | Declarative custom nodes (see below)                                           |
-| `requiresMounts`   | `[]`                 | Mount units to wait for before starting                                        |
-
-### GPU Architecture Selection
-
-The module provides three ways to configure CUDA support:
-
-```nix
-# Option 1: Default build (all GPU architectures)
-services.comfyui = {
-  enable = true;
-  cuda = true;
-};
-
-# Option 2: Pre-built architecture-specific package (fast, cached)
-services.comfyui = {
-  enable = true;
-  cudaArch = "sm61";  # GTX 1080
-};
-
-# Option 3: Custom capabilities (compiles from source)
-services.comfyui = {
-  enable = true;
-  cudaCapabilities = [ "6.1" "8.6" ];  # Pascal + Ampere
-};
-```
-
-Priority order: `cudaCapabilities` > `cudaArch` > `cuda` > CPU
+| Option          | Default              | Description                                      |
+| --------------- | -------------------- | ------------------------------------------------ |
+| `enable`        | `false`              | Enable the ComfyUI service                       |
+| `cuda`          | `false`              | Enable NVIDIA GPU acceleration                   |
+| `enableManager` | `false`              | Enable the built-in ComfyUI Manager              |
+| `port`          | `8188`               | Port for the web interface                       |
+| `listenAddress` | `"127.0.0.1"`        | Listen address (`"0.0.0.0"` for network access)  |
+| `dataDir`       | `"/var/lib/comfyui"` | Data directory for models, outputs, custom nodes |
+| `user`          | `"comfyui"`          | User account to run ComfyUI under                |
+| `group`         | `"comfyui"`          | Group to run ComfyUI under                       |
+| `createUser`    | `true`               | Create the comfyui system user/group             |
+| `openFirewall`  | `false`              | Open the port in the firewall                    |
+| `extraArgs`     | `[]`                 | Additional CLI arguments                         |
+| `environment`   | `{}`                 | Environment variables for the service            |
+| `customNodes`   | `{}`                 | Declarative custom nodes (see below)             |
+| `requiresMounts`| `[]`                 | Mount units to wait for before starting          |
 
 **Note:** When `dataDir` is under `/home/`, `ProtectHome` is automatically disabled to allow access.
 
@@ -490,22 +418,6 @@ nix flake check          # Run all checks (build, lint, type-check, nixfmt)
 nix run .#update         # Check for ComfyUI updates
 ```
 
-### Building CUDA Packages from Source
-
-CUDA builds (PyTorch, magma, triton, bitsandbytes) are memory-intensive. If you're building from source and experience OOM kills, limit parallelism:
-
-```bash
-# Recommended for 32-64GB RAM
-nix build .#cuda --max-jobs 2 --cores 12
-
-# Conservative for 16-32GB RAM
-nix build .#cuda --max-jobs 1 --cores 8
-
-# Minimal for <16GB RAM (slow but safe)
-nix build .#cuda --max-jobs 1 --cores 4
-```
-
-Use the [binary cache](#binary-cache) when possible to avoid building CUDA packages entirely.
 
 ## Data Structure
 
@@ -524,7 +436,7 @@ ComfyUI runs from the Nix store; only user data lives in your data directory.
 
 ## Binary Cache
 
-> **⚠️ Highly recommended for CUDA users:** Without the binary cache, CUDA builds compile PyTorch, magma, triton, bitsandbytes, and other CUDA packages from source. This can take **multiple hours** and requires significant RAM (32GB+ recommended). With the cache, you download pre-built binaries in minutes.
+The binary cache speeds up builds by downloading pre-built packages instead of compiling from source.
 
 **Quick setup (recommended):**
 

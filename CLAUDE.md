@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build/Run Commands
 - **Run application**: `nix run` (default)
 - **Run with browser**: `nix run -- --open` (automatically opens browser)
-- **Run with CUDA**: `nix run .#cuda` (Linux/NVIDIA only, uses Nix-provided CUDA PyTorch)
+- **Run with CUDA**: `nix run .#cuda` (Linux/NVIDIA only, uses pre-built PyTorch CUDA wheels)
 - **Run with custom port**: `nix run -- --port=8080` (specify custom port)
 - **Run with network access**: `nix run -- --listen 0.0.0.0` (allow external connections)
 - **Run with debug logging**: `nix run -- --debug` or `nix run -- --verbose`
@@ -30,13 +30,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Dev shell**: `nix develop` provides ruff and pyright for manual linting/type-checking
 
 ## Version Management
-- Current ComfyUI version: v0.6.0 (pinned in `nix/versions.nix`)
+- Current ComfyUI version: v0.7.0 (pinned in `nix/versions.nix`)
 - To update ComfyUI: modify `version`, `rev`, and `hash` in `nix/versions.nix`
 - Frontend/docs/template packages: vendored wheels pinned in `nix/versions.nix`
 - Template input files: auto-generated in `nix/template-inputs.nix`
   - Update with: `./scripts/update-template-inputs.sh && git add nix/template-inputs.nix`
 - Python version: 3.12 (stable for ML workloads)
-- PyTorch: Stable releases (no nightly builds), provided by Nix
+- PyTorch: CPU builds use nixpkgs; CUDA builds use pre-built wheels from pytorch.org
 
 ## Project Architecture
 
@@ -85,8 +85,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `DYLD_LIBRARY_PATH`: (macOS) Set automatically to include dynamic libraries
 
 ### Platform-Specific Configuration
-- Uses Nix-provided PyTorch packages (no runtime detection or installs)
-- CUDA support via `nix run .#cuda` (Linux/NVIDIA only)
+- CPU builds use Nix-provided PyTorch packages (no runtime detection or installs)
+- CUDA support via `nix run .#cuda` (Linux/NVIDIA only):
+  - Uses pre-built PyTorch wheels from pytorch.org (fast builds, ~2GB download)
+  - Supports all GPU architectures (Pascal through Hopper) in a single build
+  - CUDA 12.4 runtime bundled in wheels (no separate toolkit needed)
 - Library Paths: Automatically includes `/run/opengl-driver/lib` on Linux for NVIDIA drivers
 
 ### Data Persistence Structure

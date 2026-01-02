@@ -36,7 +36,8 @@
             "ComfyUI - The most powerful and modular diffusion model GUI";
         "org.opencontainers.image.source" = "https://github.com/utensils/comfyui-nix";
         "org.opencontainers.image.licenses" = "GPL-3.0";
-      } // extraLabels;
+      }
+      // extraLabels;
     in
     pkgs.dockerTools.buildImage {
       inherit name tag;
@@ -71,7 +72,8 @@
         Cmd = [
           "--listen"
           "0.0.0.0"
-        ] ++ lib.optionals (!cudaSupport) [ "--cpu" ];
+        ]
+        ++ lib.optionals (!cudaSupport) [ "--cpu" ];
         Env = baseEnv ++ cudaEnv;
         ExposedPorts = {
           "8188/tcp" = { };

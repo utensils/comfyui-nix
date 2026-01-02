@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-nix"
-version = "0.6.0"
+version = "0.7.0"
 description = "A Nix flake for ComfyUI with Python 3.12"
 requires-python = ">=3.12"
 
@@ -85,6 +85,7 @@ ignore = [
 # Model downloader: Allow module loading errors and complex download logic
 "src/custom_nodes/model_downloader/__init__.py" = [
     "TRY301",   # Inline raise acceptable for module loading errors
+    "PLC0415",  # Lazy imports of aiohttp.web - intentional to defer loading
 ]
 "src/custom_nodes/model_downloader/model_downloader_patch.py" = [
     "PLR0912",  # Complex download_model and download_file functions
