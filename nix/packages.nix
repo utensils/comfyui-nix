@@ -13,6 +13,25 @@ let
   # Template input files (images, audio, etc. for workflow templates)
   templateInputs = import ./template-inputs.nix { inherit pkgs; };
 
+  # Bundled fonts for custom nodes that require font files
+  # This provides a pure Nix solution for nodes like ComfyUI_Comfyroll_CustomNodes
+  # that expect fonts at hardcoded paths like /usr/share/fonts/truetype
+  bundledFonts = pkgs.symlinkJoin {
+    name = "comfyui-fonts";
+    paths = [
+      pkgs.dejavu_fonts
+      pkgs.liberation_ttf
+      pkgs.noto-fonts
+      pkgs.roboto
+    ];
+    postBuild = ''
+      # Create a flat directory with all TTF files for easy access
+      mkdir -p $out/ttf
+      find $out/share/fonts -name "*.ttf" -exec ln -sf {} $out/ttf/ \; 2>/dev/null || true
+      find $out/share/fonts -name "*.TTF" -exec ln -sf {} $out/ttf/ \; 2>/dev/null || true
+    '';
+  };
+
   # Import custom nodes for bundling
   customNodes = import ./custom-nodes.nix {
     inherit
@@ -298,6 +317,32 @@ let
               done
             fi
 
+            # Create fonts directory with bundled fonts for custom nodes
+            # This provides fonts for nodes like ComfyUI_Comfyroll_CustomNodes that expect
+            # fonts at hardcoded paths like /usr/share/fonts/truetype (which doesn't exist on NixOS)
+            FONTS_DIR="$BASE_DIR/fonts"
+            mkdir -p "$FONTS_DIR"
+            # Symlink bundled TTF fonts (only if not already linked)
+            for font_file in "${bundledFonts}"/ttf/*.ttf "${bundledFonts}"/ttf/*.TTF; do
+              if [[ -e "$font_file" ]]; then
+                filename=$(basename "$font_file")
+                target="$FONTS_DIR/$filename"
+                if [[ ! -e "$target" ]]; then
+                  ln -sf "$font_file" "$target"
+                fi
+              fi
+            done
+
+            # Patch custom nodes that use hardcoded font paths for NixOS compatibility
+            # ComfyUI_Comfyroll_CustomNodes: patch /usr/share/fonts/truetype -> $BASE_DIR/fonts
+            COMFYROLL_FONT_FILE="$BASE_DIR/custom_nodes/ComfyUI_Comfyroll_CustomNodes/nodes/nodes_graphics_text.py"
+            if [[ -f "$COMFYROLL_FONT_FILE" ]]; then
+              if grep -q '"/usr/share/fonts/truetype"' "$COMFYROLL_FONT_FILE" 2>/dev/null; then
+                sed -i "s|\"/usr/share/fonts/truetype\"|\"$FONTS_DIR\"|g" "$COMFYROLL_FONT_FILE"
+                echo "Patched ComfyUI_Comfyroll_CustomNodes for NixOS font compatibility"
+              fi
+            fi
+
             # Link our bundled custom nodes
             # Remove stale directories if they exist but aren't symlinks
             for node_dir in "model_downloader" "ComfyUI-Impact-Pack" "rgthree-comfy" "ComfyUI-KJNodes" "ComfyUI-GGUF" "ComfyUI-LTXVideo" "ComfyUI-Florence2" "ComfyUI_bitsandbytes_NF4" "x-flux-comfyui" "ComfyUI-MMAudio" "PuLID_ComfyUI" "ComfyUI-WanVideoWrapper"; do
@@ -359,7 +404,8 @@ let
             fi
 
             # Create default ComfyUI-Manager config if it doesn't exist
-            MANAGER_CONFIG_DIR="$BASE_DIR/user/default/ComfyUI-Manager"
+            # Note: Manager moved config from user/default/ComfyUI-Manager to user/__manager
+            MANAGER_CONFIG_DIR="$BASE_DIR/user/__manager"
             MANAGER_CONFIG="$MANAGER_CONFIG_DIR/config.ini"
             if [[ ! -e "$MANAGER_CONFIG" ]]; then
               mkdir -p "$MANAGER_CONFIG_DIR"

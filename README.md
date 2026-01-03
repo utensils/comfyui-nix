@@ -93,6 +93,18 @@ Runtime packages (mutable):   <data-directory>/.pip-packages/
 
 A default manager config is created on first run with sensible defaults for personal use (`security_level=normal`, `network_mode=personal_cloud`).
 
+## Known Issues
+
+### Custom Nodes Requiring Patching
+
+Some custom nodes have hardcoded paths that don't exist on NixOS. We automatically patch these at startup, but **a full service restart is required after installing them via Manager**.
+
+| Node Pack | Issue | Fix |
+|-----------|-------|-----|
+| Comfyroll Studio (`ComfyUI_Comfyroll_CustomNodes`) | Hardcoded `/usr/share/fonts/truetype` | Patched to use bundled fonts |
+
+**After installing these nodes:** Stop ComfyUI completely (Ctrl+C) and restart with `nix run` or `systemctl restart comfyui`. Manager's internal restart does not trigger the patching.
+
 ## Bundled Custom Nodes
 
 The following custom nodes are bundled and automatically linked on first run:
