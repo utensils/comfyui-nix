@@ -400,6 +400,13 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# Disable tests for albumentations (very slow test suite, well-tested upstream)
+// lib.optionalAttrs (prev ? albumentations) {
+  albumentations = prev.albumentations.overridePythonAttrs (old: {
+    doCheck = false;
+  });
+}
+
 # Disable failing timm test (torch dynamo/inductor test needs setuptools at runtime)
 // lib.optionalAttrs (prev ? timm) {
   timm = prev.timm.overridePythonAttrs (old: {

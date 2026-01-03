@@ -72,7 +72,9 @@ ComfyUI's standard installation relies on pip and manual dependency management, 
 - **Declarative configuration**: NixOS module for running ComfyUI as a system service with declarative custom nodes
 - **Cross-platform**: Works on NixOS, non-NixOS Linux, and macOS (Apple Silicon)
 
-![60% of the time, it works every time](https://media1.tenor.com/m/gMN1vJ8ILUwAAAAC/every-time-60percent.gif)
+<p align="center">
+  <img src="https://media1.tenor.com/m/gMN1vJ8ILUwAAAAC/every-time-60percent.gif" alt="60% of the time, it works every time" />
+</p>
 
 ## ComfyUI Manager
 
