@@ -1,9 +1,9 @@
 {
   comfyui = {
-    version = "0.6.0";
-    releaseDate = "2025-12-24T03:32:16Z";
-    rev = "e4c61d75555036fa28b6bb34e5fd67b007c9f391";
-    hash = "sha256-gd02tXWjFJ7kTGF8GT1RfVdzhXu4mM2EoQnAVt83qjQ=";
+    version = "0.7.0";
+    releaseDate = "2025-12-31T07:50:53Z";
+    rev = "f59f71cf34067d46713f6243312f7f0b360d061f";
+    hash = "sha256-cMi27y1KCiZTjzx3J6FuHqEYjZjL/VChPtlUnTxHVAg=";
   };
 
   vendored = {
@@ -14,45 +14,45 @@
     };
 
     frontendPackage = {
-      version = "1.34.9";
-      url = "https://files.pythonhosted.org/packages/c8/1b/0d61705cc7e74cbf98f73219ba4e643495e72ba8e13633bbd3bfcd9bb371/comfyui_frontend_package-1.34.9-py3-none-any.whl";
-      hash = "sha256-g2ypUoTVcFc5RjJAw8SCanqKdycpJlanfL8LQaOa7HY=";
+      version = "1.37.1";
+      url = "https://files.pythonhosted.org/packages/b4/2c/d398ac619998788533a3f13572c358c6db9bf19830049d04314f7414f967/comfyui_frontend_package-1.37.1-py3-none-any.whl";
+      hash = "sha256-qjgzFd+FSEvYjqdXUDep8mG1sac40s6miwe6Sp6Do3Q=";
     };
 
     workflowTemplates = {
-      version = "0.7.59";
-      url = "https://files.pythonhosted.org/packages/fd/f5/6d861fa649ea1c58e410d6e8d0bd068db3677a5c057539f4a05e947a6844/comfyui_workflow_templates-0.7.59-py3-none-any.whl";
-      hash = "sha256-erNdXjtaKJOkZdLGmJkLFXzSOf7knD+0rDDbDgTI/tM=";
+      version = "0.7.65";
+      url = "https://files.pythonhosted.org/packages/d7/4e/7bf0afd53f29b0339615fff5987f205b9f0038f86079812d6e00b1c70972/comfyui_workflow_templates-0.7.65-py3-none-any.whl";
+      hash = "sha256-RWdfcM4z0JE29NM7RIY9TQCK5YYR5D3zSsQzti1Ur3o=";
     };
 
     workflowTemplatesCore = {
-      version = "0.3.43";
-      url = "https://files.pythonhosted.org/packages/4f/f7/4188d3482c322986ea4be3f64ca1f3a2dad32b92746535409efa0dd63c8d/comfyui_workflow_templates_core-0.3.43-py3-none-any.whl";
-      hash = "sha256-Yw5s20oVXqGlVDH4h/qmhiNCRuk+XDlSPPj1yHR2Y0w=";
+      version = "0.3.65";
+      url = "https://files.pythonhosted.org/packages/08/d6/39686f2208c01d611267aeeaa23482abc13bce8e2b168a2a452b4e17a845/comfyui_workflow_templates_core-0.3.65-py3-none-any.whl";
+      hash = "sha256-D7MwujlEAmawa0QewlwjTxgkdNu756PVaqxT/+mOtPU=";
     };
 
     workflowTemplatesMediaApi = {
-      version = "0.3.22";
-      url = "https://files.pythonhosted.org/packages/2c/ac/eeca4a06026f473fe294e6cf46b42b25ece230289bb0c9619028284670eb/comfyui_workflow_templates_media_api-0.3.22-py3-none-any.whl";
-      hash = "sha256-7DuNvZpHCraEtGRaz8bQVM2BCgei5cErUSWRIeF5MXU=";
+      version = "0.3.34";
+      url = "https://files.pythonhosted.org/packages/ab/95/3ad3a007aee5866aa99953c52d5f6111e82ff8e9273763ab23810424d89d/comfyui_workflow_templates_media_api-0.3.34-py3-none-any.whl";
+      hash = "sha256-7gMGVwo1x/XN98eP5GoR4eQh62JoosJIFplKGS1QBrM=";
     };
 
     workflowTemplatesMediaVideo = {
-      version = "0.3.19";
-      url = "https://files.pythonhosted.org/packages/78/f6/1e12cfae3c41d55100916f03dffb32041fe15e805aebd4ca4a445886b624/comfyui_workflow_templates_media_video-0.3.19-py3-none-any.whl";
-      hash = "sha256-+VfMz3VtbZJ722NCURNgJPGMBiIgt7yxPu3e5ENZPC0=";
+      version = "0.3.22";
+      url = "https://files.pythonhosted.org/packages/74/be/72e7e1c6fd7b27aeb016a4d1ab96d0246dd41d8b41d9b95007b00df9578a/comfyui_workflow_templates_media_video-0.3.22-py3-none-any.whl";
+      hash = "sha256-jcDfKcbpO5jgkUtxSEUTG84cgJNGISCrzG6tMecf09s=";
     };
 
     workflowTemplatesMediaImage = {
-      version = "0.3.36";
-      url = "https://files.pythonhosted.org/packages/6c/61/e3b3f2df32628fb3a42598f481a26a729512d5fd472a9eeda95757b858d5/comfyui_workflow_templates_media_image-0.3.36-py3-none-any.whl";
-      hash = "sha256-D4yUfLfK4rOW6cw4Q5ryedsWUZYlPm3wqGFUm5YBbIs=";
+      version = "0.3.47";
+      url = "https://files.pythonhosted.org/packages/30/9a/bba708199512ea0d4c03cb2248b178c847f4f158c19723e2eee76294590a/comfyui_workflow_templates_media_image-0.3.47-py3-none-any.whl";
+      hash = "sha256-YbNxK5XXgXCwW7N7viaQtQuI6LLs1Cjc7fXWloPvGKc=";
     };
 
     workflowTemplatesMediaOther = {
-      version = "0.3.47";
-      url = "https://files.pythonhosted.org/packages/3b/cc/548f5fc42d8cdd8c03458baad8d17385f2e21741f8f73f7d26edaced3f80/comfyui_workflow_templates_media_other-0.3.47-py3-none-any.whl";
-      hash = "sha256-CwSnKkz9PSAgLiLV6SjHjNY7u9l+N0LcicZXAkOHRd8=";
+      version = "0.3.63";
+      url = "https://files.pythonhosted.org/packages/92/27/7959fe6008fc0bee3a360292b0ff7d47e600aad1c33b74aafad514ac643c/comfyui_workflow_templates_media_other-0.3.63-py3-none-any.whl";
+      hash = "sha256-9i5pxESyYeEtFif8Q4FeU7M/zsjayO0O7tTb0/b05lg=";
     };
 
     embeddedDocs = {
@@ -62,9 +62,9 @@
     };
 
     manager = {
-      version = "4.0.2";
-      url = "https://files.pythonhosted.org/packages/2e/45/42fdbe83f6fa2daf9981cd10c024197644c731db99032634bb7efc0da69a/comfyui_manager-4.0.2-py3-none-any.whl";
-      hash = "sha256-W5l22ZijI0vohlgjygsaqR/zXmINxlAUKbRFOtLmsj8=";
+      version = "4.0.4";
+      url = "https://files.pythonhosted.org/packages/24/52/ecc15ce24f7ed9c336a13553e6b4dc0777e2082f1e6afca0ecbe5e02564f/comfyui_manager-4.0.4-py3-none-any.whl";
+      hash = "sha256-H08Wrr2ZDk5NfeQhF5Csr1QUBa/Ohmpvkwrp1tuRu50=";
     };
 
     # Python packages not in nixpkgs (vendored for custom nodes)
@@ -94,6 +94,49 @@
     };
   };
 
+  # Pre-built PyTorch wheels from pytorch.org
+  # These avoid compiling PyTorch from source (which requires 30-60GB RAM)
+  # CUDA wheels bundle CUDA libraries, so no separate CUDA toolkit needed at runtime
+  # macOS wheels use PyTorch 2.5.1 to avoid MPS issues on macOS 26 (Tahoe)
+  pytorchWheels = {
+    # macOS Apple Silicon (arm64) - PyTorch 2.5.1 (2.9.x has MPS bugs on macOS 26)
+    darwinArm64 = {
+      torch = {
+        version = "2.5.1";
+        url = "https://download.pytorch.org/whl/cpu/torch-2.5.1-cp312-none-macosx_11_0_arm64.whl";
+        hash = "sha256-jHEt9hEBlk6xGRCoRlFAEfC29ZIMVdv1Z7/4o0Fj1bE=";
+      };
+      torchvision = {
+        version = "0.20.1";
+        url = "https://download.pytorch.org/whl/cpu/torchvision-0.20.1-cp312-cp312-macosx_11_0_arm64.whl";
+        hash = "sha256-GjElb/lF1k8Aa7MGgTp8laUx/ha/slNcg33UwQRTPXo=";
+      };
+      torchaudio = {
+        version = "2.5.1";
+        url = "https://download.pytorch.org/whl/cpu/torchaudio-2.5.1-cp312-cp312-macosx_11_0_arm64.whl";
+        hash = "sha256-8cv9/Ru9++conUenTzb/bF2HwyBWBiAv71p/tpP2HPA=";
+      };
+    };
+    # Linux x86_64 CUDA 12.4
+    cu124 = {
+      torch = {
+        version = "2.5.1";
+        url = "https://download.pytorch.org/whl/cu124/torch-2.5.1%2Bcu124-cp312-cp312-linux_x86_64.whl";
+        hash = "sha256-v2SEv+W8T5KkoaG/VTBBUF4ZqRH3FwZTMOsGGv4OFNc=";
+      };
+      torchvision = {
+        version = "0.20.1";
+        url = "https://download.pytorch.org/whl/cu124/torchvision-0.20.1%2Bcu124-cp312-cp312-linux_x86_64.whl";
+        hash = "sha256-0QU+xQVFSefawmE7FRv/4yPzySSTnSlt9NfTSSWq860=";
+      };
+      torchaudio = {
+        version = "2.5.1";
+        url = "https://download.pytorch.org/whl/cu124/torchaudio-2.5.1%2Bcu124-cp312-cp312-linux_x86_64.whl";
+        hash = "sha256-mQJZjgMwrurQvBVFg3gE6yaFSbm0zkGuPKUbI4SQTok=";
+      };
+    };
+  };
+
   # Custom nodes with pinned versions
   customNodes = {
     impact-pack = {
@@ -113,11 +156,11 @@
     };
 
     kjnodes = {
-      version = "2025-12-21";
+      version = "2025-12-28";
       owner = "kijai";
       repo = "ComfyUI-KJNodes";
-      rev = "79f529a84a8c20fe5dcdfa984c6be7a94102c014";
-      hash = "sha256-TMaKLAeXPDM1nPCpgern6N9Ea8xHSfizzQ3PZSQN1vQ=";
+      rev = "7b1327192e4729085788a3020a9cbb095e0c7811";
+      hash = "sha256-5poI2WQb8ZDfFFqL/INVQICgkshD61YUL2lcXw/nS+U=";
     };
 
     gguf = {
@@ -177,11 +220,11 @@
     };
 
     wanvideo = {
-      version = "2025-12-24";
+      version = "2025-12-31";
       owner = "kijai";
       repo = "ComfyUI-WanVideoWrapper";
-      rev = "95255c7ffa29d90af6b0597b10d59a7946618b61";
-      hash = "sha256-i3bZ+0wTTPJbPUvIweqmmWFip0q+BuxX8qxI+xDxGqk=";
+      rev = "bf1d77fe155c0bdbefd3d48bf5b320dce8c55849";
+      hash = "sha256-H7YMFd0LVCgY3ZpTBu1a47DQ6R25ulJkuteRV2/zgD8=";
     };
   };
 }

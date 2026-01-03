@@ -7,44 +7,19 @@
 let
   cfg = config.services.comfyui;
 
-  # Architecture-to-package mapping for cudaArch option
-  archPackages = {
-    # Consumer GPUs
-    sm61 = pkgs.comfy-ui-cuda-sm61; # Pascal (GTX 1080, 1070, 1060)
-    sm75 = pkgs.comfy-ui-cuda-sm75; # Turing (RTX 2080, 2070, GTX 1660)
-    sm86 = pkgs.comfy-ui-cuda-sm86; # Ampere (RTX 3080, 3090, 3070)
-    sm89 = pkgs.comfy-ui-cuda-sm89; # Ada Lovelace (RTX 4090, 4080, 4070)
-    # Data center GPUs
-    sm70 = pkgs.comfy-ui-cuda-sm70; # Volta (V100)
-    sm80 = pkgs.comfy-ui-cuda-sm80; # Ampere Datacenter (A100)
-    sm90 = pkgs.comfy-ui-cuda-sm90; # Hopper (H100)
-  };
-
   # Determine which package to use based on configuration
-  resolvePackage =
-    if cfg.cudaCapabilities != null then
-      # Custom capabilities - build on demand
-      pkgs.comfyui-nix.mkComfyUIWithCuda cfg.cudaCapabilities
-    else if cfg.cudaArch != null then
-      # Pre-built architecture-specific package
-      archPackages.${cfg.cudaArch}
-    else if cfg.cuda then
-      # Default CUDA (RTX: SM 7.5, 8.6, 8.9)
-      pkgs.comfy-ui-cuda
-    else
-      # CPU-only
-      pkgs.comfy-ui;
-  args =
-    [
-      "--listen"
-      cfg.listenAddress
-      "--port"
-      (toString cfg.port)
-      "--base-directory"
-      cfg.dataDir
-    ]
-    ++ lib.optional cfg.enableManager "--enable-manager"
-    ++ cfg.extraArgs;
+  # CUDA package uses pre-built wheels supporting all GPU architectures (Pascal through Hopper)
+  resolvePackage = if cfg.cuda then pkgs.comfy-ui-cuda else pkgs.comfy-ui;
+  args = [
+    "--listen"
+    cfg.listenAddress
+    "--port"
+    (toString cfg.port)
+    "--base-directory"
+    cfg.dataDir
+  ]
+  ++ lib.optional cfg.enableManager "--enable-manager"
+  ++ cfg.extraArgs;
   env = cfg.environment;
   escapedArgs = lib.concatStringsSep " " (map lib.escapeShellArg args);
   execStart = "${cfg.package}/bin/comfy-ui ${escapedArgs}";
@@ -100,71 +75,10 @@ in
         Enable CUDA support for NVIDIA GPUs. This is recommended for most users
         with NVIDIA graphics cards as it provides significant performance improvements.
 
-        When enabled, uses the CUDA-enabled PyTorch and enables GPU acceleration.
+        When enabled, uses pre-built PyTorch CUDA wheels that support all GPU
+        architectures from Pascal (GTX 1080) through Hopper (H100) in a single package.
         Requires NVIDIA drivers to be installed on the system.
-
-        By default, CUDA builds target RTX consumer GPUs (SM 7.5, 8.6, 8.9).
-        For other GPUs, use `cudaArch` or `cudaCapabilities` options.
       '';
-    };
-
-    cudaArch = lib.mkOption {
-      type = lib.types.nullOr (
-        lib.types.enum [
-          "sm61"
-          "sm70"
-          "sm75"
-          "sm80"
-          "sm86"
-          "sm89"
-          "sm90"
-        ]
-      );
-      default = null;
-      description = ''
-        Select a pre-built CUDA architecture-specific package.
-        This is faster than `cudaCapabilities` as it uses cached builds.
-
-        Available architectures:
-        - `sm61`: Pascal (GTX 1080, 1070, 1060)
-        - `sm70`: Volta (V100) - data center
-        - `sm75`: Turing (RTX 2080, 2070, GTX 1660)
-        - `sm80`: Ampere Datacenter (A100)
-        - `sm86`: Ampere Consumer (RTX 3080, 3090, 3070)
-        - `sm89`: Ada Lovelace (RTX 4090, 4080, 4070)
-        - `sm90`: Hopper (H100) - data center
-
-        When set, overrides the default RTX build. Implies `cuda = true`.
-      '';
-      example = "sm61";
-    };
-
-    cudaCapabilities = lib.mkOption {
-      type = lib.types.nullOr (lib.types.listOf lib.types.str);
-      default = null;
-      description = ''
-        Custom list of CUDA compute capabilities to build for.
-        This triggers an on-demand build with the specified architectures.
-
-        Use this when you need multiple architectures or a specific combination
-        not covered by pre-built packages. Note: this will compile from source
-        which can take significant time.
-
-        Common capability values:
-        - "6.1": Pascal (GTX 1080, 1070)
-        - "7.0": Volta (V100)
-        - "7.5": Turing (RTX 2080, GTX 1660)
-        - "8.0": Ampere Datacenter (A100)
-        - "8.6": Ampere Consumer (RTX 3090, 3080)
-        - "8.9": Ada Lovelace (RTX 4090, 4080)
-        - "9.0": Hopper (H100)
-
-        When set, this takes precedence over `cuda` and `cudaArch`.
-      '';
-      example = [
-        "6.1"
-        "8.6"
-      ];
     };
 
     enableManager = lib.mkOption {
@@ -183,19 +97,12 @@ in
       type = lib.types.package;
       default = resolvePackage;
       defaultText = lib.literalExpression ''
-        # Resolved based on cudaCapabilities > cudaArch > cuda > CPU
-        if cudaCapabilities != null then mkComfyUIWithCuda cudaCapabilities
-        else if cudaArch != null then pkgs.comfy-ui-cuda-''${cudaArch}
-        else if cuda then pkgs.comfy-ui-cuda
-        else pkgs.comfy-ui
+        if cuda then pkgs.comfy-ui-cuda else pkgs.comfy-ui
       '';
       description = ''
         ComfyUI package to run. Automatically set based on CUDA configuration:
-
-        1. `cudaCapabilities` set: builds with custom CUDA capabilities
-        2. `cudaArch` set: uses pre-built architecture-specific package
-        3. `cuda = true`: uses default RTX package (SM 7.5, 8.6, 8.9)
-        4. Otherwise: CPU-only build
+        - `cuda = true`: CUDA package (supports all GPU architectures)
+        - Otherwise: CPU-only build
 
         Can be overridden for fully custom builds.
       '';

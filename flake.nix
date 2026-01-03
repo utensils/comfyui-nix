@@ -32,79 +32,18 @@
       system:
       let
         # =======================================================================
-        # CUDA Architecture Configuration
+        # CUDA Support via Pre-built Wheels
         # =======================================================================
-        # Define CUDA compute capabilities for different GPU generations.
-        #
-        # Default (#cuda) includes ALL architectures for maximum compatibility
-        # and cache sharing with Docker images.
-        #
-        # Users wanting optimized builds for specific GPUs can use:
-        #   nix run .#cuda-sm86  (for RTX 3080, etc.)
+        # CUDA support uses pre-built PyTorch wheels from pytorch.org instead of
+        # compiling from source. This provides:
+        # - Fast builds (download ~2GB vs compile for hours)
+        # - Low memory usage (no 30-60GB RAM requirement)
+        # - All GPU architectures supported (Pascal through Hopper)
+        # - CUDA 12.4 runtime bundled in wheels
         # =======================================================================
 
-        # All common CUDA architectures - used for both #cuda and Docker images
-        # This ensures cache sharing between local builds and Docker
-        # Users wanting optimized builds can use #cuda-sm* variants
-        allCudaCapabilities = [
-          "6.1" # Pascal (GTX 1080, 1070, 1060)
-          "7.0" # Volta (V100)
-          "7.5" # Turing (RTX 2080, 2070, GTX 1660)
-          "8.0" # Ampere Datacenter (A100)
-          "8.6" # Ampere (RTX 3080, 3090, 3070)
-          "8.9" # Ada Lovelace (RTX 4090, 4080, 4070)
-          "9.0" # Hopper (H100)
-        ];
-
-        # Architecture-specific capabilities for targeted/optimized builds
-        cudaArchitectures = {
-          # Consumer GPUs
-          sm61 = {
-            capabilities = [ "6.1" ];
-            description = "Pascal (GTX 1080, 1070, 1060)";
-          };
-          sm75 = {
-            capabilities = [ "7.5" ];
-            description = "Turing (RTX 2080, 2070, GTX 1660)";
-          };
-          sm86 = {
-            capabilities = [ "8.6" ];
-            description = "Ampere (RTX 3080, 3090, 3070)";
-          };
-          sm89 = {
-            capabilities = [ "8.9" ];
-            description = "Ada Lovelace (RTX 4090, 4080, 4070)";
-          };
-          # Data center GPUs
-          sm70 = {
-            capabilities = [ "7.0" ];
-            description = "Volta (V100)";
-          };
-          sm80 = {
-            capabilities = [ "8.0" ];
-            description = "Ampere Datacenter (A100)";
-          };
-          sm90 = {
-            capabilities = [ "9.0" ];
-            description = "Hopper (H100)";
-          };
-        };
-
-        # Helper to create nixpkgs with specific CUDA capabilities
-        mkCudaPkgs =
-          targetSystem: capabilities:
-          import nixpkgs {
-            system = targetSystem;
-            config = {
-              allowUnfree = true;
-              allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
-              cudaSupport = true;
-              cudaCapabilities = capabilities;
-              cudaForwardCompat = false; # Don't add PTX for forward compat
-            };
-          };
-
-        # Base pkgs without CUDA (for CPU builds and non-CUDA deps)
+        # Base pkgs (used for both CPU and CUDA builds)
+        # CUDA support comes from pre-built wheels, not nixpkgs cudaPackages
         pkgs = import nixpkgs {
           inherit system;
           config = {
@@ -112,9 +51,6 @@
             allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
           };
         };
-
-        # CUDA pkgs with all capabilities (default for #cuda, same as Docker)
-        pkgsCuda = mkCudaPkgs system allCudaCapabilities;
 
         # Linux pkgs for cross-building Docker images from any system
         pkgsLinuxX86 = import nixpkgs {
@@ -124,13 +60,13 @@
             allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
           };
         };
-        # Docker images use same capabilities as #cuda for cache sharing
-        pkgsLinuxX86Cuda = mkCudaPkgs "x86_64-linux" allCudaCapabilities;
         pkgsLinuxArm64 = import nixpkgs {
           system = "aarch64-linux";
           config = {
             allowUnfree = true;
             allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
+            # Work around nixpkgs kornia-rs badPlatforms issue on aarch64-linux
+            allowUnsupportedSystem = true;
           };
         };
 
@@ -169,23 +105,13 @@
 
         # Linux packages for Docker image cross-builds
         linuxX86Packages = mkComfyPackages pkgsLinuxX86 { };
-        # Docker CUDA images include all architectures for broad compatibility
-        linuxX86PackagesCuda = mkComfyPackages pkgsLinuxX86Cuda { cudaSupport = true; };
+        # Docker CUDA images use pre-built wheels (all architectures supported)
+        linuxX86PackagesCuda = mkComfyPackages pkgsLinuxX86 { cudaSupport = true; };
         linuxArm64Packages = mkComfyPackages pkgsLinuxArm64 { };
 
         nativePackages = mkComfyPackages pkgs { };
-        # Default CUDA uses all capabilities (same as Docker for cache sharing)
-        nativePackagesCuda = mkComfyPackages pkgsCuda { cudaSupport = true; };
-
-        # Architecture-specific CUDA packages (only on Linux)
-        mkArchPackage =
-          arch:
-          let
-            archPkgs = mkCudaPkgs system arch.capabilities;
-          in
-          mkComfyPackages archPkgs { cudaSupport = true; };
-
-        archPackages = pkgs.lib.mapAttrs (name: arch: mkArchPackage arch) cudaArchitectures;
+        # CUDA uses pre-built wheels (supports all GPU architectures)
+        nativePackagesCuda = mkComfyPackages pkgs { cudaSupport = true; };
 
         pythonEnv = mkPythonEnv pkgs;
 
@@ -216,56 +142,28 @@
             && !pkgs.lib.hasPrefix "result" rel;
         };
 
-        packages =
-          {
-            default = nativePackages.default;
-            comfyui = nativePackages.default;
-            # Cross-platform Docker image builds (use remote builder on non-Linux)
-            # These are always available regardless of host system
-            dockerImageLinux = linuxX86Packages.dockerImage;
-            dockerImageLinuxCuda = linuxX86PackagesCuda.dockerImageCuda;
-            dockerImageLinuxArm64 = linuxArm64Packages.dockerImage;
-          }
-          // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux (
-            {
-              # Default CUDA includes all GPU architectures for max compatibility
-              cuda = nativePackagesCuda.default;
-              dockerImage = nativePackages.dockerImage;
-              dockerImageCuda = nativePackagesCuda.dockerImageCuda;
-            }
-            # Architecture-specific CUDA packages
-            # Consumer GPUs
-            // {
-              cuda-sm61 = archPackages.sm61.default; # Pascal (GTX 1080)
-              cuda-sm75 = archPackages.sm75.default; # Turing (RTX 2080)
-              cuda-sm86 = archPackages.sm86.default; # Ampere (RTX 3080)
-              cuda-sm89 = archPackages.sm89.default; # Ada (RTX 4080)
-            }
-            # Data center GPUs
-            // {
-              cuda-sm70 = archPackages.sm70.default; # Volta (V100)
-              cuda-sm80 = archPackages.sm80.default; # Ampere DC (A100)
-              cuda-sm90 = archPackages.sm90.default; # Hopper (H100)
-            }
-          );
+        packages = {
+          default = nativePackages.default;
+          comfyui = nativePackages.default;
+          # Cross-platform Docker image builds (use remote builder on non-Linux)
+          # These are always available regardless of host system
+          dockerImageLinux = linuxX86Packages.dockerImage;
+          dockerImageLinuxCuda = linuxX86PackagesCuda.dockerImageCuda;
+          dockerImageLinuxArm64 = linuxArm64Packages.dockerImage;
+        }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+          # CUDA package uses pre-built wheels (supports all GPU architectures)
+          cuda = nativePackagesCuda.default;
+          dockerImage = nativePackages.dockerImage;
+          dockerImageCuda = nativePackagesCuda.dockerImageCuda;
+        };
       in
       {
         inherit packages;
 
-        # Expose custom nodes and CUDA helpers for direct use
+        # Expose custom nodes for direct use
         legacyPackages = {
           customNodes = customNodes;
-          # Expose CUDA architecture info for module/overlay consumers
-          cudaArchitectures = cudaArchitectures;
-          allCudaCapabilities = allCudaCapabilities;
-          # Helper function to build ComfyUI with custom CUDA capabilities
-          # Usage: mkComfyUIWithCuda [ "6.1" "8.6" ]
-          mkComfyUIWithCuda =
-            capabilities:
-            let
-              customPkgs = mkCudaPkgs system capabilities;
-            in
-            (mkComfyPackages customPkgs { cudaSupport = true; }).default;
         };
 
         apps = import ./nix/apps.nix {
@@ -285,7 +183,8 @@
             pkgs.shellcheck
             pkgs.jq
             pkgs.curl
-          ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.apple_sdk.frameworks.Metal ];
+          ]
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.apple-sdk_14 ];
 
           shellHook =
             let
@@ -324,51 +223,12 @@
         comfyui-nix = self.legacyPackages.${final.system};
         comfyui = self.packages.${final.system}.default;
         comfy-ui = self.packages.${final.system}.default;
-        # CUDA variant (Linux only) - includes all GPU architectures
-        # Use comfy-ui-cuda-sm* for optimized single-architecture builds
+        # CUDA variant (Linux only) - uses pre-built wheels supporting all GPU architectures
         comfy-ui-cuda =
           if final.stdenv.isLinux then
             self.packages.${final.system}.cuda
           else
             throw "comfy-ui-cuda is only available on Linux";
-        # Architecture-specific CUDA packages (Linux only)
-        # Consumer GPUs
-        comfy-ui-cuda-sm61 =
-          if final.stdenv.isLinux then
-            self.packages.${final.system}.cuda-sm61
-          else
-            throw "CUDA packages are only available on Linux";
-        comfy-ui-cuda-sm75 =
-          if final.stdenv.isLinux then
-            self.packages.${final.system}.cuda-sm75
-          else
-            throw "CUDA packages are only available on Linux";
-        comfy-ui-cuda-sm86 =
-          if final.stdenv.isLinux then
-            self.packages.${final.system}.cuda-sm86
-          else
-            throw "CUDA packages are only available on Linux";
-        comfy-ui-cuda-sm89 =
-          if final.stdenv.isLinux then
-            self.packages.${final.system}.cuda-sm89
-          else
-            throw "CUDA packages are only available on Linux";
-        # Data center GPUs
-        comfy-ui-cuda-sm70 =
-          if final.stdenv.isLinux then
-            self.packages.${final.system}.cuda-sm70
-          else
-            throw "CUDA packages are only available on Linux";
-        comfy-ui-cuda-sm80 =
-          if final.stdenv.isLinux then
-            self.packages.${final.system}.cuda-sm80
-          else
-            throw "CUDA packages are only available on Linux";
-        comfy-ui-cuda-sm90 =
-          if final.stdenv.isLinux then
-            self.packages.${final.system}.cuda-sm90
-          else
-            throw "CUDA packages are only available on Linux";
         # Add custom nodes to overlay
         comfyui-custom-nodes = self.legacyPackages.${final.system}.customNodes;
       };
