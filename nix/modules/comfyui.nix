@@ -89,6 +89,10 @@ in
         `nixpkgs.config.cudaCapabilities`. When set, this updates the global
         nixpkgs configuration, so it affects other CUDA packages too.
 
+        Note: ComfyUI's pre-built PyTorch wheels already support all GPU
+        architectures (Pascal through Hopper). This setting is primarily useful
+        for optimizing other CUDA-enabled packages in your system configuration.
+
         Example: [ "8.9" ] for Ada Lovelace (RTX 40xx) GPUs.
 
         Common values:
