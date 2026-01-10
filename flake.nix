@@ -151,7 +151,7 @@
           dockerImageLinuxCuda = linuxX86PackagesCuda.dockerImageCuda;
           dockerImageLinuxArm64 = linuxArm64Packages.dockerImage;
         }
-        // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+        // pkgs.lib.optionalAttrs (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64) {
           # CUDA package uses pre-built wheels (supports all GPU architectures)
           cuda = nativePackagesCuda.default;
           dockerImage = nativePackages.dockerImage;
@@ -223,12 +223,12 @@
         comfyui-nix = self.legacyPackages.${final.system};
         comfyui = self.packages.${final.system}.default;
         comfy-ui = self.packages.${final.system}.default;
-        # CUDA variant (Linux only) - uses pre-built wheels supporting all GPU architectures
+        # CUDA variant (x86_64 Linux only) - uses pre-built wheels supporting all GPU architectures
         comfy-ui-cuda =
-          if final.stdenv.isLinux then
+          if final.stdenv.isLinux && final.stdenv.isx86_64 then
             self.packages.${final.system}.cuda
           else
-            throw "comfy-ui-cuda is only available on Linux";
+            throw "comfy-ui-cuda is only available on x86_64 Linux";
         # Add custom nodes to overlay
         comfyui-custom-nodes = self.legacyPackages.${final.system}.customNodes;
       };

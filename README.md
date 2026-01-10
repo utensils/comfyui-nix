@@ -302,6 +302,7 @@ nix profile add github:utensils/comfyui-nix#cuda
   services.comfyui = {
     enable = true;
     cuda = true;  # Enable NVIDIA GPU acceleration (recommended for most users)
+    # cudaCapabilities = [ "8.9" ];  # Optional: override CUDA compute capabilities
     enableManager = true;  # Enable the built-in ComfyUI Manager
     port = 8188;
     listenAddress = "127.0.0.1";  # Use "0.0.0.0" for network access
@@ -319,6 +320,7 @@ nix profile add github:utensils/comfyui-nix#cuda
 | --------------- | -------------------- | ------------------------------------------------ |
 | `enable`        | `false`              | Enable the ComfyUI service                       |
 | `cuda`          | `false`              | Enable NVIDIA GPU acceleration                   |
+| `cudaCapabilities` | `null`           | Optional CUDA compute capability list            |
 | `enableManager` | `false`              | Enable the built-in ComfyUI Manager              |
 | `port`          | `8188`               | Port for the web interface                       |
 | `listenAddress` | `"127.0.0.1"`        | Listen address (`"0.0.0.0"` for network access)  |
@@ -331,6 +333,9 @@ nix profile add github:utensils/comfyui-nix#cuda
 | `environment`   | `{}`                 | Environment variables for the service            |
 | `customNodes`   | `{}`                 | Declarative custom nodes (see below)             |
 | `requiresMounts`| `[]`                 | Mount units to wait for before starting          |
+
+`cudaCapabilities` maps to `nixpkgs.config.cudaCapabilities`, so setting it will
+apply to other CUDA packages in the system configuration as well.
 
 **Note:** When `dataDir` is under `/home/`, `ProtectHome` is automatically disabled to allow access.
 

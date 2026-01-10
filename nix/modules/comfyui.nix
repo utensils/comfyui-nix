@@ -81,6 +81,29 @@ in
       '';
     };
 
+    cudaCapabilities = lib.mkOption {
+      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+      default = null;
+      description = ''
+        Optional list of CUDA compute capabilities to use for builds that honor
+        `nixpkgs.config.cudaCapabilities`. When set, this updates the global
+        nixpkgs configuration, so it affects other CUDA packages too.
+
+        Example: [ "8.9" ] for Ada Lovelace (RTX 40xx) GPUs.
+
+        Common values:
+        - "6.1": Pascal (GTX 1080/1070)
+        - "7.0": Volta (V100)
+        - "7.5": Turing (RTX 20xx, GTX 16xx)
+        - "8.0": Ampere (A100)
+        - "8.6": Ampere (RTX 30xx)
+        - "8.9": Ada Lovelace (RTX 40xx)
+        - "9.0": Hopper (H100)
+
+        See: https://developer.nvidia.com/cuda-gpus
+      '';
+    };
+
     enableManager = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -216,6 +239,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    nixpkgs.config = lib.mkIf (cfg.cudaCapabilities != null) {
+      cudaCapabilities = cfg.cudaCapabilities;
+    };
+
     # Create system user/group only when using default "comfyui" names
     users.users = lib.mkIf (cfg.createUser && isSystemUser) {
       ${cfg.user} = {
