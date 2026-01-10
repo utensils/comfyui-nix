@@ -151,10 +151,12 @@
           dockerImageLinuxCuda = linuxX86PackagesCuda.dockerImageCuda;
           dockerImageLinuxArm64 = linuxArm64Packages.dockerImage;
         }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+          dockerImage = nativePackages.dockerImage;
+        }
         // pkgs.lib.optionalAttrs (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64) {
           # CUDA package uses pre-built wheels (supports all GPU architectures)
           cuda = nativePackagesCuda.default;
-          dockerImage = nativePackages.dockerImage;
           dockerImageCuda = nativePackagesCuda.dockerImageCuda;
         };
       in
