@@ -38,12 +38,12 @@
 
       perSystem =
         {
-          config,
-          self',
-          inputs',
-          pkgs,
-          system,
-          lib,
+          config, # Module config, available for future use
+          self', # Same-system outputs from this flake
+          inputs', # Same-system outputs from input flakes
+          pkgs, # Nixpkgs configured with our settings
+          system, # Current system being evaluated
+          lib, # Nixpkgs lib functions
           ...
         }:
         let
@@ -59,6 +59,9 @@
           # =======================================================================
 
           # Linux pkgs for cross-building Docker images from any system
+          # Note: We create separate pkgs instances here (instead of using _module.args.pkgs)
+          # because we need specific target systems for cross-platform Docker builds.
+          # These allow building Linux Docker images from macOS/other platforms.
           pkgsLinuxX86 = import nixpkgs {
             system = "x86_64-linux";
             config = {
@@ -149,13 +152,15 @@
           };
         in
         {
-          # Configure overlays for pkgs - using nixpkgs-lib pattern
+          # Configure the pkgs instance used by perSystem with our required settings.
+          # This ensures all native builds use consistent nixpkgs configuration.
+          # Note: Cross-platform Docker builds still need their own pkgs instances (see above).
           _module.args.pkgs = import inputs.nixpkgs {
             inherit system;
             config = {
               allowUnfree = true;
               allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
-              # aarch64-linux needs this
+              # aarch64-linux needs this workaround for kornia-rs
               allowUnsupportedSystem = system == "aarch64-linux";
             };
           };
