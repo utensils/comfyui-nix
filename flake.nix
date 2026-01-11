@@ -29,6 +29,8 @@
       versions = import ./nix/versions.nix;
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
+      # Supported systems: Linux (x86_64, aarch64), macOS (Intel, Apple Silicon)
+      # Note: CUDA support is only available on x86_64-linux
       systems = [
         "x86_64-linux"
         "aarch64-linux"
