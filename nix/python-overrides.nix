@@ -429,6 +429,13 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# Disable filterpy tests on Darwin (test_hinfinity triggers BPT trap in pytest)
+// lib.optionalAttrs (prev ? filterpy) {
+  filterpy = prev.filterpy.overridePythonAttrs (old: {
+    doCheck = if pkgs.stdenv.isDarwin then false else (old.doCheck or true);
+  });
+}
+
 # Fix bitsandbytes build - needs ninja for wheel building phase
 // lib.optionalAttrs (prev ? bitsandbytes) {
   bitsandbytes = prev.bitsandbytes.overridePythonAttrs (old: {
