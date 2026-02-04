@@ -467,8 +467,37 @@ let
             # Also set PIP_TARGET for pip compatibility
             export PIP_TARGET="$SITE_PACKAGES"
 
-            # Add our mutable site-packages to Python path
-            export PYTHONPATH="''${PYTHONPATH:+$PYTHONPATH:}$SITE_PACKAGES"
+            # Ensure Nix-provided packages take precedence over anything installed by the Manager.
+            # Some setups (e.g. a long-lived ~/AI directory) may already have pip-installed
+            # torch/numpy/etc in $VENV_DIR, which can conflict with our pinned, known-good stack.
+            #
+            # Default behavior: append the venv site-packages to sys.path (so it only fills gaps).
+            # If you *really* want the venv to override Nix packages, set:
+            #   COMFY_VENV_PRECEDENCE=prefer-venv
+            SITE_CUSTOMIZE_DIR="$BASE_DIR/.comfyui_sitecustomize"
+            mkdir -p "$SITE_CUSTOMIZE_DIR"
+            # Create a tiny sitecustomize.py. We use this (instead of putting the venv
+            # site-packages directly on PYTHONPATH) so the venv only fills missing deps by default.
+            {
+              printf '%s\n' \
+                'import os' \
+                'import site' \
+                'import sys' \
+                ' ' \
+                'precedence = os.environ.get("COMFY_VENV_PRECEDENCE", "")' \
+                'venv = os.environ.get("VIRTUAL_ENV")' \
+                'if venv:' \
+                '    sp = os.path.join(venv, "lib", f"python{sys.version_info.major}.{sys.version_info.minor}", "site-packages")' \
+                '    if os.path.isdir(sp):' \
+                '        if precedence == "prefer-venv":' \
+                '            # Make venv take priority (old behavior)' \
+                '            sys.path.insert(0, sp)' \
+                '        else:' \
+                '            # Default: add venv at the end so Nix packages win' \
+                '            site.addsitedir(sp)'
+            } > "$SITE_CUSTOMIZE_DIR/sitecustomize.py"
+
+            export PYTHONPATH="$SITE_CUSTOMIZE_DIR''${PYTHONPATH:+:$PYTHONPATH}"
 
             # Prevent pip/uv from installing packages that conflict with Nix-provided ones
             export PIP_CONSTRAINT="${pipConstraints}"
