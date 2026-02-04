@@ -207,10 +207,28 @@ let
 
   frontendRoot = "${pythonRuntime}/${python.sitePackages}/comfyui_frontend_package/static";
 
+  # NOTE: Some custom nodes (and some Python wheels) dlopen GUI-related libs at runtime
+  # (e.g. OpenCV highgui / Qt platform plugins). Ensure common X11 libs are discoverable.
   libPath = lib.makeLibraryPath [
     pkgs.stdenv.cc.cc.lib
     pkgs.glib
     pkgs.libGL
+    # X11 / XCB runtime libs (fixes: libxcb.so.1 not found)
+    pkgs.xorg.libxcb
+    pkgs.xorg.libX11
+    pkgs.xorg.libXext
+    pkgs.xorg.libXrender
+    pkgs.xorg.libXfixes
+    pkgs.xorg.libXi
+    pkgs.xorg.libXrandr
+    pkgs.xorg.libXcursor
+    pkgs.xorg.libXcomposite
+    pkgs.xorg.libXdamage
+    pkgs.xorg.libXau
+    pkgs.xorg.libXdmcp
+    pkgs.xorg.libSM
+    pkgs.xorg.libICE
+    pkgs.libxkbcommon
   ];
 
   # Platform-specific default data directory
