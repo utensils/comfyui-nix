@@ -353,14 +353,36 @@
             display: inline-block;
             width: 12px;
             height: 12px;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
             animation: spin 1s ease-in-out infinite;
             margin-right: 8px;
           }
           @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Improve contrast for the progress pill/button in the PrimeVue/ComfyUI theme.
+      // Some themes apply opacity + dimmed colors to disabled buttons and make the
+      // progress text nearly invisible. Override with !important.
+      if (!document.getElementById('model-downloader-contrast-style')) {
+        const style = document.createElement('style');
+        style.id = 'model-downloader-contrast-style';
+        style.textContent = `
+          button.model-downloader-patched:disabled,
+          .model-downloader-patched[disabled] {
+            opacity: 1 !important;
+            filter: none !important;
+            color: #fff !important;
+            background-color: rgba(0, 0, 0, 0.45) !important;
+            border-color: rgba(255, 255, 255, 0.22) !important;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55) !important;
           }
         `;
         document.head.appendChild(style);
@@ -523,11 +545,13 @@ function updateButtonStatus(button, status, errorMessage) {
     button.style.cursor = 'default';
 
     // Improve contrast for disabled button styling in newer ComfyUI/PrimeVue themes
-    button.style.opacity = '1';
-    button.style.color = '#fff';
-    button.style.backgroundColor = 'rgba(0, 0, 0, 0.35)';
-    button.style.borderColor = 'rgba(255, 255, 255, 0.18)';
-    button.style.textShadow = '0 1px 1px rgba(0, 0, 0, 0.5)';
+    // (keep it inline too, in case the CSS injection above loads late)
+    button.style.setProperty('opacity', '1', 'important');
+    button.style.setProperty('filter', 'none', 'important');
+    button.style.setProperty('color', '#fff', 'important');
+    button.style.setProperty('background-color', 'rgba(0, 0, 0, 0.45)', 'important');
+    button.style.setProperty('border-color', 'rgba(255, 255, 255, 0.22)', 'important');
+    button.style.setProperty('text-shadow', '0 1px 1px rgba(0, 0, 0, 0.55)', 'important');
 
     button.setAttribute('data-download-status', 'downloading');
   } else if (status === 'error') {
