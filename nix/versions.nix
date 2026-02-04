@@ -193,11 +193,11 @@
     };
 
     florence2 = {
-      version = "1.0.7";
+      version = "git-2026-02-04-ee64d1ef3fed";
       owner = "kijai";
       repo = "ComfyUI-Florence2";
-      rev = "6c766b13f4908a86cfbd6357d6d485c80e0f3a2f";
-      hash = "sha256-XNr5DFT18hhxb9DwQZxlkLVVRgF2B6ZK9LR/1ukLWIo=";
+      rev = "ee64d1ef3fedcb26fff9bcc78065f9eea21ccb87";
+      hash = "sha256-WXqJ3T6Zm7zUw4SEmDujRKvLAQDY1G9al6NTag9YWXo=";
     };
 
     bitsandbytes-nf4 = {
@@ -217,11 +217,11 @@
     };
 
     mmaudio = {
-      version = "2025-12-12";
+      version = "git-2026-02-04-8eaeb72edc3a";
       owner = "kijai";
       repo = "ComfyUI-MMAudio";
-      rev = "e2f9b93aa81fd40ab9f7c71c631863f8b70a72dc";
-      hash = "sha256-uNeblSy7z/BGG3NiqMWvXRN4qGcRTGFrfJTvnZ8Tbkw=";
+      rev = "8eaeb72edc3aaf2059b57f2d96a1f6f689f19ae2";
+      hash = "sha256-kN2Q4j3z0Z8uSZCh4sK/1f2cVa9Ymw7fOtTYl5MDEv8=";
     };
 
     pulid = {
@@ -233,11 +233,11 @@
     };
 
     wanvideo = {
-      version = "2025-12-31";
+      version = "git-2026-02-04-3d7b49e2df66";
       owner = "kijai";
       repo = "ComfyUI-WanVideoWrapper";
-      rev = "bf1d77fe155c0bdbefd3d48bf5b320dce8c55849";
-      hash = "sha256-H7YMFd0LVCgY3ZpTBu1a47DQ6R25ulJkuteRV2/zgD8=";
+      rev = "3d7b49e2df66bbbe379cd54748baf9decfe678a2";
+      hash = "sha256-KzzcCQ3ieis9xZRqGJ3usqDJ7xvutp/GEDi7kBFDFTU=";
     };
   };
 }
