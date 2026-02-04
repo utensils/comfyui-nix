@@ -532,6 +532,19 @@ let
 
             export PYTHONPATH="$SITE_CUSTOMIZE_DIR''${PYTHONPATH:+:$PYTHONPATH}"
 
+            # mergekit (used by lora-merger-comfyui) uses pydantic.create_model with torch.Tensor
+            # without allowing arbitrary types, which crashes under pydantic v2.
+            MERGEKIT_EASY_DEFINE=$(find "$VENV_DIR" -path '*/site-packages/mergekit/merge_methods/easy_define.py' -print -quit 2>/dev/null || true)
+            if [[ -n "$MERGEKIT_EASY_DEFINE" ]]; then
+              if ! grep -q 'arbitrary_types_allowed=True' "$MERGEKIT_EASY_DEFINE" 2>/dev/null; then
+                # Patch:
+                #   create_model(..., __base__=Task[torch.Tensor], **tt_fields)
+                # ->create_model(..., __base__=Task[torch.Tensor], __config__=pydantic.ConfigDict(arbitrary_types_allowed=True), **tt_fields)
+                perl -pi -e 's/pydantic\.create_model\(tt_name, __base__=Task\[torch\.Tensor\], \*\*tt_fields\)/pydantic.create_model(tt_name, __base__=Task[torch.Tensor], __config__=pydantic.ConfigDict(arbitrary_types_allowed=True), **tt_fields)/g' \
+                  "$MERGEKIT_EASY_DEFINE" || true
+              fi
+            fi
+
             # Prevent pip/uv from installing packages that conflict with Nix-provided ones
             export PIP_CONSTRAINT="${pipConstraints}"
             export UV_CONSTRAINT="${pipConstraints}"
