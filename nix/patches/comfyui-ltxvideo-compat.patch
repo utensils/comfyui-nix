@@ -1,0 +1,36 @@
+--- a/comfy/ldm/lightricks/model.py
++++ b/comfy/ldm/lightricks/model.py
+@@ -531,6 +531,33 @@
+     sin_freq = torch.swapaxes(sin_freq, 1, 2)  # (B,H,T,D//2)
+     return cos_freq, sin_freq
+ 
++
++def precompute_freqs_cis(
++    indices_grid,
++    dim,
++    out_dtype,
++    theta=10000.0,
++    max_pos=[20, 2048, 2048],
++    use_middle_indices_grid=False,
++):
++    """Compute RoPE frequencies for LTX models.
++
++    Backward-compatibility shim for ComfyUI-LTXVideo, which imports
++    ``precompute_freqs_cis`` from this module.
++
++    Newer ComfyUI versions compute positional embeddings via
++    ``LTXBaseModel._precompute_freqs_cis``.
++
++    Returns:
++        (cos_freq, sin_freq, split_mode)
++    """
++
++    indices = generate_freq_grid_pytorch(theta, indices_grid.shape[1], dim, indices_grid.device)
++    freqs = generate_freqs(indices, indices_grid, max_pos, use_middle_indices_grid)
++    n_elem = 2 * indices_grid.shape[1]
++    cos_freq, sin_freq = interleaved_freqs_cis(freqs, dim % n_elem)
++    return cos_freq.to(out_dtype), sin_freq.to(out_dtype), False
++
+ class LTXBaseModel(torch.nn.Module, ABC):
+     """
+     Abstract base class for LTX models (Lightricks Transformer models).

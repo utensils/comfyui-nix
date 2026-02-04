@@ -52,7 +52,7 @@ let
   comfyuiSrc = pkgs.applyPatches {
     src = comfyuiSrcRaw;
     patches = [
-      ../nix/patches/comfyui-ltxvideo-rotary-emb.patch
+      ../nix/patches/comfyui-ltxvideo-compat.patch
       ../nix/patches/comfyui-cpu-fallback.patch
     ];
   };
