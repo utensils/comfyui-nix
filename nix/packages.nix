@@ -167,7 +167,15 @@ let
           # PuLID dependencies
           onnxruntime # ONNX runtime
         ]
-        ++ [ ps."color-matcher" ]; # Color matching (hyphenated name needs quoting)
+        ++ [ ps."color-matcher" ] # Color matching (hyphenated name needs quoting)
+        # Common custom-node deps ("it just works" set)
+        ++ lib.optionals (ps ? ollama && available ps.ollama) [ ps.ollama ]
+        ++ lib.optionals (ps ? "pytorch-lightning" && available ps."pytorch-lightning") [
+          ps."pytorch-lightning"
+        ]
+        ++ lib.optionals (ps ? "google-genai" && available ps."google-genai") [
+          ps."google-genai"
+        ];
       # torch is overridden at the base level in python-overrides.nix when cudaSupport=true
       # so ps.torch is already CUDA-enabled when building with CUDA support
       torchPackages = lib.optionals (ps ? torch && available ps.torch) [ ps.torch ];
