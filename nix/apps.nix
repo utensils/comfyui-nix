@@ -30,7 +30,7 @@ in
       ''
         set -e
         echo "Fetching latest ComfyUI release..."
-        LATEST=$(curl -s https://api.github.com/repos/comfyanonymous/ComfyUI/releases/latest | jq -r '.tag_name')
+        LATEST=$(curl -s https://api.github.com/repos/Comfy-Org/ComfyUI/releases/latest | jq -r '.tag_name')
         echo "Latest version: $LATEST"
         echo ""
         echo "To update, modify these values in nix/versions.nix:"

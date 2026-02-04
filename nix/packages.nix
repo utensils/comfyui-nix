@@ -43,7 +43,7 @@ let
   };
 
   comfyuiSrcRaw = pkgs.fetchFromGitHub {
-    owner = "comfyanonymous";
+    owner = "Comfy-Org";
     repo = "ComfyUI";
     rev = versions.comfyui.rev;
     hash = versions.comfyui.hash;
@@ -52,7 +52,6 @@ let
   comfyuiSrc = pkgs.applyPatches {
     src = comfyuiSrcRaw;
     patches = [
-      ../nix/patches/comfyui-mps-fp8-dequant.patch
       ../nix/patches/comfyui-ltxvideo-rotary-emb.patch
       ../nix/patches/comfyui-cpu-fallback.patch
     ];
@@ -80,6 +79,8 @@ let
     comfyui-workflow-templates==${versions.vendored.workflowTemplates.version}
     comfyui-embedded-docs==${versions.vendored.embeddedDocs.version}
     comfyui-manager==${versions.vendored.manager.version}
+    comfy-kitchen==${versions.vendored.comfyKitchen.version}
+    comfy-aimdo==${versions.vendored.comfyAimdo.version}
   '';
 
   # Default ComfyUI-Manager configuration
@@ -197,6 +198,8 @@ let
           vendored.comfyuiWorkflowTemplates
           vendored.comfyuiEmbeddedDocs
           vendored.comfyuiManager
+          vendored.comfyKitchen
+          vendored.comfyAimdo
         ];
     in
     base ++ extras ++ optionals
@@ -532,7 +535,7 @@ let
 
     meta = with lib; {
       description = "ComfyUI - A powerful and modular diffusion model GUI";
-      homepage = "https://github.com/comfyanonymous/ComfyUI";
+      homepage = "https://github.com/Comfy-Org/ComfyUI";
       # ComfyUI is GPL-3.0; bundled custom nodes have various licenses
       license = with licenses; [
         gpl3 # ComfyUI, Impact Pack, KJNodes

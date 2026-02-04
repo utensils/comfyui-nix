@@ -89,4 +89,18 @@ in
     url = versions.vendored.manager.url;
     hash = versions.vendored.manager.hash;
   };
+
+  comfyKitchen = mkWheel {
+    pname = "comfy-kitchen";
+    version = versions.vendored.comfyKitchen.version;
+    url = versions.vendored.comfyKitchen.url;
+    hash = versions.vendored.comfyKitchen.hash;
+  };
+
+  comfyAimdo = mkWheel {
+    pname = "comfy-aimdo";
+    version = versions.vendored.comfyAimdo.version;
+    url = versions.vendored.comfyAimdo.url;
+    hash = versions.vendored.comfyAimdo.hash;
+  };
 }

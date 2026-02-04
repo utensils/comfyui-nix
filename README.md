@@ -507,7 +507,7 @@ MIT (this flake). ComfyUI is GPL-3.0.
 
 <!-- Link references -->
 
-[ComfyUI]: https://github.com/comfyanonymous/ComfyUI
+[ComfyUI]: https://github.com/Comfy-Org/ComfyUI
 [ComfyUI Manager]: https://github.com/Comfy-Org/ComfyUI-Manager
 [Impact Pack]: https://github.com/ltdrdata/ComfyUI-Impact-Pack
 [rgthree-comfy]: https://github.com/rgthree/rgthree-comfy

@@ -1,9 +1,9 @@
 {
   comfyui = {
-    version = "0.7.0";
-    releaseDate = "2025-12-31T07:50:53Z";
-    rev = "f59f71cf34067d46713f6243312f7f0b360d061f";
-    hash = "sha256-cMi27y1KCiZTjzx3J6FuHqEYjZjL/VChPtlUnTxHVAg=";
+    version = "0.12.2";
+    releaseDate = "2026-02-04T06:09:31Z";
+    rev = "5087f1d497c5b615fbb5d1ff03fcc1df308bd025";
+    hash = "sha256-VH9p45CRT7L2cJ4tT4d4KAfLUFMPtI1gD8AawGMkfQk=";
   };
 
   vendored = {
@@ -14,57 +14,70 @@
     };
 
     frontendPackage = {
-      version = "1.37.1";
-      url = "https://files.pythonhosted.org/packages/b4/2c/d398ac619998788533a3f13572c358c6db9bf19830049d04314f7414f967/comfyui_frontend_package-1.37.1-py3-none-any.whl";
-      hash = "sha256-qjgzFd+FSEvYjqdXUDep8mG1sac40s6miwe6Sp6Do3Q=";
+      version = "1.37.11";
+      url = "https://files.pythonhosted.org/packages/31/0d/adb224e976d677bf1f53330a1cd34f704cefe6a32bbcd2c8d960e49db73d/comfyui_frontend_package-1.37.11-py3-none-any.whl";
+      hash = "sha256-b+0TnslCsFQwVZ+o5FtYQCmz7WI4mSEuxv+1sJzcBCw=";
     };
 
     workflowTemplates = {
-      version = "0.7.65";
-      url = "https://files.pythonhosted.org/packages/d7/4e/7bf0afd53f29b0339615fff5987f205b9f0038f86079812d6e00b1c70972/comfyui_workflow_templates-0.7.65-py3-none-any.whl";
-      hash = "sha256-RWdfcM4z0JE29NM7RIY9TQCK5YYR5D3zSsQzti1Ur3o=";
+      version = "0.8.31";
+      url = "https://files.pythonhosted.org/packages/56/95/f3640696a8e3ff91095a159edc2f04d49b9f6f12c7fcea44d35de114817d/comfyui_workflow_templates-0.8.31-py3-none-any.whl";
+      hash = "sha256-t6tiYuSO2vIfRKwX1YWTrbf19hsZnY4b9wSvRWH8OLo=";
     };
 
     workflowTemplatesCore = {
-      version = "0.3.65";
-      url = "https://files.pythonhosted.org/packages/08/d6/39686f2208c01d611267aeeaa23482abc13bce8e2b168a2a452b4e17a845/comfyui_workflow_templates_core-0.3.65-py3-none-any.whl";
-      hash = "sha256-D7MwujlEAmawa0QewlwjTxgkdNu756PVaqxT/+mOtPU=";
+      version = "0.3.124";
+      url = "https://files.pythonhosted.org/packages/0a/73/27ee0d64553d9f06e285a7af9732fa5b7f925353f77ca0247ba04a43653c/comfyui_workflow_templates_core-0.3.124-py3-none-any.whl";
+      hash = "sha256-ES4jJPf6b6ALzE2Y66CyhZLCDfiUkYqJbtBmebCHFus=";
     };
 
     workflowTemplatesMediaApi = {
-      version = "0.3.34";
-      url = "https://files.pythonhosted.org/packages/ab/95/3ad3a007aee5866aa99953c52d5f6111e82ff8e9273763ab23810424d89d/comfyui_workflow_templates_media_api-0.3.34-py3-none-any.whl";
-      hash = "sha256-7gMGVwo1x/XN98eP5GoR4eQh62JoosJIFplKGS1QBrM=";
+      version = "0.3.47";
+      url = "https://files.pythonhosted.org/packages/97/09/ba489ac9e43cff062e02c432dd9730a7f254943211d3416a21e5c95f71c8/comfyui_workflow_templates_media_api-0.3.47-py3-none-any.whl";
+      hash = "sha256-D3aZRzP4tbkI3yEh/WZM3H4E6yUmMD2d8i3x5BricRI=";
     };
 
     workflowTemplatesMediaVideo = {
-      version = "0.3.22";
-      url = "https://files.pythonhosted.org/packages/74/be/72e7e1c6fd7b27aeb016a4d1ab96d0246dd41d8b41d9b95007b00df9578a/comfyui_workflow_templates_media_video-0.3.22-py3-none-any.whl";
-      hash = "sha256-jcDfKcbpO5jgkUtxSEUTG84cgJNGISCrzG6tMecf09s=";
+      version = "0.3.43";
+      url = "https://files.pythonhosted.org/packages/c0/7c/76de8646ee47bca827dfc9d3e3739784c7e4c717c4eb788c3588de923cca/comfyui_workflow_templates_media_video-0.3.43-py3-none-any.whl";
+      hash = "sha256-ocA99s+i/GjYZRetjKjuurNPrhUYfPD5LBl9PQeiOLY=";
     };
 
     workflowTemplatesMediaImage = {
-      version = "0.3.47";
-      url = "https://files.pythonhosted.org/packages/30/9a/bba708199512ea0d4c03cb2248b178c847f4f158c19723e2eee76294590a/comfyui_workflow_templates_media_image-0.3.47-py3-none-any.whl";
-      hash = "sha256-YbNxK5XXgXCwW7N7viaQtQuI6LLs1Cjc7fXWloPvGKc=";
+      version = "0.3.77";
+      url = "https://files.pythonhosted.org/packages/5f/53/addaccedefb60f4277d4629a1934156c203b443525ed16d92ea21c315a24/comfyui_workflow_templates_media_image-0.3.77-py3-none-any.whl";
+      hash = "sha256-ipPIYSco/7z17GjRUg2ogxSeeHXdeGKIKuDpSVcQzDc=";
     };
 
     workflowTemplatesMediaOther = {
-      version = "0.3.63";
-      url = "https://files.pythonhosted.org/packages/92/27/7959fe6008fc0bee3a360292b0ff7d47e600aad1c33b74aafad514ac643c/comfyui_workflow_templates_media_other-0.3.63-py3-none-any.whl";
-      hash = "sha256-9i5pxESyYeEtFif8Q4FeU7M/zsjayO0O7tTb0/b05lg=";
+      version = "0.3.106";
+      url = "https://files.pythonhosted.org/packages/5f/da/4153d05ef54a5702161b5786373adfdac6c21cb8ada266264937d7045bae/comfyui_workflow_templates_media_other-0.3.106-py3-none-any.whl";
+      hash = "sha256-SiN0u/IEINchQL3ZlRNlsrekXHsHigwSarM84wl/8R0=";
     };
 
     embeddedDocs = {
-      version = "0.3.1";
-      url = "https://files.pythonhosted.org/packages/25/29/84cf6f3cb9ef558dc5056363d1676174f0f4444a741f5cb65554af06836c/comfyui_embedded_docs-0.3.1-py3-none-any.whl";
-      hash = "sha256-+7sO+Z6r2Hh8Zl7+I1ZlsztivV+bxNlA6yBV02g0yRw=";
+      version = "0.4.0";
+      url = "https://files.pythonhosted.org/packages/3a/d9/c7976795a9b44483e6b1657ccd3d45fcb7409842a7d6f6c0fe1d11e83ae3/comfyui_embedded_docs-0.4.0-py3-none-any.whl";
+      hash = "sha256-l8T4zcrOHpSnVBKMTvU+3ODj3wMI354MmYCA68Slv7I=";
     };
 
     manager = {
       version = "4.0.4";
       url = "https://files.pythonhosted.org/packages/24/52/ecc15ce24f7ed9c336a13553e6b4dc0777e2082f1e6afca0ecbe5e02564f/comfyui_manager-4.0.4-py3-none-any.whl";
       hash = "sha256-H08Wrr2ZDk5NfeQhF5Csr1QUBa/Ohmpvkwrp1tuRu50=";
+    };
+
+    # New ComfyUI core deps (not in nixpkgs)
+    comfyKitchen = {
+      version = "0.2.7";
+      url = "https://files.pythonhosted.org/packages/f8/65/d483613734d0b9753bd9bfa297ff334cb2c7766e82306099db6b259b4e2c/comfy_kitchen-0.2.7-py3-none-any.whl";
+      hash = "sha256-+PqlebadMx0vHqwJ6WqVWGwqa5WKVLwZ5/HBp3hS3TY=";
+    };
+
+    comfyAimdo = {
+      version = "0.1.7";
+      url = "https://files.pythonhosted.org/packages/2a/2a/e776cbcfcfe7a9c791ab6baea167ad00e1f285657d11c760dae28e4bba9f/comfy_aimdo-0.1.7-py3-none-any.whl";
+      hash = "sha256-agx8NRD1OwomwcH1J4PH1kVjnzre8BQxE33UGOGTgm0=";
     };
 
     # Python packages not in nixpkgs (vendored for custom nodes)
