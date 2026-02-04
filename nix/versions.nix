@@ -185,11 +185,11 @@
     };
 
     ltxvideo = {
-      version = "2025-12-02";
+      version = "git-2026-02-04-49add6dddb2e";
       owner = "Lightricks";
       repo = "ComfyUI-LTXVideo";
-      rev = "08f892eace7a20ea441440f320dfa92f6d2abf5f";
-      hash = "sha256-6oAp+7dd5rmZrxV8K3q0Z6vQZSJ35mQ6hC/e2EmftB0=";
+      rev = "49add6dddb2e1bb2d23bc509a9fac3edd2834961";
+      hash = "sha256-KU96XLNjO6tGEUB26vDjE5LVu2bCBiKcYRNehCIBhWY=";
     };
 
     florence2 = {
