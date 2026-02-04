@@ -175,6 +175,9 @@ let
         ]
         ++ lib.optionals (ps ? "google-genai" && available ps."google-genai") [
           ps."google-genai"
+        ]
+        ++ lib.optionals (ps ? "google-generativeai" && available ps."google-generativeai") [
+          ps."google-generativeai"
         ];
       # torch is overridden at the base level in python-overrides.nix when cudaSupport=true
       # so ps.torch is already CUDA-enabled when building with CUDA support
