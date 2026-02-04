@@ -411,7 +411,10 @@ lib.optionalAttrs useCuda {
 # dependency, so PEP517 build fails with "Cannot import 'setuptools.build_meta'".
 // lib.optionalAttrs (prev ? torchmetrics) {
   torchmetrics = prev.torchmetrics.overridePythonAttrs (old: {
-    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final.setuptools final.wheel ];
+    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+      final.setuptools
+      final.wheel
+    ];
   });
 }
 

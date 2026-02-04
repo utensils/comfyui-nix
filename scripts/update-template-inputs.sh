@@ -102,7 +102,7 @@ while IFS= read -r entry; do
     URL_ENC="${URL_PREFIX}${URL_BASENAME_ENC}"
 
     # Ensure nix-prefetch-url store name is valid (no spaces/%/etc)
-    SAFE_NAME=$(echo "$FILENAME" | sed 's/[^A-Za-z0-9+._?=-]/_/g')
+    SAFE_NAME=${FILENAME//[!A-Za-z0-9+._?=-]/_}
 
     # Skip if URL is null or empty
     if [[ -z "$URL" || "$URL" == "null" ]]; then

@@ -81,6 +81,9 @@ let
     comfyui-manager==${versions.vendored.manager.version}
     comfy-kitchen==${versions.vendored.comfyKitchen.version}
     comfy-aimdo==${versions.vendored.comfyAimdo.version}
+    gradio-client==${versions.vendored.gradioClient.version}
+    gradio==${versions.vendored.gradio.version}
+    sageattention==${versions.vendored.sageattention.version}
   '';
 
   # Default ComfyUI-Manager configuration
@@ -201,6 +204,7 @@ let
         # Linux-only packages (CUDA dependencies)
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? bitsandbytes) [ ps.bitsandbytes ]
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? xformers) [ ps.xformers ]
+        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? triton && available ps.triton) [ ps.triton ]
         # Face analysis packages - work on all platforms (insightface override removes mxnet)
         ++ lib.optionals (ps ? insightface) [ ps.insightface ]
         ++ lib.optionals (ps ? facexlib) [ ps.facexlib ]
@@ -211,6 +215,9 @@ let
           vendored.comfyuiManager
           vendored.comfyKitchen
           vendored.comfyAimdo
+          vendored.gradioClient
+          vendored.gradio
+          vendored.sageattention
         ];
     in
     base ++ extras ++ optionals

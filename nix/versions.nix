@@ -80,6 +80,26 @@
       hash = "sha256-agx8NRD1OwomwcH1J4PH1kVjnzre8BQxE33UGOGTgm0=";
     };
 
+    # UI deps some custom nodes expect
+    gradioClient = {
+      version = "1.13.3";
+      url = "https://files.pythonhosted.org/packages/6e/0b/337b74504681b5dde39f20d803bb09757f9973ecdc65fd4e819d4b11faf7/gradio_client-1.13.3-py3-none-any.whl";
+      hash = "sha256-P2Pk0zoomcGhKxD+PPd7gqaRn/Gh+2OR9qoiWBGqOQw=";
+    };
+
+    gradio = {
+      version = "5.49.1";
+      url = "https://files.pythonhosted.org/packages/8d/95/1c25fbcabfa201ab79b016c8716a4ac0f846121d4bbfd2136ffb6d87f31e/gradio-5.49.1-py3-none-any.whl";
+      hash = "sha256-Gxk2k4eAGiamun/S901GxbDirJ3e8U8k3cDRH7GUIbc=";
+    };
+
+    # Optional attention optimization (used by --use-sage-attention)
+    sageattention = {
+      version = "1.0.6";
+      url = "https://files.pythonhosted.org/packages/53/06/f7b47adb766bcb38b3f88763374a3e8dffea05ee9b556bc24dbcbd60fd29/sageattention-1.0.6-py3-none-any.whl";
+      hash = "sha256-+vxmVpvtYqFoOeggwmEhQbWiCsz1W4dtlBurnArF2Ig=";
+    };
+
     # Python packages not in nixpkgs (vendored for custom nodes)
     segment-anything = {
       version = "1.0";
