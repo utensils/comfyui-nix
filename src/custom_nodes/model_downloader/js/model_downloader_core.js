@@ -333,6 +333,13 @@
       button.disabled = true;
       button.innerHTML = '<span class="spinner"></span> Downloading...';
       button.style.cursor = 'not-allowed';
+
+      // Improve contrast for disabled button styling in newer ComfyUI/PrimeVue themes
+      button.style.opacity = '1';
+      button.style.color = '#fff';
+      button.style.backgroundColor = 'rgba(0, 0, 0, 0.35)';
+      button.style.borderColor = 'rgba(255, 255, 255, 0.18)';
+      button.style.textShadow = '0 1px 1px rgba(0, 0, 0, 0.5)';
       
       // Store original button text in case we need to revert
       button.setAttribute('data-original-text', button.textContent || 'Download with Model Downloader');
@@ -490,30 +497,38 @@ function updateButtonStatus(button, status, errorMessage) {
     const downloadId = button.getAttribute('data-download-id');
     if (downloadId && downloadId in window.modelDownloader.activeDownloads) {
       const downloadInfo = window.modelDownloader.activeDownloads[downloadId];
-      
+
       // Display percentage
       let statusText = `${downloadInfo.percent || 0}%`;
-      
+
       // Add speed if available
       if (downloadInfo.speed) {
         statusText += ` (${downloadInfo.speed} MB/s)`;
       }
-      
+
       // Add ETA if available
       if (downloadInfo.eta) {
         const etaMinutes = Math.floor(downloadInfo.eta / 60);
         const etaSeconds = downloadInfo.eta % 60;
         statusText += ` - ${etaMinutes}m ${etaSeconds}s remaining`;
       }
-      
+
       button.innerHTML = statusText;
     } else {
       // Fallback if we don't have detailed info
       button.innerHTML = errorMessage || 'Downloading...';
     }
-    
+
     button.disabled = true;
     button.style.cursor = 'default';
+
+    // Improve contrast for disabled button styling in newer ComfyUI/PrimeVue themes
+    button.style.opacity = '1';
+    button.style.color = '#fff';
+    button.style.backgroundColor = 'rgba(0, 0, 0, 0.35)';
+    button.style.borderColor = 'rgba(255, 255, 255, 0.18)';
+    button.style.textShadow = '0 1px 1px rgba(0, 0, 0, 0.5)';
+
     button.setAttribute('data-download-status', 'downloading');
   } else if (status === 'error') {
     button.disabled = false;
@@ -696,6 +711,7 @@ function patchMissingModelButtons() {
               
               // Mark as patched
               newButton.setAttribute('data-model-downloader-patched', 'true');
+              newButton.classList.add('model-downloader-patched');
               
               // Store the URL
               newButton.setAttribute('data-model-url', modelUrl);
