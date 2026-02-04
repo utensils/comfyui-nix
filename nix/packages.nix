@@ -331,8 +331,12 @@ let
             BASE_DIR="''${BASE_DIR/#\~/$HOME}"
 
             # Create directory structure (idempotent)
-            mkdir -p "$BASE_DIR"/{models,output,input,user,custom_nodes,temp}
+            mkdir -p "$BASE_DIR"/{models,output,input,user,custom_nodes,temp,web}
+            mkdir -p "$BASE_DIR/web/extensions"
             mkdir -p "$BASE_DIR/models"/{checkpoints,loras,vae,controlnet,embeddings,upscale_models,clip,clip_vision,diffusion_models,text_encoders,unet,configs,diffusers,vae_approx,gligen,hypernetworks,photomaker,style_models}
+
+            # Expose base dir for custom nodes that need a writable location (Nix store is read-only)
+            export COMFYUI_BASE_DIR="$BASE_DIR"
 
             # Link template input files for workflow templates
             # These are pre-fetched at Nix build time for pure, reproducible builds
@@ -372,6 +376,17 @@ let
               if grep -q '"/usr/share/fonts/truetype"' "$COMFYROLL_FONT_FILE" 2>/dev/null; then
                 sed -i "s|\"/usr/share/fonts/truetype\"|\"$FONTS_DIR\"|g" "$COMFYROLL_FONT_FILE"
                 echo "Patched ComfyUI_Comfyroll_CustomNodes for NixOS font compatibility"
+              fi
+            fi
+
+            # comfyui-custom-scripts (pysssss): avoid writing into the read-only Nix store.
+            # It computes ComfyUI's web extension dir from PromptServer's file path (in /nix/store)
+            # and then attempts to mkdir there at import time.
+            PYSSSSS_FILE="$BASE_DIR/custom_nodes/comfyui-custom-scripts/pysssss.py"
+            if [[ -f "$PYSSSSS_FILE" ]]; then
+              if grep -q 'get_comfy_dir("web/extensions/pysssss")' "$PYSSSSS_FILE" 2>/dev/null; then
+                sed -i 's|dir = get_comfy_dir("web/extensions/pysssss")|dir = os.path.join(os.environ.get("COMFYUI_BASE_DIR", get_comfy_dir()), "web/extensions/pysssss")|g' "$PYSSSSS_FILE"
+                echo "Patched comfyui-custom-scripts for NixOS read-only store compatibility"
               fi
             fi
 
