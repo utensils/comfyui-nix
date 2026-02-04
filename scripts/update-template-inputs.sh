@@ -46,7 +46,7 @@ echo "================================================"
 echo ""
 
 # Check dependencies
-for cmd in curl jq nix-prefetch-url; do
+for cmd in curl jq nix-prefetch-url python3; do
     if ! command -v "$cmd" &> /dev/null; then
         error "Required command '$cmd' not found. Please install it."
     fi
@@ -95,6 +95,15 @@ while IFS= read -r entry; do
     # Extract just the filename (strip "input/" prefix if present)
     FILENAME=$(basename "$FILE_PATH")
 
+    # Percent-encode only the URL basename (handles spaces, &, etc.)
+    URL_BASENAME=$(basename "$URL")
+    URL_PREFIX=${URL%"$URL_BASENAME"}
+    URL_BASENAME_ENC=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$URL_BASENAME")
+    URL_ENC="${URL_PREFIX}${URL_BASENAME_ENC}"
+
+    # Ensure nix-prefetch-url store name is valid (no spaces/%/etc)
+    SAFE_NAME=$(echo "$FILENAME" | sed 's/[^A-Za-z0-9+._?=-]/_/g')
+
     # Skip if URL is null or empty
     if [[ -z "$URL" || "$URL" == "null" ]]; then
         warn "Skipping $FILENAME - no URL"
@@ -106,7 +115,7 @@ while IFS= read -r entry; do
 
     # Fetch the hash using nix-prefetch-url
     # The --type sha256 flag ensures we get SRI format
-    if HASH=$(nix-prefetch-url --type sha256 "$URL" 2>/dev/null); then
+    if HASH=$(nix-prefetch-url --type sha256 --name "$SAFE_NAME" "$URL_ENC" 2>/dev/null); then
         # Convert to SRI format (sha256-base64)
         SRI_HASH=$(nix hash to-sri --type sha256 "$HASH" 2>/dev/null || echo "sha256-$HASH")
 
@@ -114,7 +123,7 @@ while IFS= read -r entry; do
         # Use quotes for filenames with special characters
         cat >> "$GENERATED_FILE" << EOF
     "$FILENAME" = {
-      url = "$URL";
+      url = "$URL_ENC";
       hash = "$SRI_HASH";
     };
 EOF
@@ -151,7 +160,7 @@ pkgs.runCommand "comfyui-template-inputs"
   ''
     mkdir -p $out/input
     ${pkgs.lib.concatMapStrings (file: ''
-      ln -s ${file.src} $out/input/${file.name}
+      ln -s ${file.src} "$out/input/${file.name}"
     '') fetchedInputs}
   ''
 FOOTER
