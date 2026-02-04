@@ -169,19 +169,19 @@
     };
 
     kjnodes = {
-      version = "2025-12-28";
+      version = "git-2026-02-04-fb9d5764d21d";
       owner = "kijai";
       repo = "ComfyUI-KJNodes";
-      rev = "7b1327192e4729085788a3020a9cbb095e0c7811";
-      hash = "sha256-5poI2WQb8ZDfFFqL/INVQICgkshD61YUL2lcXw/nS+U=";
+      rev = "fb9d5764d21d23a3f52186aeccbb259efac96f9c";
+      hash = "sha256-+dFN00f72NqJb6WVLt8CnBoKQnceEt+eTs7nSRY/tgw=";
     };
 
     gguf = {
-      version = "2025-12-18";
+      version = "git-2026-02-04-6ea2651e7df6";
       owner = "city96";
       repo = "ComfyUI-GGUF";
-      rev = "795e45156ece99afbc3efef911e63fcb46e6a20d";
-      hash = "sha256-A/mI+S7WqxGi0eHvmM8VuyjWPIshxjeWdPoi0osaBpM=";
+      rev = "6ea2651e7df66d7585f6ffee804b20e92fb38b8a";
+      hash = "sha256-/ZwecgxTTMo9J1whdEJci8lEkOy/yP+UmjbpOAA3BvU=";
     };
 
     ltxvideo = {
