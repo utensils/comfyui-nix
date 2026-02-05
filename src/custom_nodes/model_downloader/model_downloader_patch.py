@@ -8,7 +8,9 @@ import logging
 import os
 import time
 from http import HTTPStatus
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypedDict
+from urllib.parse import urlparse
 
 import folder_paths  # type: ignore[import-not-found]
 from aiohttp import ClientSession, ClientTimeout, web
@@ -54,6 +56,61 @@ DownloadData = dict[str, Any]  # Using Any for flexibility with TypedDict limita
 
 # Store active downloads with their progress information
 active_downloads: dict[str, DownloadData] = {}
+
+
+def _get_hf_token() -> str | None:
+    """Best-effort lookup of a Hugging Face token.
+
+    Supports env vars and the usual huggingface cache locations.
+
+    Note: we never log the token.
+    """
+
+    # env vars (huggingface_hub uses HF_TOKEN/HUGGINGFACE_HUB_TOKEN)
+    for k in ("HF_TOKEN", "HUGGINGFACE_HUB_TOKEN", "HUGGINGFACE_TOKEN"):
+        v = os.getenv(k)
+        if v:
+            return v.strip()
+
+    # token files
+    candidates: list[Path] = []
+    hf_home = os.getenv("HF_HOME")
+    if hf_home:
+        candidates.append(Path(hf_home) / "token")
+        candidates.append(Path(hf_home) / "stored_tokens")
+
+    # fallback to default locations even if HF_HOME is overridden
+    candidates.append(Path.home() / ".cache" / "huggingface" / "token")
+    candidates.append(Path.home() / ".cache" / "huggingface" / "stored_tokens")
+    candidates.append(Path.home() / ".huggingface" / "token")
+
+    for p in candidates:
+        try:
+            if p.is_file():
+                token = p.read_text(encoding="utf-8").strip()
+                if token:
+                    # stored_tokens format may include multiple; last line often works.
+                    return token.splitlines()[-1].strip()
+        except Exception:
+            continue
+
+    return None
+
+
+def _auth_headers_for_url(url: str) -> dict[str, str]:
+    """Return auth headers for URLs that may require HF auth."""
+
+    try:
+        host = (urlparse(url).hostname or "").lower()
+    except Exception:
+        host = ""
+
+    if host == "huggingface.co" or host == "hf.co" or host.endswith(".huggingface.co"):
+        token = _get_hf_token()
+        if token:
+            return {"Authorization": f"Bearer {token}"}
+
+    return {}
 
 
 async def download_model(request: web.Request) -> web.Response:
@@ -201,15 +258,18 @@ async def download_file(download_id: str, url: str, full_path: str) -> None:
         if prepared_path is None:
             return
 
+        # Auth headers (needed for gated HuggingFace models)
+        headers = _auth_headers_for_url(url)
+
         # Create ClientTimeout with reasonable values
         timeout = ClientTimeout(total=None, connect=30, sock_connect=30, sock_read=30)
 
         async with ClientSession(timeout=timeout) as session:
             # Get file size via HEAD request
-            await _fetch_content_length(session, download_id, url)
+            await _fetch_content_length(session, download_id, url, headers=headers)
 
             # Download the file
-            await _download_with_progress(session, download_id, url, prepared_path)
+            await _download_with_progress(session, download_id, url, prepared_path, headers=headers)
 
         # Keep download info for 60 seconds for frontend visibility
         await asyncio.sleep(60)
@@ -254,10 +314,12 @@ async def _prepare_download_path(download_id: str, full_path: str) -> str | None
         return full_path
 
 
-async def _fetch_content_length(session: ClientSession, download_id: str, url: str) -> None:
+async def _fetch_content_length(
+    session: ClientSession, download_id: str, url: str, headers: dict[str, str] | None = None
+) -> None:
     """Fetch content length via HEAD request."""
     try:
-        async with session.head(url, allow_redirects=True) as head_response:
+        async with session.head(url, allow_redirects=True, headers=headers) as head_response:
             if head_response.status == HTTPStatus.OK:
                 content_length = head_response.headers.get("content-length")
                 if content_length:
@@ -276,10 +338,14 @@ async def _fetch_content_length(session: ClientSession, download_id: str, url: s
 
 
 async def _download_with_progress(
-    session: ClientSession, download_id: str, url: str, full_path: str
+    session: ClientSession,
+    download_id: str,
+    url: str,
+    full_path: str,
+    headers: dict[str, str] | None = None,
 ) -> None:
     """Download file with progress tracking."""
-    async with session.get(url, allow_redirects=True) as response:
+    async with session.get(url, allow_redirects=True, headers=headers) as response:
         if response.status != HTTPStatus.OK:
             raise OSError(f"HTTP error {response.status}: {response.reason}")
 
