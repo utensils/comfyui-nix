@@ -12,12 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vendored new upstream deps: `comfy-kitchen`, `comfy-aimdo`
 - Added `gradio` (vendored wheel) to satisfy custom nodes that import it (e.g. ComfyUI-LLaMA-Mesh)
 - Added `sageattention` + runtime `triton` so SageAttention is available for nodes that use it
+- Consolidated `AGENTS.md` and `.github/copilot-instructions.md` as symlinks to `CLAUDE.md`
 
 ### Fixed
 - Manager venv no longer overrides Nix-pinned core packages by default (prevents torch/numpy ABI conflicts)
 - Included missing X11/XCB libs in the runtime closure (fixes `libxcb.so.1` import errors)
 - Patched `mergekit` (from existing `~/AI/.venv`) at launcher-time to avoid pydantic v2 `torch.Tensor` schema crash
 - Patched `comfyui-custom-scripts` to avoid writes into the read-only Nix store
+- Model downloader: HF auth headers now cover `*.hf.co` subdomains (e.g. `cdn-lfs.hf.co`)
+- Model downloader: parse `stored_tokens` as JSON instead of plain text for correct HF token extraction
+- Model downloader: only send `Authorization` headers over HTTPS to prevent token leakage
+- Model downloader: unified disabled-button style constants across init, CSS injection, and status updates
 
 ## [0.7.0-2] - 2025-01-10
 
