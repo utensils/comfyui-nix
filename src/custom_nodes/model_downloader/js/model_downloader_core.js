@@ -28,6 +28,12 @@
     'replicate.delivery'
   ];
   
+  // Shared disabled-button style constants (used in button init, CSS injection, and updateButtonStatus)
+  const DISABLED_BG = 'rgba(0, 0, 0, 0.45)';
+  const DISABLED_BORDER = 'rgba(255, 255, 255, 0.22)';
+  const DISABLED_TEXT_SHADOW = '0 1px 1px rgba(0, 0, 0, 0.55)';
+  const DISABLED_COLOR = '#fff';
+
   // Check if a URL is from a trusted domain
   function isTrustedDomain(url) {
     try {
@@ -336,10 +342,10 @@
 
       // Improve contrast for disabled button styling in newer ComfyUI/PrimeVue themes
       button.style.opacity = '1';
-      button.style.color = '#fff';
-      button.style.backgroundColor = 'rgba(0, 0, 0, 0.35)';
-      button.style.borderColor = 'rgba(255, 255, 255, 0.18)';
-      button.style.textShadow = '0 1px 1px rgba(0, 0, 0, 0.5)';
+      button.style.color = DISABLED_COLOR;
+      button.style.backgroundColor = DISABLED_BG;
+      button.style.borderColor = DISABLED_BORDER;
+      button.style.textShadow = DISABLED_TEXT_SHADOW;
       
       // Store original button text in case we need to revert
       button.setAttribute('data-original-text', button.textContent || 'Download with Model Downloader');
@@ -379,10 +385,10 @@
           .model-downloader-patched[disabled] {
             opacity: 1 !important;
             filter: none !important;
-            color: #fff !important;
-            background-color: rgba(0, 0, 0, 0.45) !important;
-            border-color: rgba(255, 255, 255, 0.22) !important;
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55) !important;
+            color: ${DISABLED_COLOR} !important;
+            background-color: ${DISABLED_BG} !important;
+            border-color: ${DISABLED_BORDER} !important;
+            text-shadow: ${DISABLED_TEXT_SHADOW} !important;
           }
         `;
         document.head.appendChild(style);
@@ -548,10 +554,10 @@ function updateButtonStatus(button, status, errorMessage) {
     // (keep it inline too, in case the CSS injection above loads late)
     button.style.setProperty('opacity', '1', 'important');
     button.style.setProperty('filter', 'none', 'important');
-    button.style.setProperty('color', '#fff', 'important');
-    button.style.setProperty('background-color', 'rgba(0, 0, 0, 0.45)', 'important');
-    button.style.setProperty('border-color', 'rgba(255, 255, 255, 0.22)', 'important');
-    button.style.setProperty('text-shadow', '0 1px 1px rgba(0, 0, 0, 0.55)', 'important');
+    button.style.setProperty('color', DISABLED_COLOR, 'important');
+    button.style.setProperty('background-color', DISABLED_BG, 'important');
+    button.style.setProperty('border-color', DISABLED_BORDER, 'important');
+    button.style.setProperty('text-shadow', DISABLED_TEXT_SHADOW, 'important');
 
     button.setAttribute('data-download-status', 'downloading');
   } else if (status === 'error') {

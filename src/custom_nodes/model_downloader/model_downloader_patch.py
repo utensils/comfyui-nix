@@ -86,11 +86,22 @@ def _get_hf_token() -> str | None:
 
     for p in candidates:
         try:
-            if p.is_file():
-                token = p.read_text(encoding="utf-8").strip()
-                if token:
-                    # stored_tokens format may include multiple; last line often works.
-                    return token.splitlines()[-1].strip()
+            if not p.is_file():
+                continue
+            text = p.read_text(encoding="utf-8").strip()
+            if not text:
+                continue
+
+            if p.name == "stored_tokens":
+                # stored_tokens is JSON: {"huggingface.co": {"token": "hf_xxx", ...}, ...}
+                data = json.loads(text)
+                if isinstance(data, dict):
+                    for entry in data.values():
+                        if isinstance(entry, dict) and entry.get("token"):
+                            return str(entry["token"]).strip()
+            else:
+                # plain token file — single token, one line
+                return text.splitlines()[-1].strip()
         except Exception:
             continue
 
@@ -101,11 +112,17 @@ def _auth_headers_for_url(url: str) -> dict[str, str]:
     """Return auth headers for URLs that may require HF auth."""
 
     try:
-        host = (urlparse(url).hostname or "").lower()
+        parsed = urlparse(url)
+        scheme = (parsed.scheme or "").lower()
+        host = (parsed.hostname or "").lower()
     except Exception:
-        host = ""
+        return {}
 
-    if host == "huggingface.co" or host == "hf.co" or host.endswith(".huggingface.co"):
+    if scheme != "https":
+        return {}
+
+    hf_domains = ("huggingface.co", "hf.co")
+    if host in hf_domains or any(host.endswith(f".{d}") for d in hf_domains):
         token = _get_hf_token()
         if token:
             return {"Authorization": f"Bearer {token}"}
