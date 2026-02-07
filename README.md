@@ -84,11 +84,11 @@ ComfyUI's standard installation relies on pip and manual dependency management, 
 nix run github:utensils/comfyui-nix#cuda -- --enable-manager
 ```
 
-**How it stays pure:** The Nix store remains read-only. When custom nodes require additional Python dependencies, they install to `<data-directory>/.pip-packages/` instead of the Nix store. Python finds both Nix-provided packages and runtime-installed packages via `PYTHONPATH`.
+**How it stays pure:** The Nix store remains read-only. When custom nodes require additional Python dependencies, they install into a PEP 405 venv at `<data-directory>/.venv/` instead of the Nix store. By default Nix-provided packages take precedence; set `COMFY_VENV_PRECEDENCE=prefer-venv` to let venv packages override.
 
 ```
 Nix packages (read-only):     torch, pillow, numpy, transformers, etc.
-Runtime packages (mutable):   <data-directory>/.pip-packages/
+Runtime packages (mutable):   <data-directory>/.venv/
 ```
 
 A default manager config is created on first run with sensible defaults for personal use (`security_level=normal`, `network_mode=personal_cloud`).
@@ -450,7 +450,9 @@ nix run .#update         # Check for ComfyUI updates
 ├── input/         # Input files
 ├── user/          # Workflows, settings, manager config
 ├── custom_nodes/  # Extensions (bundled nodes auto-linked)
-├── .pip-packages/ # Runtime-installed Python packages
+├── fonts/         # Bundled fonts for nodes requiring system fonts
+├── .venv/         # PEP 405 venv for Manager package installs
+├── .cache/        # Redirected caches (torch hub, HuggingFace, facexlib)
 └── temp/
 ```
 
@@ -507,7 +509,7 @@ MIT (this flake). ComfyUI is GPL-3.0.
 
 <!-- Link references -->
 
-[ComfyUI]: https://github.com/comfyanonymous/ComfyUI
+[ComfyUI]: https://github.com/Comfy-Org/ComfyUI
 [ComfyUI Manager]: https://github.com/Comfy-Org/ComfyUI-Manager
 [Impact Pack]: https://github.com/ltdrdata/ComfyUI-Impact-Pack
 [rgthree-comfy]: https://github.com/rgthree/rgthree-comfy

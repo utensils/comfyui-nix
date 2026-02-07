@@ -54,7 +54,7 @@ let
     hash = versions.vendored.workflowTemplatesMediaOther.hash;
   };
 in
-{
+rec {
   comfyuiFrontendPackage = mkWheel {
     pname = "comfyui-frontend-package";
     version = versions.vendored.frontendPackage.version;
@@ -88,5 +88,78 @@ in
     version = versions.vendored.manager.version;
     url = versions.vendored.manager.url;
     hash = versions.vendored.manager.hash;
+  };
+
+  comfyKitchen = mkWheel {
+    pname = "comfy-kitchen";
+    version = versions.vendored.comfyKitchen.version;
+    url = versions.vendored.comfyKitchen.url;
+    hash = versions.vendored.comfyKitchen.hash;
+  };
+
+  comfyAimdo = mkWheel {
+    pname = "comfy-aimdo";
+    version = versions.vendored.comfyAimdo.version;
+    url = versions.vendored.comfyAimdo.url;
+    hash = versions.vendored.comfyAimdo.hash;
+  };
+
+  gradioClient = mkWheel {
+    pname = "gradio-client";
+    version = versions.vendored.gradioClient.version;
+    url = versions.vendored.gradioClient.url;
+    hash = versions.vendored.gradioClient.hash;
+    propagatedBuildInputs = with python.pkgs; [
+      fsspec
+      httpx
+      huggingface-hub
+      packaging
+      typing-extensions
+      websockets
+    ];
+  };
+
+  gradio = mkWheel {
+    pname = "gradio";
+    version = versions.vendored.gradio.version;
+    url = versions.vendored.gradio.url;
+    hash = versions.vendored.gradio.hash;
+    propagatedBuildInputs = with python.pkgs; [
+      aiofiles
+      anyio
+      brotli
+      fastapi
+      ffmpy
+      gradioClient
+      groovy
+      httpx
+      huggingface-hub
+      jinja2
+      markupsafe
+      numpy
+      orjson
+      packaging
+      pandas
+      pillow
+      pydantic
+      pydub
+      python-multipart
+      pyyaml
+      ruff
+      safehttpx
+      semantic-version
+      starlette
+      tomlkit
+      typer
+      typing-extensions
+      uvicorn
+    ];
+  };
+
+  sageattention = mkWheel {
+    pname = "sageattention";
+    version = versions.vendored.sageattention.version;
+    url = versions.vendored.sageattention.url;
+    hash = versions.vendored.sageattention.hash;
   };
 }

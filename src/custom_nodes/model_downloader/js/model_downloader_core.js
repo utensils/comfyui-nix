@@ -28,6 +28,12 @@
     'replicate.delivery'
   ];
   
+  // Shared disabled-button style constants (used in button init, CSS injection, and updateButtonStatus)
+  const DISABLED_BG = 'rgba(0, 0, 0, 0.45)';
+  const DISABLED_BORDER = 'rgba(255, 255, 255, 0.22)';
+  const DISABLED_TEXT_SHADOW = '0 1px 1px rgba(0, 0, 0, 0.55)';
+  const DISABLED_COLOR = '#fff';
+
   // Check if a URL is from a trusted domain
   function isTrustedDomain(url) {
     try {
@@ -333,6 +339,13 @@
       button.disabled = true;
       button.innerHTML = '<span class="spinner"></span> Downloading...';
       button.style.cursor = 'not-allowed';
+
+      // Improve contrast for disabled button styling in newer ComfyUI/PrimeVue themes
+      button.style.opacity = '1';
+      button.style.color = DISABLED_COLOR;
+      button.style.backgroundColor = DISABLED_BG;
+      button.style.borderColor = DISABLED_BORDER;
+      button.style.textShadow = DISABLED_TEXT_SHADOW;
       
       // Store original button text in case we need to revert
       button.setAttribute('data-original-text', button.textContent || 'Download with Model Downloader');
@@ -346,14 +359,36 @@
             display: inline-block;
             width: 12px;
             height: 12px;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
             animation: spin 1s ease-in-out infinite;
             margin-right: 8px;
           }
           @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Improve contrast for the progress pill/button in the PrimeVue/ComfyUI theme.
+      // Some themes apply opacity + dimmed colors to disabled buttons and make the
+      // progress text nearly invisible. Override with !important.
+      if (!document.getElementById('model-downloader-contrast-style')) {
+        const style = document.createElement('style');
+        style.id = 'model-downloader-contrast-style';
+        style.textContent = `
+          button.model-downloader-patched:disabled,
+          .model-downloader-patched[disabled] {
+            opacity: 1 !important;
+            filter: none !important;
+            color: ${DISABLED_COLOR} !important;
+            background-color: ${DISABLED_BG} !important;
+            border-color: ${DISABLED_BORDER} !important;
+            text-shadow: ${DISABLED_TEXT_SHADOW} !important;
           }
         `;
         document.head.appendChild(style);
@@ -490,30 +525,40 @@ function updateButtonStatus(button, status, errorMessage) {
     const downloadId = button.getAttribute('data-download-id');
     if (downloadId && downloadId in window.modelDownloader.activeDownloads) {
       const downloadInfo = window.modelDownloader.activeDownloads[downloadId];
-      
+
       // Display percentage
       let statusText = `${downloadInfo.percent || 0}%`;
-      
+
       // Add speed if available
       if (downloadInfo.speed) {
         statusText += ` (${downloadInfo.speed} MB/s)`;
       }
-      
+
       // Add ETA if available
       if (downloadInfo.eta) {
         const etaMinutes = Math.floor(downloadInfo.eta / 60);
         const etaSeconds = downloadInfo.eta % 60;
         statusText += ` - ${etaMinutes}m ${etaSeconds}s remaining`;
       }
-      
+
       button.innerHTML = statusText;
     } else {
       // Fallback if we don't have detailed info
       button.innerHTML = errorMessage || 'Downloading...';
     }
-    
+
     button.disabled = true;
     button.style.cursor = 'default';
+
+    // Improve contrast for disabled button styling in newer ComfyUI/PrimeVue themes
+    // (keep it inline too, in case the CSS injection above loads late)
+    button.style.setProperty('opacity', '1', 'important');
+    button.style.setProperty('filter', 'none', 'important');
+    button.style.setProperty('color', DISABLED_COLOR, 'important');
+    button.style.setProperty('background-color', DISABLED_BG, 'important');
+    button.style.setProperty('border-color', DISABLED_BORDER, 'important');
+    button.style.setProperty('text-shadow', DISABLED_TEXT_SHADOW, 'important');
+
     button.setAttribute('data-download-status', 'downloading');
   } else if (status === 'error') {
     button.disabled = false;
@@ -696,6 +741,7 @@ function patchMissingModelButtons() {
               
               // Mark as patched
               newButton.setAttribute('data-model-downloader-patched', 'true');
+              newButton.classList.add('model-downloader-patched');
               
               // Store the URL
               newButton.setAttribute('data-model-url', modelUrl);

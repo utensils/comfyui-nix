@@ -407,6 +407,17 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# Fix torchmetrics build: nixpkgs torchmetrics doesn't declare setuptools as a build backend
+# dependency, so PEP517 build fails with "Cannot import 'setuptools.build_meta'".
+// lib.optionalAttrs (prev ? torchmetrics) {
+  torchmetrics = prev.torchmetrics.overridePythonAttrs (old: {
+    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+      final.setuptools
+      final.wheel
+    ];
+  });
+}
+
 # Disable failing timm test (torch dynamo/inductor test needs setuptools at runtime)
 // lib.optionalAttrs (prev ? timm) {
   timm = prev.timm.overridePythonAttrs (old: {

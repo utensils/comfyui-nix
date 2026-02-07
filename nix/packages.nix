@@ -43,7 +43,7 @@ let
   };
 
   comfyuiSrcRaw = pkgs.fetchFromGitHub {
-    owner = "comfyanonymous";
+    owner = "Comfy-Org";
     repo = "ComfyUI";
     rev = versions.comfyui.rev;
     hash = versions.comfyui.hash;
@@ -52,8 +52,7 @@ let
   comfyuiSrc = pkgs.applyPatches {
     src = comfyuiSrcRaw;
     patches = [
-      ../nix/patches/comfyui-mps-fp8-dequant.patch
-      ../nix/patches/comfyui-ltxvideo-rotary-emb.patch
+      ../nix/patches/comfyui-ltxvideo-compat.patch
       ../nix/patches/comfyui-cpu-fallback.patch
     ];
   };
@@ -80,6 +79,11 @@ let
     comfyui-workflow-templates==${versions.vendored.workflowTemplates.version}
     comfyui-embedded-docs==${versions.vendored.embeddedDocs.version}
     comfyui-manager==${versions.vendored.manager.version}
+    comfy-kitchen==${versions.vendored.comfyKitchen.version}
+    comfy-aimdo==${versions.vendored.comfyAimdo.version}
+    gradio-client==${versions.vendored.gradioClient.version}
+    gradio==${versions.vendored.gradio.version}
+    sageattention==${versions.vendored.sageattention.version}
   '';
 
   # Default ComfyUI-Manager configuration
@@ -166,7 +170,18 @@ let
           # PuLID dependencies
           onnxruntime # ONNX runtime
         ]
-        ++ [ ps."color-matcher" ]; # Color matching (hyphenated name needs quoting)
+        ++ [ ps."color-matcher" ] # Color matching (hyphenated name needs quoting)
+        # Common custom-node deps ("it just works" set)
+        ++ lib.optionals (ps ? ollama && available ps.ollama) [ ps.ollama ]
+        ++ lib.optionals (ps ? "pytorch-lightning" && available ps."pytorch-lightning") [
+          ps."pytorch-lightning"
+        ]
+        ++ lib.optionals (ps ? "google-genai" && available ps."google-genai") [
+          ps."google-genai"
+        ]
+        ++ lib.optionals (ps ? "google-generativeai" && available ps."google-generativeai") [
+          ps."google-generativeai"
+        ];
       # torch is overridden at the base level in python-overrides.nix when cudaSupport=true
       # so ps.torch is already CUDA-enabled when building with CUDA support
       torchPackages = lib.optionals (ps ? torch && available ps.torch) [ ps.torch ];
@@ -189,6 +204,7 @@ let
         # Linux-only packages (CUDA dependencies)
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? bitsandbytes) [ ps.bitsandbytes ]
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? xformers) [ ps.xformers ]
+        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? triton && available ps.triton) [ ps.triton ]
         # Face analysis packages - work on all platforms (insightface override removes mxnet)
         ++ lib.optionals (ps ? insightface) [ ps.insightface ]
         ++ lib.optionals (ps ? facexlib) [ ps.facexlib ]
@@ -197,6 +213,11 @@ let
           vendored.comfyuiWorkflowTemplates
           vendored.comfyuiEmbeddedDocs
           vendored.comfyuiManager
+          vendored.comfyKitchen
+          vendored.comfyAimdo
+          vendored.gradioClient
+          vendored.gradio
+          vendored.sageattention
         ];
     in
     base ++ extras ++ optionals
@@ -204,10 +225,28 @@ let
 
   frontendRoot = "${pythonRuntime}/${python.sitePackages}/comfyui_frontend_package/static";
 
+  # NOTE: Some custom nodes (and some Python wheels) dlopen GUI-related libs at runtime
+  # (e.g. OpenCV highgui / Qt platform plugins). Ensure common X11 libs are discoverable.
   libPath = lib.makeLibraryPath [
     pkgs.stdenv.cc.cc.lib
     pkgs.glib
     pkgs.libGL
+    # X11 / XCB runtime libs (fixes: libxcb.so.1 not found)
+    pkgs.xorg.libxcb
+    pkgs.xorg.libX11
+    pkgs.xorg.libXext
+    pkgs.xorg.libXrender
+    pkgs.xorg.libXfixes
+    pkgs.xorg.libXi
+    pkgs.xorg.libXrandr
+    pkgs.xorg.libXcursor
+    pkgs.xorg.libXcomposite
+    pkgs.xorg.libXdamage
+    pkgs.xorg.libXau
+    pkgs.xorg.libXdmcp
+    pkgs.xorg.libSM
+    pkgs.xorg.libICE
+    pkgs.libxkbcommon
   ];
 
   # Platform-specific default data directory
@@ -299,8 +338,12 @@ let
             BASE_DIR="''${BASE_DIR/#\~/$HOME}"
 
             # Create directory structure (idempotent)
-            mkdir -p "$BASE_DIR"/{models,output,input,user,custom_nodes,temp}
+            mkdir -p "$BASE_DIR"/{models,output,input,user,custom_nodes,temp,web}
+            mkdir -p "$BASE_DIR/web/extensions"
             mkdir -p "$BASE_DIR/models"/{checkpoints,loras,vae,controlnet,embeddings,upscale_models,clip,clip_vision,diffusion_models,text_encoders,unet,configs,diffusers,vae_approx,gligen,hypernetworks,photomaker,style_models}
+
+            # Expose base dir for custom nodes that need a writable location (Nix store is read-only)
+            export COMFYUI_BASE_DIR="$BASE_DIR"
 
             # Link template input files for workflow templates
             # These are pre-fetched at Nix build time for pure, reproducible builds
@@ -340,6 +383,17 @@ let
               if grep -q '"/usr/share/fonts/truetype"' "$COMFYROLL_FONT_FILE" 2>/dev/null; then
                 sed -i "s|\"/usr/share/fonts/truetype\"|\"$FONTS_DIR\"|g" "$COMFYROLL_FONT_FILE"
                 echo "Patched ComfyUI_Comfyroll_CustomNodes for NixOS font compatibility"
+              fi
+            fi
+
+            # comfyui-custom-scripts (pysssss): avoid writing into the read-only Nix store.
+            # It computes ComfyUI's web extension dir from PromptServer's file path (in /nix/store)
+            # and then attempts to mkdir there at import time.
+            PYSSSSS_FILE="$BASE_DIR/custom_nodes/comfyui-custom-scripts/pysssss.py"
+            if [[ -f "$PYSSSSS_FILE" ]]; then
+              if grep -q 'get_comfy_dir("web/extensions/pysssss")' "$PYSSSSS_FILE" 2>/dev/null; then
+                sed -i 's|dir = get_comfy_dir("web/extensions/pysssss")|dir = os.path.join(os.environ.get("COMFYUI_BASE_DIR", get_comfy_dir()), "web/extensions/pysssss")|g' "$PYSSSSS_FILE"
+                echo "Patched comfyui-custom-scripts for NixOS read-only store compatibility"
               fi
             fi
 
@@ -446,8 +500,50 @@ let
             # Also set PIP_TARGET for pip compatibility
             export PIP_TARGET="$SITE_PACKAGES"
 
-            # Add our mutable site-packages to Python path
-            export PYTHONPATH="''${PYTHONPATH:+$PYTHONPATH:}$SITE_PACKAGES"
+            # Ensure Nix-provided packages take precedence over anything installed by the Manager.
+            # Some setups (e.g. a long-lived ~/AI directory) may already have pip-installed
+            # torch/numpy/etc in $VENV_DIR, which can conflict with our pinned, known-good stack.
+            #
+            # Default behavior: append the venv site-packages to sys.path (so it only fills gaps).
+            # If you *really* want the venv to override Nix packages, set:
+            #   COMFY_VENV_PRECEDENCE=prefer-venv
+            SITE_CUSTOMIZE_DIR="$BASE_DIR/.comfyui_sitecustomize"
+            mkdir -p "$SITE_CUSTOMIZE_DIR"
+            # Create a tiny sitecustomize.py. We use this (instead of putting the venv
+            # site-packages directly on PYTHONPATH) so the venv only fills missing deps by default.
+            {
+              printf '%s\n' \
+                'import os' \
+                'import site' \
+                'import sys' \
+                ' ' \
+                'precedence = os.environ.get("COMFY_VENV_PRECEDENCE", "")' \
+                'venv = os.environ.get("VIRTUAL_ENV")' \
+                'if venv:' \
+                '    sp = os.path.join(venv, "lib", f"python{sys.version_info.major}.{sys.version_info.minor}", "site-packages")' \
+                '    if os.path.isdir(sp):' \
+                '        if precedence == "prefer-venv":' \
+                '            # Make venv take priority (old behavior)' \
+                '            sys.path.insert(0, sp)' \
+                '        else:' \
+                '            # Default: add venv at the end so Nix packages win' \
+                '            site.addsitedir(sp)'
+            } > "$SITE_CUSTOMIZE_DIR/sitecustomize.py"
+
+            export PYTHONPATH="$SITE_CUSTOMIZE_DIR''${PYTHONPATH:+:$PYTHONPATH}"
+
+            # mergekit (used by lora-merger-comfyui) uses pydantic.create_model with torch.Tensor
+            # without allowing arbitrary types, which crashes under pydantic v2.
+            MERGEKIT_EASY_DEFINE=$(find "$VENV_DIR" -path '*/site-packages/mergekit/merge_methods/easy_define.py' -print -quit 2>/dev/null || true)
+            if [[ -n "$MERGEKIT_EASY_DEFINE" ]]; then
+              if ! grep -q 'arbitrary_types_allowed=True' "$MERGEKIT_EASY_DEFINE" 2>/dev/null; then
+                # Patch:
+                #   create_model(..., __base__=Task[torch.Tensor], **tt_fields)
+                # ->create_model(..., __base__=Task[torch.Tensor], __config__=pydantic.ConfigDict(arbitrary_types_allowed=True), **tt_fields)
+                perl -pi -e 's/pydantic\.create_model\(tt_name, __base__=Task\[torch\.Tensor\], \*\*tt_fields\)/pydantic.create_model(tt_name, __base__=Task[torch.Tensor], __config__=pydantic.ConfigDict(arbitrary_types_allowed=True), **tt_fields)/g' \
+                  "$MERGEKIT_EASY_DEFINE" || true
+              fi
+            fi
 
             # Prevent pip/uv from installing packages that conflict with Nix-provided ones
             export PIP_CONSTRAINT="${pipConstraints}"
@@ -532,7 +628,7 @@ let
 
     meta = with lib; {
       description = "ComfyUI - A powerful and modular diffusion model GUI";
-      homepage = "https://github.com/comfyanonymous/ComfyUI";
+      homepage = "https://github.com/Comfy-Org/ComfyUI";
       # ComfyUI is GPL-3.0; bundled custom nodes have various licenses
       license = with licenses; [
         gpl3 # ComfyUI, Impact Pack, KJNodes
