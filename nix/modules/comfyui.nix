@@ -7,9 +7,13 @@
 let
   cfg = config.services.comfyui;
 
+  useCuda = cfg.gpuSupport == "cuda";
+  useRocm = cfg.gpuSupport == "rocm";
+  useCpu  = cfg.gpuSupport == "none";
+
   # Determine which package to use based on configuration
   # CUDA package uses pre-built wheels supporting all GPU architectures (Pascal through Hopper)
-  resolvePackage = if cfg.cuda then pkgs.comfy-ui-cuda else pkgs.comfy-ui;
+  resolvePackage = if useCuda then pkgs.comfy-ui-cuda else if useRocm then pkgs.comfy-ui-rocm else pkgs.comfy-ui;
   args = [
     "--listen"
     cfg.listenAddress
@@ -68,16 +72,30 @@ in
   options.services.comfyui = {
     enable = lib.mkEnableOption "ComfyUI service";
 
-    cuda = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
+    gpuSupport = lib.mkOption {
+      type = lib.types.enum [ "cuda" "rocm" "none" ];
+      default = "none";
       description = ''
-        Enable CUDA support for NVIDIA GPUs. This is recommended for most users
+        Select what kind of GPU support for ComfyUI to use, or `none` to only use
+        the CPU.
+
+        ---
+
+        Select CUDA support for NVIDIA GPUs. This is recommended for most users
         with NVIDIA graphics cards as it provides significant performance improvements.
 
-        When enabled, uses pre-built PyTorch CUDA wheels that support all GPU
+        When selected, uses pre-built PyTorch CUDA wheels that support all GPU
         architectures from Pascal (GTX 1080) through Hopper (H100) in a single package.
         Requires NVIDIA drivers to be installed on the system.
+
+        ---
+
+        Select ROCm support for AMD GPUs. This is recommended for most users
+        with AMD graphics cards as it provides significant performance improvements.
+
+        When selected, uses pre-built PyTorch ROCm wheels based on 7.1. Using 
+        this configuration, `gfx1100` has been tested as working, but others
+        may also work. Requires AMD drivers to be installed on the system.
       '';
     };
 
@@ -124,11 +142,12 @@ in
       type = lib.types.package;
       default = resolvePackage;
       defaultText = lib.literalExpression ''
-        if cuda then pkgs.comfy-ui-cuda else pkgs.comfy-ui
+        if useCuda then pkgs.comfy-ui-cuda else if useRocm then pkgs.comfy-ui-rocm else pkgs.comfy-ui
       '';
       description = ''
-        ComfyUI package to run. Automatically set based on CUDA configuration:
-        - `cuda = true`: CUDA package (supports all GPU architectures)
+        ComfyUI package to run. Automatically set based on CUDA/ROCm configuration:
+        - `gpuSupport = "cuda"`: CUDA package (supports all GPU architectures)
+        - `gpuSupport = "rocm"`: ROCm package (`gfx1100` tested)
         - Otherwise: CPU-only build
 
         Can be overridden for fully custom builds.
@@ -269,6 +288,11 @@ in
       wants = [ "network-online.target" ];
       requires = cfg.requiresMounts;
       wantedBy = [ "multi-user.target" ];
+      path = lib.optionals useRocm [
+        # XXX: fixes warning in comfyui startup; non-breaking, but annoying nonetheless
+        # ---> should probably get moved to build inputs of the thing that needs it (currently unknown)
+        pkgs.rocmPackages.rocminfo
+      ];
 
       # Symlink declarative custom nodes before starting
       preStart = customNodesPreStart;

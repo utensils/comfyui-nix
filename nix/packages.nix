@@ -3,9 +3,12 @@
   lib,
   versions,
   pythonOverrides,
-  cudaSupport ? false,
+  gpuSupport ? "none", # "none", "cuda", "rocm"
 }:
 let
+  useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
+  useRocm = gpuSupport == "rocm" && pkgs.stdenv.isLinux;
+
   python = pkgs.python312.override { packageOverrides = pythonOverrides; };
 
   vendored = import ./vendored-packages.nix { inherit pkgs python versions; };
@@ -182,8 +185,8 @@ let
         ++ lib.optionals (ps ? "google-generativeai" && available ps."google-generativeai") [
           ps."google-generativeai"
         ];
-      # torch is overridden at the base level in python-overrides.nix when cudaSupport=true
-      # so ps.torch is already CUDA-enabled when building with CUDA support
+      # torch is overridden at the base level in python-overrides.nix when when gpuSupport="cuda|rocm"
+      # so ps.torch is already CUDA/ROCm-enabled when building with CUDA/ROCm support
       torchPackages = lib.optionals (ps ? torch && available ps.torch) [ ps.torch ];
       optionals =
         torchPackages
@@ -659,14 +662,24 @@ let
   };
 
   dockerImageCuda = dockerLib.mkDockerImage {
+    inherit gpuSupport;
     name = "comfy-ui";
     tag = "cuda";
     comfyUiPackage = comfyUiPackage;
-    cudaSupport = true;
     cudaVersion = "cu124";
     extraLabels = {
       "org.opencontainers.image.version" = versions.comfyui.version;
       "com.nvidia.volumes.needed" = "nvidia_driver";
+    };
+  };
+
+  dockerImageRocm = dockerLib.mkDockerImage {
+  inherit gpuSupport;
+    name = "comfy-ui";
+    tag = "rocm";
+    comfyUiPackage = comfyUiPackage;
+    extraLabels = {
+      "org.opencontainers.image.version" = versions.comfyui.version;
     };
   };
 in
@@ -675,6 +688,7 @@ in
   inherit
     dockerImage
     dockerImageCuda
+    dockerImageRocm
     pythonRuntime
     comfyuiSrc
     modelDownloaderDir

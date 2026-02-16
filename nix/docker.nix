@@ -9,11 +9,14 @@
       name,
       tag,
       comfyUiPackage,
-      cudaSupport ? false,
+      gpuSupport ? "none", # "none", "cuda", "rocm"
       cudaVersion ? "cu124",
       extraLabels ? { },
     }:
     let
+      useCuda = gpuSupport == "cuda";
+      useRocm = gpuSupport == "rocm";
+      useCpu  = gpuSupport == "none";
       baseEnv = [
         "HOME=/root"
         "COMFY_USER_DIR=/data"
@@ -23,17 +26,20 @@
         "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
         "LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib"
       ];
-      cudaEnv = lib.optionals cudaSupport [
+      cudaEnv = lib.optionals useCuda [
         "NVIDIA_VISIBLE_DEVICES=all"
         "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
       ];
       labels = {
-        "org.opencontainers.image.title" = if cudaSupport then "ComfyUI CUDA" else "ComfyUI";
+        "org.opencontainers.image.title" = if useCuda then "ComfyUI CUDA" else if useRocm then "ComfyUI ROCm" else "ComfyUI";
         "org.opencontainers.image.description" =
-          if cudaSupport then
+          if useCuda then
             "ComfyUI with CUDA support for GPU acceleration"
           else
-            "ComfyUI - The most powerful and modular diffusion model GUI";
+            if useRocm then
+              "ComfyUI with ROCm support for GPU acceleration"
+            else
+              "ComfyUI - The most powerful and modular diffusion model GUI";
         "org.opencontainers.image.source" = "https://github.com/utensils/comfyui-nix";
         "org.opencontainers.image.licenses" = "GPL-3.0";
       }
@@ -58,6 +64,10 @@
           pkgs.libGLU
           pkgs.stdenv.cc.cc.lib
           comfyUiPackage
+        ] ++ lib.optionals useRocm [
+          # XXX: fixes warning in comfyui startup; non-breaking, but annoying nonetheless
+          # ---> should probably get moved to build inputs of the thing that needs it (currently unknown)
+          pkgs.rocmPackages.rocminfo 
         ];
         pathsToLink = [
           "/bin"
@@ -73,7 +83,7 @@
           "--listen"
           "0.0.0.0"
         ]
-        ++ lib.optionals (!cudaSupport) [ "--cpu" ];
+        ++ lib.optionals useCpu [ "--cpu" ];
         Env = baseEnv ++ cudaEnv;
         ExposedPorts = {
           "8188/tcp" = { };

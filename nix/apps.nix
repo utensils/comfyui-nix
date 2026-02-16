@@ -118,6 +118,15 @@ in
     };
   };
 }
+// pkgs.lib.optionalAttrs (packages ? rocm) {
+  cuda = {
+    type = "app";
+    program = "${packages.rocm}/bin/comfy-ui";
+    meta = {
+      description = "Run ComfyUI with ROCm";
+    };
+  };
+}
 // pkgs.lib.optionalAttrs (packages ? dockerImage) {
   buildDocker = mkApp "build-docker" "Build ComfyUI Docker image (CPU)" ''
     echo "Building Docker image for ComfyUI..."
@@ -134,6 +143,14 @@ in
     echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:cuda"
     echo ""
     echo "Note: Requires nvidia-container-toolkit and Docker GPU support."
+  '' [ pkgs.docker ];
+}
+// pkgs.lib.optionalAttrs (packages ? dockerImageRocm) {
+  buildDockerRocm = mkApp "build-docker-rocm" "Build ComfyUI Docker image with ROCm support" ''
+    echo "Building Docker image for ComfyUI with ROCm support..."
+    docker load < ${packages.dockerImageRocm}
+    echo "ROCm-enabled Docker image built successfully! You can now run it with:"
+    echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:rocm"
   '' [ pkgs.docker ];
 }
 # Cross-platform Docker build apps (always available, use remote builder on non-Linux)
@@ -157,6 +174,18 @@ in
         echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:cuda"
         echo ""
         echo "Note: Requires nvidia-container-toolkit and Docker GPU support."
+      ''
+      [ pkgs.docker ];
+}
+// pkgs.lib.optionalAttrs (packages ? dockerImageLinuxRocm) {
+  buildDockerLinuxRocm =
+    mkApp "build-docker-linux-rocm" "Build ComfyUI Docker image for Linux x86_64 with ROCm"
+      ''
+        echo "Building Linux x86_64 Docker image for ComfyUI with ROCm support..."
+        echo "Note: Uses remote builder if running on non-Linux system"
+        docker load < ${packages.dockerImageLinuxRocm}
+        echo "ROCm-enabled Docker image built successfully! You can now run it with:"
+        echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:rocm"
       ''
       [ pkgs.docker ];
 }
