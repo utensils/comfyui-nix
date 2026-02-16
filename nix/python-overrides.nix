@@ -57,8 +57,8 @@ let
       xz # liblzma.so.5
       zstd # libzstd.so.1
       bzip2 # libbz2.so.1
-    ] ++ (with pkgs.rocmPackages;
-    [
+    ]
+    ++ (with pkgs.rocmPackages; [
       # TODO: ---> do we need/want to pass any specific rocmPackages?
       #rocminfo
     ])

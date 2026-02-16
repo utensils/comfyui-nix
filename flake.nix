@@ -212,44 +212,48 @@
             packages = self'.packages;
           };
 
-          devShells = let
-            buildShell = pyenv: pkgs.mkShell {
-              packages = [
-                pyenv
-                pkgs.stdenv.cc
-                pkgs.libGL
-                pkgs.libGLU
-                pkgs.git
-                pkgs.nixfmt-rfc-style
-                pkgs.ruff
-                pkgs.pyright
-                pkgs.shellcheck
-                pkgs.jq
-                pkgs.curl
-              ]
-              ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.apple-sdk_14 ];
+          devShells =
+            let
+              buildShell =
+                pyenv:
+                pkgs.mkShell {
+                  packages = [
+                    pyenv
+                    pkgs.stdenv.cc
+                    pkgs.libGL
+                    pkgs.libGLU
+                    pkgs.git
+                    pkgs.nixfmt-rfc-style
+                    pkgs.ruff
+                    pkgs.pyright
+                    pkgs.shellcheck
+                    pkgs.jq
+                    pkgs.curl
+                  ]
+                  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.apple-sdk_14 ];
 
-              shellHook =
-                let
-                  defaultDir =
-                    if pkgs.stdenv.isDarwin then
-                      "$HOME/Library/Application Support/comfy-ui"
-                    else
-                      "$HOME/.config/comfy-ui";
-                in
-                ''
-                  echo "ComfyUI development environment activated"
-                  echo "  ComfyUI version: ${versions.comfyui.version}"
-                  export COMFY_USER_DIR="${defaultDir}"
-                  mkdir -p "$COMFY_USER_DIR"
-                  echo "User data will be stored in $COMFY_USER_DIR"
-                  export PYTHONPATH="$PWD:$PYTHONPATH"
-                '';
+                  shellHook =
+                    let
+                      defaultDir =
+                        if pkgs.stdenv.isDarwin then
+                          "$HOME/Library/Application Support/comfy-ui"
+                        else
+                          "$HOME/.config/comfy-ui";
+                    in
+                    ''
+                      echo "ComfyUI development environment activated"
+                      echo "  ComfyUI version: ${versions.comfyui.version}"
+                      export COMFY_USER_DIR="${defaultDir}"
+                      mkdir -p "$COMFY_USER_DIR"
+                      echo "User data will be stored in $COMFY_USER_DIR"
+                      export PYTHONPATH="$PWD:$PYTHONPATH"
+                    '';
+                };
+            in
+            {
+              default = buildShell pythonEnv;
+              rocm = buildShell nativePackagesRocm.pythonRuntime;
             };
-          in {
-            default = buildShell pythonEnv;
-            rocm = buildShell nativePackagesRocm.pythonRuntime;
-          };
 
           formatter = pkgs.nixfmt-rfc-style;
 

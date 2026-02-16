@@ -674,7 +674,7 @@ let
   };
 
   dockerImageRocm = dockerLib.mkDockerImage {
-  inherit gpuSupport;
+    inherit gpuSupport;
     name = "comfy-ui";
     tag = "rocm";
     comfyUiPackage = comfyUiPackage;
