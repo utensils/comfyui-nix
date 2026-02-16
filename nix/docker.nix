@@ -16,7 +16,7 @@
     let
       useCuda = gpuSupport == "cuda";
       useRocm = gpuSupport == "rocm";
-      useCpu  = gpuSupport == "none";
+      useCpu = gpuSupport == "none";
       baseEnv = [
         "HOME=/root"
         "COMFY_USER_DIR=/data"
@@ -31,15 +31,20 @@
         "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
       ];
       labels = {
-        "org.opencontainers.image.title" = if useCuda then "ComfyUI CUDA" else if useRocm then "ComfyUI ROCm" else "ComfyUI";
+        "org.opencontainers.image.title" =
+          if useCuda then
+            "ComfyUI CUDA"
+          else if useRocm then
+            "ComfyUI ROCm"
+          else
+            "ComfyUI";
         "org.opencontainers.image.description" =
           if useCuda then
             "ComfyUI with CUDA support for GPU acceleration"
+          else if useRocm then
+            "ComfyUI with ROCm support for GPU acceleration"
           else
-            if useRocm then
-              "ComfyUI with ROCm support for GPU acceleration"
-            else
-              "ComfyUI - The most powerful and modular diffusion model GUI";
+            "ComfyUI - The most powerful and modular diffusion model GUI";
         "org.opencontainers.image.source" = "https://github.com/utensils/comfyui-nix";
         "org.opencontainers.image.licenses" = "GPL-3.0";
       }
@@ -64,10 +69,11 @@
           pkgs.libGLU
           pkgs.stdenv.cc.cc.lib
           comfyUiPackage
-        ] ++ lib.optionals useRocm [
+        ]
+        ++ lib.optionals useRocm [
           # XXX: fixes warning in comfyui startup; non-breaking, but annoying nonetheless
           # ---> should probably get moved to build inputs of the thing that needs it (currently unknown)
-          pkgs.rocmPackages.rocminfo 
+          pkgs.rocmPackages.rocminfo
         ];
         pathsToLink = [
           "/bin"

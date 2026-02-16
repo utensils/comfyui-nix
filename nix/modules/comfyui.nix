@@ -9,11 +9,17 @@ let
 
   useCuda = cfg.gpuSupport == "cuda";
   useRocm = cfg.gpuSupport == "rocm";
-  useCpu  = cfg.gpuSupport == "none";
+  useCpu = cfg.gpuSupport == "none";
 
   # Determine which package to use based on configuration
   # CUDA package uses pre-built wheels supporting all GPU architectures (Pascal through Hopper)
-  resolvePackage = if useCuda then pkgs.comfy-ui-cuda else if useRocm then pkgs.comfy-ui-rocm else pkgs.comfy-ui;
+  resolvePackage =
+    if useCuda then
+      pkgs.comfy-ui-cuda
+    else if useRocm then
+      pkgs.comfy-ui-rocm
+    else
+      pkgs.comfy-ui;
   args = [
     "--listen"
     cfg.listenAddress
@@ -73,7 +79,11 @@ in
     enable = lib.mkEnableOption "ComfyUI service";
 
     gpuSupport = lib.mkOption {
-      type = lib.types.enum [ "cuda" "rocm" "none" ];
+      type = lib.types.enum [
+        "cuda"
+        "rocm"
+        "none"
+      ];
       default = "none";
       description = ''
         Select what kind of GPU support for ComfyUI to use, or `none` to only use
