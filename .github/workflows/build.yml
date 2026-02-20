@@ -105,6 +105,13 @@ jobs:
             platform: linux/amd64
             tag_suffix: '-cuda'
             runner: ubuntu-latest
+          - variant: rocm
+            arch: x86_64-linux
+            nix_target: dockerImageRocm
+            package_target: rocm 
+            platform: linux/amd64
+            tag_suffix: '-rocm'
+            runner: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -160,8 +167,8 @@ jobs:
           sudo rm -rf /var/lib/apt/lists/*
           sudo apt-get clean
           docker system prune -af || true
-          # Extra cleanup for CUDA builds (needs maximum disk space)
-          if [[ "${{ matrix.variant }}" == "cuda" ]]; then
+          # Extra cleanup for CUDA/ROCm builds (needs maximum disk space)
+          if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$ ]]; then
             sudo rm -rf /usr/local/share/powershell
             sudo rm -rf /usr/local/share/chromium
             sudo rm -rf /usr/local/share/vcpkg
@@ -217,8 +224,8 @@ jobs:
       - name: Build Docker image with Nix
         run: |
           echo "Building ${{ matrix.variant }} variant for ${{ matrix.arch }}..."
-          # For CUDA builds, limit parallelism to reduce memory pressure
-          if [[ "${{ matrix.variant }}" == "cuda" ]]; then
+          # For CUDA/ROCm builds, limit parallelism to reduce memory pressure
+          if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$ ]]; then
             nix build .#packages.${{ matrix.arch }}.${{ matrix.nix_target }} --print-build-logs --max-jobs 1 --cores 2
           else
             nix build .#packages.${{ matrix.arch }}.${{ matrix.nix_target }} --print-build-logs
@@ -264,8 +271,8 @@ jobs:
           # Build the actual package (not Docker image) for caching
           nix build .#packages.${{ matrix.arch }}.${{ matrix.package_target }} -o result-pkg --print-build-logs
 
-          # For CUDA builds, include build-time dependencies (magma, triton, etc.)
-          if [[ "${{ matrix.variant }}" == "cuda" ]]; then
+          # For CUDA/ROCm builds, include build-time dependencies (magma, triton, etc.)
+          if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$ ]]; then
             ./scripts/push-to-cachix.sh --build-deps ./result-pkg
           else
             ./scripts/push-to-cachix.sh ./result-pkg
@@ -367,6 +374,31 @@ jobs:
           docker buildx imagetools create --tag "$CUDA_TAG" "$CUDA_AMD64_TAG"
           docker buildx imagetools create --tag "$VERSION_CUDA_TAG" "$CUDA_AMD64_TAG"
 
+      - name: Create and push ROCm manifest (x86_64 only)
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            ROCM_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-rocm"
+            VERSION_ROCM_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}-rocm"
+            ROCM_AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-rocm-amd64"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_VERSION=${GITHUB_REF#refs/tags/v}
+            ROCM_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-rocm"
+            VERSION_ROCM_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-rocm"
+            ROCM_AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-rocm-amd64"
+          fi
+
+          echo "Verifying ROCm image exists..."
+          if ! docker manifest inspect "$ROCM_AMD64_TAG" &>/dev/null; then
+            echo "ERROR: Required ROCm image not found: $ROCM_AMD64_TAG"
+            exit 1
+          fi
+          echo "Found: $ROCM_AMD64_TAG"
+
+          # Use buildx imagetools to create tags without pulling the full image
+          echo "Creating ROCm tags via registry (no local pull required)..."
+          docker buildx imagetools create --tag "$ROCM_TAG" "$ROCM_AMD64_TAG"
+          docker buildx imagetools create --tag "$VERSION_ROCM_TAG" "$ROCM_AMD64_TAG"
+
       - name: Generate manifest summary
         run: |
           echo "## Multi-Architecture Docker Images Published" >> $GITHUB_STEP_SUMMARY
@@ -381,6 +413,10 @@ jobs:
           echo "### CUDA (amd64 only)" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
           echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-cuda" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "### ROCM (amd64 only)" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-rocm" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   update-description:

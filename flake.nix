@@ -1,5 +1,5 @@
 {
-  description = "A Nix flake for ComfyUI v0.12.2 with Python 3.12";
+  description = "A Nix flake for ComfyUI v0.14.2 with Python 3.12";
 
   nixConfig = {
     extra-substituters = [
@@ -31,6 +31,7 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       # Supported systems: Linux (x86_64, aarch64), macOS (Intel, Apple Silicon)
       # Note: CUDA support is only available on x86_64-linux
+      # Note: ROCm support is only available on x86_64-linux
       systems = [
         "x86_64-linux"
         "aarch64-linux"
@@ -60,6 +61,17 @@
           # - CUDA 12.4 runtime bundled in wheels
           # =======================================================================
 
+          # =======================================================================
+          # ROCm Support via Pre-built Wheels
+          # =======================================================================
+          # ROCm support uses pre-built PyTorch wheels from pytorch.org instead of
+          # compiling from source. This provides:
+          # - Fast builds (download ~2GB vs compile for hours)
+          # - Low memory usage (no 30-60GB RAM requirement)
+          # - `gfx1100` tested (to date)
+          # - ROCm 7.1 runtime bundled in wheels
+          # =======================================================================
+
           # Linux pkgs for cross-building Docker images from any system
           # Note: We create separate pkgs instances here (instead of using _module.args.pkgs)
           # because we need specific target systems for cross-platform Docker builds.
@@ -82,16 +94,16 @@
           };
 
           pythonOverridesFor =
-            pkgs: cudaSupport: import ./nix/python-overrides.nix { inherit pkgs versions cudaSupport; };
+            pkgs: gpuSupport: import ./nix/python-overrides.nix { inherit pkgs versions gpuSupport; };
 
           mkPython =
-            pkgs: cudaSupport:
-            pkgs.python312.override { packageOverrides = pythonOverridesFor pkgs cudaSupport; };
+            pkgs: gpuSupport:
+            pkgs.python312.override { packageOverrides = pythonOverridesFor pkgs gpuSupport; };
 
           mkPythonEnv =
             pkgs:
             let
-              python = mkPython pkgs false;
+              python = mkPython pkgs "none";
             in
             python.withPackages (ps: [
               ps.setuptools
@@ -102,27 +114,29 @@
           mkComfyPackages =
             pkgs:
             {
-              cudaSupport ? false,
+              gpuSupport ? "none",
             }:
             import ./nix/packages.nix {
               inherit
                 pkgs
                 versions
-                cudaSupport
+                gpuSupport
                 ;
               lib = pkgs.lib;
-              pythonOverrides = pythonOverridesFor pkgs cudaSupport;
+              pythonOverrides = pythonOverridesFor pkgs gpuSupport;
             };
 
           # Linux packages for Docker image cross-builds
           linuxX86Packages = mkComfyPackages pkgsLinuxX86 { };
           # Docker CUDA images use pre-built wheels (all architectures supported)
-          linuxX86PackagesCuda = mkComfyPackages pkgsLinuxX86 { cudaSupport = true; };
+          linuxX86PackagesCuda = mkComfyPackages pkgsLinuxX86 { gpuSupport = "cuda"; };
+          linuxX86PackagesRocm = mkComfyPackages pkgsLinuxX86 { gpuSupport = "rocm"; };
           linuxArm64Packages = mkComfyPackages pkgsLinuxArm64 { };
 
           nativePackages = mkComfyPackages pkgs { };
           # CUDA uses pre-built wheels (supports all GPU architectures)
-          nativePackagesCuda = mkComfyPackages pkgs { cudaSupport = true; };
+          nativePackagesCuda = mkComfyPackages pkgs { gpuSupport = "cuda"; };
+          nativePackagesRocm = mkComfyPackages pkgs { gpuSupport = "rocm"; };
 
           pythonEnv = mkPythonEnv pkgs;
 
@@ -130,7 +144,7 @@
           customNodes = import ./nix/custom-nodes.nix {
             inherit pkgs versions;
             lib = pkgs.lib;
-            python = mkPython pkgs false;
+            python = mkPython pkgs "none";
           };
 
           source = pkgs.lib.cleanSourceWith {
@@ -174,6 +188,7 @@
             # These are always available regardless of host system
             dockerImageLinux = linuxX86Packages.dockerImage;
             dockerImageLinuxCuda = linuxX86PackagesCuda.dockerImageCuda;
+            dockerImageLinuxRocm = linuxX86PackagesRocm.dockerImageRocm;
             dockerImageLinuxArm64 = linuxArm64Packages.dockerImage;
           }
           // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
@@ -183,6 +198,8 @@
             # CUDA package uses pre-built wheels (supports all GPU architectures)
             cuda = nativePackagesCuda.default;
             dockerImageCuda = nativePackagesCuda.dockerImageCuda;
+            rocm = nativePackagesRocm.default;
+            dockerImageRocm = nativePackagesRocm.dockerImageRocm;
           };
 
           # Expose custom nodes for direct use
@@ -195,39 +212,48 @@
             packages = self'.packages;
           };
 
-          devShells.default = pkgs.mkShell {
-            packages = [
-              pythonEnv
-              pkgs.stdenv.cc
-              pkgs.libGL
-              pkgs.libGLU
-              pkgs.git
-              pkgs.nixfmt-rfc-style
-              pkgs.ruff
-              pkgs.pyright
-              pkgs.shellcheck
-              pkgs.jq
-              pkgs.curl
-            ]
-            ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.apple-sdk_14 ];
+          devShells =
+            let
+              buildShell =
+                pyenv:
+                pkgs.mkShell {
+                  packages = [
+                    pyenv
+                    pkgs.stdenv.cc
+                    pkgs.libGL
+                    pkgs.libGLU
+                    pkgs.git
+                    pkgs.nixfmt-rfc-style
+                    pkgs.ruff
+                    pkgs.pyright
+                    pkgs.shellcheck
+                    pkgs.jq
+                    pkgs.curl
+                  ]
+                  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.apple-sdk_14 ];
 
-            shellHook =
-              let
-                defaultDir =
-                  if pkgs.stdenv.isDarwin then
-                    "$HOME/Library/Application Support/comfy-ui"
-                  else
-                    "$HOME/.config/comfy-ui";
-              in
-              ''
-                echo "ComfyUI development environment activated"
-                echo "  ComfyUI version: ${versions.comfyui.version}"
-                export COMFY_USER_DIR="${defaultDir}"
-                mkdir -p "$COMFY_USER_DIR"
-                echo "User data will be stored in $COMFY_USER_DIR"
-                export PYTHONPATH="$PWD:$PYTHONPATH"
-              '';
-          };
+                  shellHook =
+                    let
+                      defaultDir =
+                        if pkgs.stdenv.isDarwin then
+                          "$HOME/Library/Application Support/comfy-ui"
+                        else
+                          "$HOME/.config/comfy-ui";
+                    in
+                    ''
+                      echo "ComfyUI development environment activated"
+                      echo "  ComfyUI version: ${versions.comfyui.version}"
+                      export COMFY_USER_DIR="${defaultDir}"
+                      mkdir -p "$COMFY_USER_DIR"
+                      echo "User data will be stored in $COMFY_USER_DIR"
+                      export PYTHONPATH="$PWD:$PYTHONPATH"
+                    '';
+                };
+            in
+            {
+              default = buildShell pythonEnv;
+              rocm = buildShell nativePackagesRocm.pythonRuntime;
+            };
 
           formatter = pkgs.nixfmt-rfc-style;
 
@@ -255,6 +281,12 @@
               self.packages.${final.system}.cuda
             else
               throw "comfy-ui-cuda is only available on x86_64 Linux";
+          # ROCm variant (x86_64 Linux only) - uses pre-built wheels supporting all GPU architectures
+          comfy-ui-rocm =
+            if final.stdenv.isLinux && final.stdenv.isx86_64 then
+              self.packages.${final.system}.rocm
+            else
+              throw "comfy-ui-rocm is only available on x86_64 Linux";
           # Add custom nodes to overlay
           comfyui-custom-nodes = self.legacyPackages.${final.system}.customNodes;
         };

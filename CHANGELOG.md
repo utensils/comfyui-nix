@@ -9,8 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.14.2] - 2026-02-19
 
+### Added
+- AMD ROCm GPU support via pre-built PyTorch wheels (ROCm 7.1, tested on gfx1100/7900 XTX) (#27)
+- `nix run .#rocm` app, `dockerImageRocm`, and NixOS module `gpuSupport = "rocm"` option
+- ROCm Docker images and CI pipeline (`ghcr.io/utensils/comfyui-nix:latest-rocm`)
+- ROCm dev shell (`nix develop .#rocm`)
+
 ### Changed
 - Upgraded ComfyUI from v0.12.2 to v0.14.2 (5 upstream releases)
+- Replaced `cudaSupport` boolean with `gpuSupport` enum (`"cuda"`, `"rocm"`, `"none"`) across flake, packages, and NixOS module
 - Updated `comfyui-frontend-package` 1.37.11 → 1.38.14
 - Updated `comfyui-workflow-templates` 0.8.31 → 0.8.43
 - Updated `comfyui-workflow-templates-core` 0.3.124 → 0.3.147
@@ -35,6 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic VRAM improvements (fp8 LoRA quality, LLM performance, training fixes)
 - More efficient rope implementation for LLaMA, torch RMSNorm for Flux models
 - New API nodes: Magnific Upscalers, Bria RMBG, Recraft V4, Vidu Q3 Turbo, Kling V3/O3, Tencent 3D
+
+### Fixed
+- Pin template input URLs to commit SHA instead of mutable `refs/heads/main` branch ref, preventing `hash mismatch in fixed-output derivation` errors when upstream changes files (#25)
 
 ## [0.12.2] - 2026-02-07
 
@@ -176,7 +186,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apple Silicon (M-series) support
 - Basic persistence for user data
 
-[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.12.2...HEAD
+[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.14.2...HEAD
+[0.14.2]: https://github.com/utensils/comfyui-nix/compare/v0.12.2...v0.14.2
 [0.12.2]: https://github.com/utensils/comfyui-nix/compare/v0.7.0-2...v0.12.2
 [0.7.0-2]: https://github.com/utensils/comfyui-nix/compare/v0.7.0-1...v0.7.0-2
 [0.7.0-1]: https://github.com/utensils/comfyui-nix/compare/v0.7.0...v0.7.0-1

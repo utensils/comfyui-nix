@@ -1,11 +1,12 @@
 {
   pkgs,
   versions,
-  cudaSupport ? false,
+  gpuSupport ? "none", # "none", "cuda", "rocm"
 }:
 let
   lib = pkgs.lib;
-  useCuda = cudaSupport && pkgs.stdenv.isLinux;
+  useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
+  useRocm = gpuSupport == "rocm" && pkgs.stdenv.isLinux;
   useDarwinArm64 = pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isAarch64;
   sentencepieceNoGperf = pkgs.sentencepiece.override { withGPerfTools = false; };
 
@@ -13,6 +14,10 @@ let
   # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time)
   # The wheels bundle CUDA 12.4 libraries, so no separate CUDA toolkit needed at runtime
   cudaWheels = versions.pytorchWheels.cu124;
+
+  # Pre-built PyTorch ROCm wheels from pytorch.org
+  # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time)
+  rocmWheels = versions.pytorchWheels.rocm71;
 
   # Pre-built PyTorch wheels for macOS Apple Silicon
   # PyTorch 2.5.1 is used instead of 2.9.x due to MPS bugs on macOS 26 (Tahoe)
@@ -41,6 +46,17 @@ let
       cudnn # libcudnn.so.9
       nccl # libnccl.so.2
       cuda_nvrtc # libnvrtc.so.12
+    ]
+  );
+
+  # ROCm libraries needed by PyTorch wheels (for auto-patchelf)
+  # The wheels bundle ROCm libraries internally; only compression libs are needed externally
+  rocmLibs = pkgs.lib.optionals useRocm (
+    with pkgs;
+    [
+      xz # liblzma.so.5
+      zstd # libzstd.so.1
+      bzip2 # libbz2.so.1
     ]
   );
 in
@@ -295,6 +311,170 @@ lib.optionalAttrs useCuda {
     };
   };
 }
+# ROCm torch from pre-built wheels - avoids 30-60GB RAM compilation
+# The wheels bundle ROCm libraries internally, providing full GPU support
+// lib.optionalAttrs useRocm {
+  torch = final.buildPythonPackage {
+    pname = "torch";
+    version = rocmWheels.torch.version;
+    format = "wheel";
+    src = pkgs.fetchurl {
+      url = rocmWheels.torch.url;
+      hash = rocmWheels.torch.hash;
+    };
+    dontBuild = true;
+    dontConfigure = true;
+    nativeBuildInputs = [
+      pkgs.autoPatchelfHook
+      pkgs.gnused
+    ];
+    buildInputs = wheelBuildInputs ++ rocmLibs;
+
+    # These are provided by nixpkgs rocmPackages, not PyPI packages
+    postInstall = ''
+      for metadata in "$out/${final.python.sitePackages}"/torch-*.dist-info/METADATA; do
+        if [[ -f "$metadata" ]]; then
+          sed -i '/^Requires-Dist: triton-rocm/d' "$metadata"
+        fi
+      done
+    '';
+
+    propagatedBuildInputs = with final; [
+      filelock
+      typing-extensions
+      sympy
+      networkx
+      jinja2
+      fsspec
+    ];
+    # Don't check for ROCm at import time (requires GPU)
+    pythonImportsCheck = [ ];
+    doCheck = false;
+
+    # Passthru attributes expected by downstream packages (xformers, bitsandbytes, etc.)
+    # The wheel bundles ROCm 7.1 and supports all GPU architectures
+    passthru = {
+      cudaSupport = false;
+      rocmSupport = true;
+      # Provide rocmPackages for packages that need it (use default version)
+      cudaPackages = { };
+      rocmPackages = pkgs.rocmPackages;
+    };
+
+    meta = {
+      description = "PyTorch with ROCm ${rocmWheels.torch.version} (pre-built wheel)";
+      homepage = "https://pytorch.org";
+      license = lib.licenses.bsd3;
+      platforms = [ "x86_64-linux" ];
+    };
+  };
+
+  torchvision = final.buildPythonPackage {
+    pname = "torchvision";
+    version = rocmWheels.torchvision.version;
+    format = "wheel";
+    src = pkgs.fetchurl {
+      url = rocmWheels.torchvision.url;
+      hash = rocmWheels.torchvision.hash;
+    };
+    dontBuild = true;
+    dontConfigure = true;
+    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+    buildInputs = wheelBuildInputs ++ rocmLibs ++ [ final.torch ];
+
+    # Ignore torch libs (loaded via Python import)
+    autoPatchelfIgnoreMissingDeps = [
+      "libc10.so"
+      "libc10_hip.so"
+      "libamdhip64.so.7"
+      "libtorch.so"
+      "libtorch_cpu.so"
+      "libtorch_hip.so"
+      "libtorch_python.so"
+      "libhipblas.so.3"
+      "libhipfft.so.0"
+      "libhipsolver.so.1"
+      "libhipsparse.so.4"
+      "libMIOpen.so.1"
+      "librocrand.so.1"
+    ];
+    propagatedBuildInputs = with final; [
+      torch
+      numpy
+      pillow
+    ];
+    pythonImportsCheck = [ ];
+    doCheck = false;
+    meta = {
+      description = "TorchVision with ROCm (pre-built wheel)";
+      homepage = "https://pytorch.org/vision";
+      license = lib.licenses.bsd3;
+      platforms = [ "x86_64-linux" ];
+    };
+  };
+
+  torchaudio = final.buildPythonPackage {
+    pname = "torchaudio";
+    version = rocmWheels.torchaudio.version;
+    format = "wheel";
+    src = pkgs.fetchurl {
+      url = rocmWheels.torchaudio.url;
+      hash = rocmWheels.torchaudio.hash;
+    };
+    dontBuild = true;
+    dontConfigure = true;
+    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+    buildInputs = wheelBuildInputs ++ rocmLibs ++ [ final.torch ];
+    # Ignore torch libs (loaded via Python) and FFmpeg/sox libs (optional, multiple versions bundled)
+    autoPatchelfIgnoreMissingDeps = [
+      # Torch libs (loaded via Python import)
+      "libc10.so"
+      "libc10_hip.so"
+      "libamdhip64.so.7"
+      "libtorch.so"
+      "libtorch_cpu.so"
+      "libtorch_hip.so"
+      "libtorch_python.so"
+      "libhipblas.so.3"
+      "libhipfft.so.0"
+      "libhipsolver.so.1"
+      "libhipsparse.so.4"
+      "libMIOpen.so.1"
+      "librocrand.so.1"
+      # Sox (optional audio backend)
+      "libsox.so"
+      # FFmpeg 4.x
+      "libavutil.so.56"
+      "libavcodec.so.58"
+      "libavformat.so.58"
+      "libavfilter.so.7"
+      "libavdevice.so.58"
+      # FFmpeg 5.x
+      "libavutil.so.57"
+      "libavcodec.so.59"
+      "libavformat.so.59"
+      "libavfilter.so.8"
+      "libavdevice.so.59"
+      # FFmpeg 6.x
+      "libavutil.so.58"
+      "libavcodec.so.60"
+      "libavformat.so.60"
+      "libavfilter.so.9"
+      "libavdevice.so.60"
+    ];
+    propagatedBuildInputs = with final; [
+      torch
+    ];
+    pythonImportsCheck = [ ];
+    doCheck = false;
+    meta = {
+      description = "TorchAudio with ROCm (pre-built wheel)";
+      homepage = "https://pytorch.org/audio";
+      license = lib.licenses.bsd2;
+      platforms = [ "x86_64-linux" ];
+    };
+  };
+}
 # Spandrel and other packages that need explicit torch handling
 // lib.optionalAttrs (prev ? torch) {
   spandrel = final.buildPythonPackage rec {
@@ -314,7 +494,7 @@ lib.optionalAttrs useCuda {
     ];
     propagatedBuildInputs = [
       final.torch
-    ] # Use final.torch - will be CUDA torch when cudaSupport=true
+    ] # Use final.torch - will be CUDA/ROCm when gpuSupport="cuda|rocm"
     ++ lib.optionals (prev ? torchvision) [ final.torchvision ]
     ++ lib.optionals (prev ? safetensors) [ final.safetensors ]
     ++ lib.optionals (prev ? numpy) [ final.numpy ]
@@ -422,6 +602,11 @@ lib.optionalAttrs useCuda {
 // lib.optionalAttrs (prev ? timm) {
   timm = prev.timm.overridePythonAttrs (old: {
     disabledTests = (old.disabledTests or [ ]) ++ [ "test_kron" ];
+    # test_optim needs setuptools at runtime (torch dynamo/inductor)
+    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+      final.setuptools
+      final.wheel
+    ];
   });
 }
 
@@ -561,7 +746,7 @@ lib.optionalAttrs useCuda {
     ];
 
     propagatedBuildInputs = [
-      final.torch # Uses final.torch - automatically CUDA when cudaSupport=true
+      final.torch # Uses final.torch - automatically CUDA/ROCm when gpuSupport="cuda|rocm"
       final.torchvision
       final.numpy
       final.opencv4
@@ -605,7 +790,7 @@ lib.optionalAttrs useCuda {
     ];
 
     propagatedBuildInputs = [
-      final.torch # Uses final.torch - automatically CUDA when cudaSupport=true
+      final.torch # Uses final.torch - automatically CUDA/ROCm when gpuSupport="cuda|rocm"
       final.torchvision
       final.numpy
       final.pillow
