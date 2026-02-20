@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-02-19
+
+### Changed
+- Upgraded ComfyUI from v0.12.2 to v0.14.2 (5 upstream releases)
+- Updated `comfyui-frontend-package` 1.37.11 → 1.38.14
+- Updated `comfyui-workflow-templates` 0.8.31 → 0.8.43
+- Updated `comfyui-workflow-templates-core` 0.3.124 → 0.3.147
+- Updated `comfyui-workflow-templates-media-api` 0.3.47 → 0.3.54
+- Updated `comfyui-workflow-templates-media-video` 0.3.43 → 0.3.49
+- Updated `comfyui-workflow-templates-media-image` 0.3.77 → 0.3.90
+- Updated `comfyui-workflow-templates-media-other` 0.3.106 → 0.3.123
+- Updated `comfyui-embedded-docs` 0.4.0 → 0.4.1
+- Updated `comfyui-manager` 4.0.4 → 4.0.5
+- Updated `comfy-aimdo` 0.1.7 → 0.1.8
+
+### Upstream Highlights (v0.12.3 – v0.14.2)
+- LoRA training with proper offloading (works on Anima models)
+- NAG (Normalized Attention Guidance) for all Flux-based models
+- Node Replacement API for custom node authors
+- VideoSlice node, Create List node
+- Qwen 2512 ControlNet (Fun ControlNet) support
+- ACE-Step 1.5 improvements (works without LLM, low VRAM fixes, audio VAE tiled decode)
+- EasyCache support for LTX2 video model
+- fp16 support for Cosmos-Predict2 and Anima
+- Removed unsafe pickle loading (security hardening, requires PyTorch ≥ 2.4)
+- Dynamic VRAM improvements (fp8 LoRA quality, LLM performance, training fixes)
+- More efficient rope implementation for LLaMA, torch RMSNorm for Flux models
+- New API nodes: Magnific Upscalers, Bria RMBG, Recraft V4, Vidu Q3 Turbo, Kling V3/O3, Tencent 3D
+
 ## [0.12.2] - 2026-02-07
 
 ### Changed
