@@ -167,7 +167,6 @@ jobs:
           sudo rm -rf /var/lib/apt/lists/*
           sudo apt-get clean
           docker system prune -af || true
-          # TODO: should we genuinely treat ROCm like CUDA here?
           # Extra cleanup for CUDA/ROCm builds (needs maximum disk space)
           if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$ ]]; then
             sudo rm -rf /usr/local/share/powershell
@@ -272,7 +271,6 @@ jobs:
           # Build the actual package (not Docker image) for caching
           nix build .#packages.${{ matrix.arch }}.${{ matrix.package_target }} -o result-pkg --print-build-logs
 
-          # TODO: should we genuinely treat ROCm like CUDA here?
           # For CUDA/ROCm builds, include build-time dependencies (magma, triton, etc.)
           if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$ ]]; then
             ./scripts/push-to-cachix.sh --build-deps ./result-pkg

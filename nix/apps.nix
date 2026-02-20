@@ -119,7 +119,7 @@ in
   };
 }
 // pkgs.lib.optionalAttrs (packages ? rocm) {
-  cuda = {
+  rocm = {
     type = "app";
     program = "${packages.rocm}/bin/comfy-ui";
     meta = {

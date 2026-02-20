@@ -1,5 +1,5 @@
 {
-  description = "A Nix flake for ComfyUI v0.12.2 with Python 3.12";
+  description = "A Nix flake for ComfyUI v0.14.2 with Python 3.12";
 
   nixConfig = {
     extra-substituters = [
@@ -144,7 +144,7 @@
           customNodes = import ./nix/custom-nodes.nix {
             inherit pkgs versions;
             lib = pkgs.lib;
-            python = mkPython pkgs false;
+            python = mkPython pkgs "none";
           };
 
           source = pkgs.lib.cleanSourceWith {

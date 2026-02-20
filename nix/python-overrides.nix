@@ -50,18 +50,14 @@ let
   );
 
   # ROCm libraries needed by PyTorch wheels (for auto-patchelf)
+  # The wheels bundle ROCm libraries internally; only compression libs are needed externally
   rocmLibs = pkgs.lib.optionals useRocm (
     with pkgs;
     [
-      # observed as needed for building ROCm wheels
       xz # liblzma.so.5
       zstd # libzstd.so.1
       bzip2 # libbz2.so.1
     ]
-    ++ (with pkgs.rocmPackages; [
-      # TODO: ---> do we need/want to pass any specific rocmPackages?
-      #rocminfo
-    ])
   );
 in
 final: prev:
@@ -429,7 +425,6 @@ lib.optionalAttrs useCuda {
     dontConfigure = true;
     nativeBuildInputs = [ pkgs.autoPatchelfHook ];
     buildInputs = wheelBuildInputs ++ rocmLibs ++ [ final.torch ];
-    # TODO: rocm ---> not sure if we want to include ffmpeg/soc here
     # Ignore torch libs (loaded via Python) and FFmpeg/sox libs (optional, multiple versions bundled)
     autoPatchelfIgnoreMissingDeps = [
       # Torch libs (loaded via Python import)
@@ -446,26 +441,26 @@ lib.optionalAttrs useCuda {
       "libhipsparse.so.4"
       "libMIOpen.so.1"
       "librocrand.so.1"
-      ## Sox (optional audio backend)
-      #"libsox.so"
-      ## FFmpeg 4.x
-      #"libavutil.so.56"
-      #"libavcodec.so.58"
-      #"libavformat.so.58"
-      #"libavfilter.so.7"
-      #"libavdevice.so.58"
-      ## FFmpeg 5.x
-      #"libavutil.so.57"
-      #"libavcodec.so.59"
-      #"libavformat.so.59"
-      #"libavfilter.so.8"
-      #"libavdevice.so.59"
-      ## FFmpeg 6.x
-      #"libavutil.so.58"
-      #"libavcodec.so.60"
-      #"libavformat.so.60"
-      #"libavfilter.so.9"
-      #"libavdevice.so.60"
+      # Sox (optional audio backend)
+      "libsox.so"
+      # FFmpeg 4.x
+      "libavutil.so.56"
+      "libavcodec.so.58"
+      "libavformat.so.58"
+      "libavfilter.so.7"
+      "libavdevice.so.58"
+      # FFmpeg 5.x
+      "libavutil.so.57"
+      "libavcodec.so.59"
+      "libavformat.so.59"
+      "libavfilter.so.8"
+      "libavdevice.so.59"
+      # FFmpeg 6.x
+      "libavutil.so.58"
+      "libavcodec.so.60"
+      "libavformat.so.60"
+      "libavfilter.so.9"
+      "libavdevice.so.60"
     ];
     propagatedBuildInputs = with final; [
       torch
@@ -607,7 +602,7 @@ lib.optionalAttrs useCuda {
 // lib.optionalAttrs (prev ? timm) {
   timm = prev.timm.overridePythonAttrs (old: {
     disabledTests = (old.disabledTests or [ ]) ++ [ "test_kron" ];
-    # XXX: test_optim was failing, attempt just giving it setuptools; ...while adding rocm
+    # test_optim needs setuptools at runtime (torch dynamo/inductor)
     nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
       final.setuptools
       final.wheel

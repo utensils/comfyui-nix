@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Run application**: `nix run` (default)
 - **Run with browser**: `nix run -- --open` (automatically opens browser)
 - **Run with CUDA**: `nix run .#cuda` (Linux/NVIDIA only, uses pre-built PyTorch CUDA wheels)
+- **Run with ROCm**: `nix run .#rocm` (Linux/AMD only, uses pre-built PyTorch ROCm 7.1 wheels)
 - **Run with custom port**: `nix run -- --port=8080`
 - **Run with network access**: `nix run -- --listen 0.0.0.0`
 - **Run with debug logging**: `nix run -- --debug` or `nix run -- --verbose`
@@ -23,10 +24,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Build Docker image**: `nix run .#buildDocker` (creates `comfy-ui:latest`)
 - **Build CUDA Docker**: `nix run .#buildDockerCuda` (creates `comfy-ui:cuda`)
-- **Cross-build Linux images from macOS**: `nix run .#buildDockerLinux`, `nix run .#buildDockerLinuxCuda`, `nix run .#buildDockerLinuxArm64`
-- **Pull pre-built**: `docker pull ghcr.io/utensils/comfyui-nix:latest` (or `:latest-cuda`)
+- **Build ROCm Docker**: `nix run .#buildDockerRocm` (creates `comfy-ui:rocm`)
+- **Cross-build Linux images from macOS**: `nix run .#buildDockerLinux`, `nix run .#buildDockerLinuxCuda`, `nix run .#buildDockerLinuxRocm`, `nix run .#buildDockerLinuxArm64`
+- **Pull pre-built**: `docker pull ghcr.io/utensils/comfyui-nix:latest` (or `:latest-cuda`, `:latest-rocm`)
 - **Run container**: `docker run -p 8188:8188 -v $PWD/data:/data comfy-ui:latest`
 - **Run CUDA container**: `docker run --gpus all -p 8188:8188 -v $PWD/data:/data comfy-ui:cuda`
+- **Run ROCm container**: `docker run --device /dev/kfd --device /dev/dri -p 8188:8188 -v $PWD/data:/data comfy-ui:rocm`
 
 ## Linting and Code Quality
 
@@ -46,13 +49,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Version Management
 
-- Current ComfyUI version: v0.12.2 (pinned in `nix/versions.nix`)
+- Current ComfyUI version: v0.14.2 (pinned in `nix/versions.nix`)
 - To update ComfyUI: modify `version`, `rev`, and `hash` in `nix/versions.nix`
 - Vendored wheels (spandrel, frontend, docs, etc.) also pinned in `nix/versions.nix`
 - Template input files: auto-generated in `nix/template-inputs.nix`
   - Update with: `./scripts/update-template-inputs.sh && git add nix/template-inputs.nix`
 - Python version: 3.12
-- PyTorch: macOS uses pre-built wheels (2.5.1, pinned to work around MPS bugs on macOS 26); CUDA uses pre-built wheels from pytorch.org (cu124); Linux CPU uses nixpkgs
+- PyTorch: macOS uses pre-built wheels (2.5.1, pinned to work around MPS bugs on macOS 26); CUDA uses pre-built wheels from pytorch.org (cu124); ROCm uses pre-built wheels from pytorch.org (rocm7.1); Linux CPU uses nixpkgs
 
 ## Project Architecture
 
@@ -127,6 +130,7 @@ fonts/         - Bundled fonts for nodes requiring system fonts
 
 - macOS: PyTorch pinned to 2.5.1 to work around MPS bugs on macOS 26 (Tahoe); browser opens via `/usr/bin/open`
 - CUDA: Pre-built wheels from pytorch.org with CUDA 12.4 runtime bundled (no separate toolkit needed); supports Pascal through Hopper
+- ROCm: Pre-built wheels from pytorch.org with ROCm 7.1 runtime bundled; tested on gfx1100 (7900 XTX); `/run/opengl-driver/lib` provides AMD drivers on NixOS
 - Linux CPU: Uses nixpkgs PyTorch; browser opens via `xdg-open`
 - Cross-platform Docker builds work from any system via `nix run .#buildDockerLinux` etc.
 
@@ -139,6 +143,7 @@ fonts/         - Bundled fonts for nodes requiring system fonts
 - Triggers: push to main, version tags (v*), pull requests
 - CPU images: multi-arch (amd64 + arm64 via QEMU)
 - CUDA images: x86_64 only
+- ROCm images: x86_64 only
 - Published to `ghcr.io/utensils/comfyui-nix` (`:latest`, `:latest-cuda`, `:X.Y.Z`)
 
 **Claude Code Integration** (`.github/workflows/claude.yml`, `.github/workflows/claude-code-review.yml`):

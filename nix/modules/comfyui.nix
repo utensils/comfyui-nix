@@ -299,8 +299,7 @@ in
       requires = cfg.requiresMounts;
       wantedBy = [ "multi-user.target" ];
       path = lib.optionals useRocm [
-        # XXX: fixes warning in comfyui startup; non-breaking, but annoying nonetheless
-        # ---> should probably get moved to build inputs of the thing that needs it (currently unknown)
+        # rocminfo suppresses a ComfyUI startup warning about missing AMD GPU info
         pkgs.rocmPackages.rocminfo
       ];
 

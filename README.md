@@ -83,6 +83,8 @@ ROCm builds are available for Linux with AMD GPUs. The `#rocm` package uses pre-
 nix run github:utensils/comfyui-nix#rocm
 ```
 
+> ROCm support contributed by [@pyqlsa](https://github.com/pyqlsa) — thank you!
+
 ## Why a Nix Flake?
 
 ComfyUI's standard installation relies on pip and manual dependency management, which doesn't integrate well with NixOS's declarative approach. This flake provides:
@@ -454,14 +456,14 @@ docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" \
 podman run --device nvidia.com/gpu=all -p 8188:8188 -v "$PWD/data:/data:Z" \
   ghcr.io/utensils/comfyui-nix:latest-cuda --listen 0.0.0.0 --enable-manager
 
-# Podman and ROCm with manger enabled and some recommended settings
+# Podman and ROCm with manager enabled and some recommended settings
 podman run \
   --device /dev/kfd \
   --device /dev/dri \
   -p 8188:8188 \
   -v "$PWD/data:/data:rw" \
   -v "/etc/passwd:/etc/passwd:ro" \
-  ghcr.io/utensils/comfyui-nix:latest-cuda \
+  ghcr.io/utensils/comfyui-nix:latest-rocm \
   --listen 0.0.0.0 \
   --enable-manager \
   --disable-xformers \
