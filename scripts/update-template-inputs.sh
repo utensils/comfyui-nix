@@ -36,6 +36,7 @@ RAW_BASE_URL="https://raw.githubusercontent.com/Comfy-Org/workflow_templates"
 OUTPUT_FILE="nix/template-inputs.nix"
 
 MAIN_SHA="$(git ls-remote "${GIT_URL}" refs/heads/main | head -n1 | cut -f1)"
+[[ -n "$MAIN_SHA" ]] || error "Failed to fetch main branch SHA from ${GIT_URL}"
 MANIFEST_URL="${RAW_BASE_URL}/${MAIN_SHA}/workflow_template_input_files.json"
 
 TEMP_DIR=$(mktemp -d)
