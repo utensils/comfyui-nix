@@ -31,8 +31,13 @@ error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 detail() { echo -e "    ${CYAN}-${NC} $1"; }
 
 # Configuration
-MANIFEST_URL="https://raw.githubusercontent.com/Comfy-Org/workflow_templates/main/workflow_template_input_files.json"
+GIT_URL="https://github.com/Comfy-Org/workflow_templates.git"
+RAW_BASE_URL="https://raw.githubusercontent.com/Comfy-Org/workflow_templates"
 OUTPUT_FILE="nix/template-inputs.nix"
+
+MAIN_SHA="$(git ls-remote "${GIT_URL}" refs/heads/main | head -n1 | cut -f1)"
+MANIFEST_URL="${RAW_BASE_URL}/${MAIN_SHA}/workflow_template_input_files.json"
+
 TEMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
@@ -90,7 +95,7 @@ FAILED_FILES=""
 
 while IFS= read -r entry; do
     FILE_PATH=$(echo "$entry" | jq -r '.file_path')
-    URL=$(echo "$entry" | jq -r '.url')
+    URL=$(echo "$entry" | jq -r '.url' | sed -re "s#^(${RAW_BASE_URL})/refs/heads/main/(.+)#\1/${MAIN_SHA}/\2#")
 
     # Extract just the filename (strip "input/" prefix if present)
     FILENAME=$(basename "$FILE_PATH")
