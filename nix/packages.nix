@@ -204,9 +204,9 @@ let
         ++ lib.optionals (ps ? toml && available ps.toml) [ ps.toml ]
         ++ lib.optionals (ps ? rich && available ps.rich) [ ps.rich ]
         ++ lib.optionals (ps ? "comfy-cli" && available ps."comfy-cli") [ ps."comfy-cli" ]
-        # Linux-only packages (CUDA dependencies)
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? bitsandbytes) [ ps.bitsandbytes ]
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? xformers) [ ps.xformers ]
+        # Linux-only packages (CUDA-only: xformers/bitsandbytes are compiled against CUDA)
+        ++ lib.optionals (pkgs.stdenv.isLinux && !useRocm && ps ? bitsandbytes) [ ps.bitsandbytes ]
+        ++ lib.optionals (pkgs.stdenv.isLinux && !useRocm && ps ? xformers) [ ps.xformers ]
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? triton && available ps.triton) [ ps.triton ]
         # Face analysis packages - work on all platforms (insightface override removes mxnet)
         ++ lib.optionals (ps ? insightface) [ ps.insightface ]

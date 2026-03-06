@@ -138,6 +138,21 @@ in
       '';
     };
 
+    rocmOverrideGfxVersion = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        Override the GPU architecture reported to the ROCm runtime.
+        Set this if your AMD GPU is not natively recognized by the bundled
+        ROCm 7.1 runtime (e.g., newer RDNA architectures).
+
+        This sets the HSA_OVERRIDE_GFX_VERSION environment variable.
+
+        Example: "11.0.0" to emulate gfx1100 on a gfx1151 GPU.
+      '';
+      example = "11.0.0";
+    };
+
     enableManager = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -344,7 +359,11 @@ in
         (lib.optionalAttrs isDefaultDataDir { StateDirectory = "comfyui"; })
       ];
 
-      environment = env;
+      environment =
+        env
+        // lib.optionalAttrs (cfg.rocmOverrideGfxVersion != null) {
+          HSA_OVERRIDE_GFX_VERSION = cfg.rocmOverrideGfxVersion;
+        };
     };
 
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];
