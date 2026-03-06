@@ -229,6 +229,7 @@
                     pkgs.shellcheck
                     pkgs.jq
                     pkgs.curl
+
                   ]
                   ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.apple-sdk_14 ];
 
