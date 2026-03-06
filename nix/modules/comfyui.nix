@@ -139,7 +139,7 @@ in
     };
 
     rocmOverrideGfxVersion = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.nullOr (lib.types.strMatching "[0-9]+\\.[0-9]+\\.[0-9]+");
       default = null;
       description = ''
         Override the GPU architecture reported to the ROCm runtime.

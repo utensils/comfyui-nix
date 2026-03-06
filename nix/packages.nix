@@ -408,9 +408,9 @@ let
               fi
             done
 
-            # On macOS, remove Linux-only nodes if they were linked previously
+            # Remove CUDA-only nodes if they were linked previously (macOS or ROCm)
             # Note: PuLID now works on macOS via CoreML (insightface override removes mxnet dependency)
-            if [[ "$(uname)" == "Darwin" ]]; then
+            if [[ "$(uname)" == "Darwin" ]] ${lib.optionalString useRocm "|| true"}; then
               rm -f "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" 2>/dev/null || true
             fi
 
@@ -441,10 +441,12 @@ let
             if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-Florence2" ]]; then
               ln -sf "${customNodes.florence2}" "$BASE_DIR/custom_nodes/ComfyUI-Florence2"
             fi
-            # bitsandbytes requires CUDA (Linux-only)
-            if [[ "$(uname)" != "Darwin" && ! -e "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" ]]; then
-              ln -sf "${customNodes.bitsandbytes-nf4}" "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4"
-            fi
+            # bitsandbytes requires CUDA (excluded on macOS and ROCm)
+            ${lib.optionalString (!useRocm) ''
+              if [[ "$(uname)" != "Darwin" && ! -e "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" ]]; then
+                ln -sf "${customNodes.bitsandbytes-nf4}" "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4"
+              fi
+            ''}
             if [[ ! -e "$BASE_DIR/custom_nodes/x-flux-comfyui" ]]; then
               ln -sf "${customNodes.x-flux}" "$BASE_DIR/custom_nodes/x-flux-comfyui"
             fi
