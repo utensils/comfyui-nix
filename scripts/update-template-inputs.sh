@@ -96,7 +96,7 @@ FAILED_FILES=""
 
 while IFS= read -r entry; do
     FILE_PATH=$(echo "$entry" | jq -r '.file_path')
-    URL=$(echo "$entry" | jq -r '.url' | sed -re "s#^(${RAW_BASE_URL})/refs/heads/main/(.+)#\1/${MAIN_SHA}/\2#")
+    URL=$(echo "$entry" | jq -r '.url' | sed -E "s#^(${RAW_BASE_URL})/refs/heads/main/(.+)#\1/${MAIN_SHA}/\2#")
 
     # Extract just the filename (strip "input/" prefix if present)
     FILENAME=$(basename "$FILE_PATH")
