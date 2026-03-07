@@ -8,7 +8,7 @@ let
   cfg = config.services.comfyui;
 
   useCuda = cfg.gpuSupport == "cuda";
-  useRocm = cfg.gpuSupport == "rocm";
+  useRocm = cfg.gpuSupport == "rocm" || cfg.gpuSupport == "rocm-gfx1151";
   useCpu = cfg.gpuSupport == "none";
 
   # Determine which package to use based on configuration
@@ -16,6 +16,8 @@ let
   resolvePackage =
     if useCuda then
       pkgs.comfy-ui-cuda
+    else if cfg.gpuSupport == "rocm-gfx1151" then
+      pkgs.comfy-ui-rocm-gfx1151
     else if useRocm then
       pkgs.comfy-ui-rocm
     else
@@ -82,6 +84,7 @@ in
       type = lib.types.enum [
         "cuda"
         "rocm"
+        "rocm-gfx1151"
         "none"
       ];
       default = "none";
@@ -103,9 +106,15 @@ in
         Select ROCm support for AMD GPUs. This is recommended for most users
         with AMD graphics cards as it provides significant performance improvements.
 
-        When selected, uses pre-built PyTorch ROCm wheels based on 7.1. Using 
+        When selected, uses pre-built PyTorch ROCm wheels based on 7.1. Using
         this configuration, `gfx1100` has been tested as working, but others
         may also work. Requires AMD drivers to be installed on the system.
+
+        ---
+
+        Select ROCm support for AMD gfx1151 GPUs (Strix Halo APUs like Radeon 8060S).
+        Uses AMD's gfx1151-specific PyTorch wheels with native code objects and ROCm 7.12
+        runtime. Automatically sets HSA_OVERRIDE_GFX_VERSION=11.5.1 and HSA_ENABLE_SDMA=0.
       '';
     };
 

@@ -186,6 +186,26 @@
         hash = "sha256-pUuMH2HeAbGrlGWJqgFYId0RCTVEcCJJ0gq6VpE8aLs=";
       };
     };
+    # Linux x86_64 ROCm 7.12 (gfx1151 / Strix Halo APU)
+    # AMD nightly wheels with native gfx1151 code objects
+    # Source: https://rocm.nightlies.amd.com/v2/gfx1151/
+    "rocm-gfx1151" = {
+      torch = {
+        version = "2.10.0";
+        url = "https://rocm.nightlies.amd.com/v2/gfx1151/torch-2.10.0%2Brocm7.12.0a20260306-cp312-cp312-linux_x86_64.whl";
+        hash = "sha256-aVTi1QWOxm67xMURTyO1uF8J+c9Jd+pt3m3MM0sufUY=";
+      };
+      torchvision = {
+        version = "0.24.0";
+        url = "https://rocm.nightlies.amd.com/v2/gfx1151/torchvision-0.24.0%2Brocm7.12.0a20260303-cp312-cp312-linux_x86_64.whl";
+        hash = "sha256-qA3FpsQjAuXl1dSetHSf7HnF5xUnsLAcofvknbURx4M=";
+      };
+      torchaudio = {
+        version = "2.10.0";
+        url = "https://rocm.nightlies.amd.com/v2/gfx1151/torchaudio-2.10.0%2Brocm7.12.0a20260306-cp312-cp312-linux_x86_64.whl";
+        hash = "sha256-jsVm+svve+E5s0w/D7TO+qrFsBlVSie4M5eK5zFpsU4=";
+      };
+    };
   };
 
   # Custom nodes with pinned versions

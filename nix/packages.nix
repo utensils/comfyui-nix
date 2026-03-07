@@ -3,11 +3,12 @@
   lib,
   versions,
   pythonOverrides,
-  gpuSupport ? "none", # "none", "cuda", "rocm"
+  gpuSupport ? "none", # "none", "cuda", "rocm", "rocm-gfx1151"
 }:
 let
   useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
-  useRocm = gpuSupport == "rocm" && pkgs.stdenv.isLinux;
+  useRocm = (gpuSupport == "rocm" || gpuSupport == "rocm-gfx1151") && pkgs.stdenv.isLinux;
+  useRocmGfx1151 = gpuSupport == "rocm-gfx1151" && pkgs.stdenv.isLinux;
 
   python = pkgs.python312.override { packageOverrides = pythonOverrides; };
 
@@ -474,6 +475,15 @@ let
 
             # Set platform-specific library paths for GPU support
             ${libraryPathSetup}
+
+            ${lib.optionalString useRocmGfx1151 ''
+              # gfx1151 (Strix Halo APU) optimizations
+              # Default to native dotted-decimal form; allow override via environment
+              # (e.g. NixOS module's rocmOverrideGfxVersion option)
+              export HSA_OVERRIDE_GFX_VERSION=''${HSA_OVERRIDE_GFX_VERSION:-11.5.1}
+              # Prevent checkerboard artifacts during VAE decode on APUs
+              export HSA_ENABLE_SDMA=''${HSA_ENABLE_SDMA:-0}
+            ''}
 
             # Create a mutable PEP 405 venv structure for ComfyUI-Manager package installs
             # This allows both pip and uv to install packages to a writable location

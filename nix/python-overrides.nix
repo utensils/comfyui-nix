@@ -1,12 +1,13 @@
 {
   pkgs,
   versions,
-  gpuSupport ? "none", # "none", "cuda", "rocm"
+  gpuSupport ? "none", # "none", "cuda", "rocm", "rocm-gfx1151"
 }:
 let
   lib = pkgs.lib;
   useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
-  useRocm = gpuSupport == "rocm" && pkgs.stdenv.isLinux;
+  useRocm = (gpuSupport == "rocm" || gpuSupport == "rocm-gfx1151") && pkgs.stdenv.isLinux;
+  useRocmGfx1151 = gpuSupport == "rocm-gfx1151" && pkgs.stdenv.isLinux;
   useDarwinArm64 = pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isAarch64;
   sentencepieceNoGperf = pkgs.sentencepiece.override { withGPerfTools = false; };
 
@@ -17,7 +18,12 @@ let
 
   # Pre-built PyTorch ROCm wheels from pytorch.org
   # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time)
-  rocmWheels = versions.pytorchWheels.rocm71;
+  # gfx1151 uses AMD's nightly wheels with native code objects for Strix Halo APUs
+  rocmWheels =
+    if gpuSupport == "rocm-gfx1151" then
+      versions.pytorchWheels."rocm-gfx1151"
+    else
+      versions.pytorchWheels.rocm71;
 
   # Pre-built PyTorch wheels for macOS Apple Silicon
   # PyTorch 2.5.1 is used instead of 2.9.x due to MPS bugs on macOS 26 (Tahoe)
@@ -62,6 +68,28 @@ let
       bzip2 # libbz2.so.1
     ]
   );
+
+  # AMD's gfx1151 nightly wheels reference ROCm libraries externally (not bundled in the wheel).
+  # These are resolved at runtime from /run/opengl-driver/lib on NixOS or the system ROCm install.
+  rocmGfx1151IgnoredDeps = pkgs.lib.optionals (gpuSupport == "rocm-gfx1151") [
+    "libamdhip64.so.7"
+    "libhiprtc.so.7"
+    "libhipfft.so.0"
+    "libhiprand.so.1"
+    "libhipsparse.so.4"
+    "libhipsolver.so.1"
+    "libhipsparselt.so.0"
+    "libhipblaslt.so.1"
+    "libhipblas.so.3"
+    "librocblas.so.5"
+    "librocsolver.so.1"
+    "librccl.so.1"
+    "librocm-openblas.so.0"
+    "libroctracer64.so.4"
+    "libroctx64.so.4"
+    "librocm_sysdeps_liblzma.so.5"
+    "libMIOpen.so.1"
+  ];
 in
 final: prev:
 # CUDA torch from pre-built wheels - avoids 30-60GB RAM compilation
@@ -317,7 +345,7 @@ lib.optionalAttrs useCuda {
   };
 }
 # ROCm torch from pre-built wheels - avoids 30-60GB RAM compilation
-# The wheels bundle ROCm libraries internally, providing full GPU support
+# ROCm 7.1 wheels bundle ROCm libraries internally; gfx1151 nightlies reference them externally
 // lib.optionalAttrs useRocm {
   torch = final.buildPythonPackage {
     pname = "torch";
@@ -334,14 +362,38 @@ lib.optionalAttrs useCuda {
       pkgs.gnused
     ];
     buildInputs = wheelBuildInputs ++ rocmLibs;
+    # gfx1151 nightly wheels reference ROCm libs externally (resolved at runtime)
+    autoPatchelfIgnoreMissingDeps = rocmGfx1151IgnoredDeps;
 
     # These are provided by nixpkgs rocmPackages, not PyPI packages
     postInstall = ''
       for metadata in "$out/${final.python.sitePackages}"/torch-*.dist-info/METADATA; do
         if [[ -f "$metadata" ]]; then
           sed -i '/^Requires-Dist: triton-rocm/d' "$metadata"
+          sed -i '/^Requires-Dist: rocm-sdk/d' "$metadata"
         fi
       done
+      ${lib.optionalString (gpuSupport == "rocm-gfx1151") ''
+        # Patch _rocm_init.py to make rocm_sdk import optional
+        # The gfx1151 nightly wheels call rocm_sdk.initialize_process() to preload
+        # ROCm shared libraries, but in our Nix setup these are already on LD_LIBRARY_PATH
+        # via /run/opengl-driver/lib, so this initialization is not needed
+        rocm_init="$out/${final.python.sitePackages}/torch/_rocm_init.py"
+        if [[ -f "$rocm_init" ]]; then
+          cat > "$rocm_init" << 'ROCM_INIT'
+        def initialize():
+            try:
+                import rocm_sdk
+                rocm_sdk.initialize_process(
+                    preload_shortnames=['amd_comgr', 'amdhip64', 'rocprofiler-sdk-roctx',
+                        'roctracer64', 'roctx64', 'hiprtc', 'hipblas', 'hipfft', 'hiprand',
+                        'hipsparse', 'hipsparselt', 'hipsolver', 'rccl', 'hipblaslt', 'miopen',
+                        'hipdnn', 'rocm_sysdeps_liblzma', 'rocm-openblas'])
+            except ImportError:
+                pass
+        ROCM_INIT
+        fi
+      ''}
     '';
 
     propagatedBuildInputs = with final; [
@@ -402,7 +454,8 @@ lib.optionalAttrs useCuda {
       "libhipsparse.so.4"
       "libMIOpen.so.1"
       "librocrand.so.1"
-    ];
+    ]
+    ++ rocmGfx1151IgnoredDeps;
     propagatedBuildInputs = with final; [
       torch
       numpy
@@ -466,7 +519,8 @@ lib.optionalAttrs useCuda {
       "libavformat.so.60"
       "libavfilter.so.9"
       "libavdevice.so.60"
-    ];
+    ]
+    ++ rocmGfx1151IgnoredDeps;
     propagatedBuildInputs = with final; [
       torch
     ];
@@ -600,6 +654,8 @@ lib.optionalAttrs useCuda {
       final.setuptools
       final.wheel
     ];
+    pythonImportsCheck = lib.optionals (!useRocmGfx1151) (old.pythonImportsCheck or [ ]);
+    doCheck = if useRocmGfx1151 then false else (old.doCheck or true);
   });
 }
 
@@ -607,6 +663,8 @@ lib.optionalAttrs useCuda {
 // lib.optionalAttrs ((useCuda || useRocm) && (prev ? accelerate)) {
   accelerate = prev.accelerate.overridePythonAttrs (old: {
     disabledTests = (old.disabledTests or [ ]) ++ [ "test_convert_to_fp32" ];
+    pythonImportsCheck = lib.optionals (!useRocmGfx1151) (old.pythonImportsCheck or [ ]);
+    doCheck = if useRocmGfx1151 then false else (old.doCheck or true);
   });
 }
 
@@ -619,6 +677,8 @@ lib.optionalAttrs useCuda {
       final.setuptools
       final.wheel
     ];
+    pythonImportsCheck = lib.optionals (!useRocmGfx1151) (old.pythonImportsCheck or [ ]);
+    doCheck = if useRocmGfx1151 then false else (old.doCheck or true);
   });
 }
 
@@ -647,6 +707,99 @@ lib.optionalAttrs useCuda {
   filterpy = prev.filterpy.overridePythonAttrs (old: {
     doCheck = if pkgs.stdenv.isDarwin then false else (old.doCheck or true);
   });
+}
+
+# ROCm gfx1151 nightly wheels don't bundle ROCm libraries, so torch cannot
+# be imported at build time. Disable pythonImportsCheck for torch-dependent packages.
+// lib.optionalAttrs (useRocmGfx1151 && prev ? torchdiffeq) {
+  torchdiffeq = prev.torchdiffeq.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? torchsde) {
+  torchsde = prev.torchsde.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? kornia) {
+  kornia = prev.kornia.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? kornia-rs) {
+  kornia-rs = prev.kornia-rs.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? pytorch-lightning) {
+  pytorch-lightning = prev.pytorch-lightning.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? diffusers) {
+  diffusers = prev.diffusers.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? peft) {
+  peft = prev.peft.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? ultralytics) {
+  ultralytics = prev.ultralytics.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? ultralytics-thop) {
+  ultralytics-thop = prev.ultralytics-thop.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? open-clip-torch) {
+  open-clip-torch = prev.open-clip-torch.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? safetensors) {
+  safetensors = prev.safetensors.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? einops) {
+  einops = prev.einops.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? webdataset) {
+  webdataset = prev.webdataset.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? spandrel) {
+  spandrel = prev.spandrel.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
+}
+// lib.optionalAttrs (useRocmGfx1151 && prev ? transformers) {
+  transformers = prev.transformers.overridePythonAttrs {
+    pythonImportsCheck = [ ];
+    doCheck = false;
+  };
 }
 
 # Fix bitsandbytes build - needs ninja for wheel building phase
@@ -710,7 +863,7 @@ lib.optionalAttrs useCuda {
     '';
 
     doCheck = false;
-    pythonImportsCheck = [ "facexlib" ];
+    pythonImportsCheck = lib.optionals (!useRocmGfx1151) [ "facexlib" ];
   };
 }
 
@@ -730,7 +883,8 @@ lib.optionalAttrs useCuda {
     ];
 
     # Verify the package works without mxnet (face analysis uses onnxruntime)
-    pythonImportsCheck = [
+    # Disabled for gfx1151 since torch can't load ROCm libs at build time
+    pythonImportsCheck = lib.optionals (!useRocmGfx1151) [
       "insightface"
       "insightface.app"
       "insightface.model_zoo"
@@ -772,7 +926,7 @@ lib.optionalAttrs useCuda {
     ];
 
     doCheck = false;
-    pythonImportsCheck = [ "segment_anything" ];
+    pythonImportsCheck = lib.optionals (!useRocmGfx1151) [ "segment_anything" ];
 
     meta = {
       description = "Segment Anything Model (SAM) from Meta AI";
@@ -825,7 +979,7 @@ lib.optionalAttrs useCuda {
     ];
 
     doCheck = false;
-    pythonImportsCheck = [ "sam2" ];
+    pythonImportsCheck = lib.optionals (!useRocmGfx1151) [ "sam2" ];
 
     meta = {
       description = "Segment Anything Model 2 (SAM 2) from Meta AI";
