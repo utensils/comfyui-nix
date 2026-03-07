@@ -550,6 +550,9 @@ let
               export HSA_OVERRIDE_GFX_VERSION=''${HSA_OVERRIDE_GFX_VERSION:-11.5.1}
               # Prevent checkerboard artifacts during VAE decode on APUs
               export HSA_ENABLE_SDMA=''${HSA_ENABLE_SDMA:-0}
+              # ROCm SDK's bundled OpenBLAS lacks OpenMP support — use single-threaded
+              # mode to avoid "Detect OpenMP Loop" warnings (PyTorch uses its own OpenMP)
+              export OPENBLAS_NUM_THREADS=1
             ''}
 
             # Create a mutable PEP 405 venv structure for ComfyUI-Manager package installs
