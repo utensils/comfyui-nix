@@ -195,15 +195,29 @@
         url = "https://rocm.nightlies.amd.com/v2/gfx1151/torch-2.10.0%2Brocm7.12.0a20260306-cp312-cp312-linux_x86_64.whl";
         hash = "sha256-aVTi1QWOxm67xMURTyO1uF8J+c9Jd+pt3m3MM0sufUY=";
       };
+      # torchvision 0.25.0 from standard ROCm 7.1 — matches torch 2.10.0's ABI.
+      # AMD's gfx1151 nightly only ships torchvision 0.24.0 (for torch 2.9.x),
+      # so we use the standard wheel. Torchvision links against libtorch (not ROCm
+      # directly), so it works with the gfx1151 torch wheel.
       torchvision = {
-        version = "0.24.0";
-        url = "https://rocm.nightlies.amd.com/v2/gfx1151/torchvision-0.24.0%2Brocm7.12.0a20260303-cp312-cp312-linux_x86_64.whl";
-        hash = "sha256-qA3FpsQjAuXl1dSetHSf7HnF5xUnsLAcofvknbURx4M=";
+        version = "0.25.0";
+        url = "https://download.pytorch.org/whl/rocm7.1/torchvision-0.25.0%2Brocm7.1-cp312-cp312-manylinux_2_28_x86_64.whl";
+        hash = "sha256-iuo929t0gB0zdFd6ELPwTUmJfCet0jXLJTE99uZbGSk=";
       };
       torchaudio = {
         version = "2.10.0";
         url = "https://rocm.nightlies.amd.com/v2/gfx1151/torchaudio-2.10.0%2Brocm7.12.0a20260306-cp312-cp312-linux_x86_64.whl";
         hash = "sha256-jsVm+svve+E5s0w/D7TO+qrFsBlVSie4M5eK5zFpsU4=";
+      };
+      # ROCm 7.12 runtime libraries — base runtime (hip, hsa, comgr, profiler, etc.)
+      rocm-sdk-core = {
+        url = "https://rocm.nightlies.amd.com/v2/gfx1151/rocm_sdk_core-7.12.0a20260307-py3-none-linux_x86_64.whl";
+        hash = "sha256-bTDJ45o6aE+Z4gX8qEvb0hVM+qDOj5HTV1HaEkoq0YI=";
+      };
+      # ROCm 7.12 math libraries with gfx1151-specific kernels (rocblas, hipblaslt, MIOpen, etc.)
+      rocm-sdk-libraries = {
+        url = "https://rocm.nightlies.amd.com/v2/gfx1151/rocm_sdk_libraries_gfx1151-7.12.0a20260307-py3-none-linux_x86_64.whl";
+        hash = "sha256-TdbsUWgfg5lboO1AJV9tXz9+lbGJjZz/dMoUeAdkzlE=";
       };
     };
   };

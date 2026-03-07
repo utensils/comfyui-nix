@@ -12,16 +12,23 @@ let
 
   python = pkgs.python312.override { packageOverrides = pythonOverrides; };
 
-  # ROCm 7.x runtime libraries extracted from the standard ROCm 7.1 torch wheel.
-  # The gfx1151 nightly wheels don't bundle ROCm libs (unlike standard ROCm 7.1 wheels),
-  # so we extract them here and add to LD_LIBRARY_PATH at runtime.
+  # ROCm 7.12 runtime libraries from AMD's gfx1151 nightly SDK wheels.
+  # The gfx1151 torch wheels don't bundle ROCm libs (unlike standard ROCm 7.1 wheels),
+  # so we extract the matching ROCm 7.12 runtime from AMD's rocm-sdk-core and
+  # rocm-sdk-libraries-gfx1151 wheels and add them to LD_LIBRARY_PATH at runtime.
   rocmRuntimeLibs = pkgs.stdenv.mkDerivation {
     pname = "rocm-runtime-libs";
-    version = "7.1";
-    src = pkgs.fetchurl {
-      url = versions.pytorchWheels.rocm71.torch.url;
-      hash = versions.pytorchWheels.rocm71.torch.hash;
-    };
+    version = "7.12.0a";
+    srcs = [
+      (pkgs.fetchurl {
+        url = versions.pytorchWheels."rocm-gfx1151".rocm-sdk-core.url;
+        hash = versions.pytorchWheels."rocm-gfx1151".rocm-sdk-core.hash;
+      })
+      (pkgs.fetchurl {
+        url = versions.pytorchWheels."rocm-gfx1151".rocm-sdk-libraries.url;
+        hash = versions.pytorchWheels."rocm-gfx1151".rocm-sdk-libraries.hash;
+      })
+    ];
     nativeBuildInputs = [ pkgs.unzip ];
     dontUnpack = true;
     dontConfigure = true;
@@ -29,20 +36,42 @@ let
     dontFixup = true;
     installPhase = ''
       mkdir -p $out/lib
-      unzip -q "$src" 'torch/lib/*' -d _tmp || true
-      # Copy ROCm runtime shared libs (not PyTorch's own libs)
-      for f in _tmp/torch/lib/lib{amdhip64,hiprtc,hipfft,hiprand,hipsparse,hipsolver,hipsparselt,hipblaslt,hipblas,rocblas,rocsolver,rccl,rocm-core,rocm_smi64,roctracer64,roctx64,rocm-openblas,rocm_sysdeps_liblzma,MIOpen,amd_comgr,hsa-runtime64,hsa-amd-aqlprofile64}.so*; do
-        if [[ -f "$f" ]]; then
+      # Extract both SDK wheels
+      for whl in $srcs; do
+        unzip -qo "$whl" -d _tmp || true
+      done
+      # Copy all shared libraries from the SDK core (hip, hsa, comgr, profiler, etc.)
+      find _tmp/_rocm_sdk_core/lib -name '*.so*' -not -path '*/llvm/*' | while read -r f; do
+        if [[ -f "$f" && ! -L "$f" ]]; then
           cp -a "$f" $out/lib/
         fi
       done
-      # Also copy the rocblas/hipblaslt tuning data directories if present
-      if [[ -d _tmp/torch/lib/rocblas ]]; then
-        cp -a _tmp/torch/lib/rocblas $out/lib/
-      fi
-      if [[ -d _tmp/torch/lib/hipblaslt ]]; then
-        cp -a _tmp/torch/lib/hipblaslt $out/lib/
-      fi
+      # Copy the host-math libs (librocm-openblas, etc.)
+      find _tmp/_rocm_sdk_core/lib/host-math -name '*.so*' 2>/dev/null | while read -r f; do
+        if [[ -f "$f" && ! -L "$f" ]]; then
+          cp -a "$f" $out/lib/
+        fi
+      done
+      # Copy all shared libraries from the SDK math libraries (rocblas, MIOpen, etc.)
+      find _tmp/_rocm_sdk_libraries_gfx1151/lib -maxdepth 1 -name '*.so*' | while read -r f; do
+        if [[ -f "$f" && ! -L "$f" ]]; then
+          cp -a "$f" $out/lib/
+        fi
+      done
+      # Copy gfx1151-specific kernel data (rocblas, hipblaslt .hsaco files)
+      for dir in rocblas hipblaslt hipdnn_plugins; do
+        if [[ -d "_tmp/_rocm_sdk_libraries_gfx1151/lib/$dir" ]]; then
+          cp -a "_tmp/_rocm_sdk_libraries_gfx1151/lib/$dir" $out/lib/
+        fi
+      done
+      # Create unversioned symlinks for libs that only have versioned names.
+      # The dynamic linker needs the SONAME form (e.g. librccl.so.1).
+      for f in $out/lib/*.so.*; do
+        base=$(echo "$(basename "$f")" | sed 's/\.so\..*/\.so/')
+        if [[ ! -e "$out/lib/$base" ]]; then
+          ln -s "$(basename "$f")" "$out/lib/$base"
+        fi
+      done
     '';
   };
 
@@ -287,7 +316,7 @@ let
       pkgs.xorg.libICE
       pkgs.libxkbcommon
     ]
-    # gfx1151 nightly wheels don't bundle ROCm libs — provide them from the ROCm 7.1 wheel
+    # gfx1151 nightly wheels don't bundle ROCm libs — provide them from the ROCm 7.12 SDK
     ++ lib.optionals useRocmGfx1151 [ rocmRuntimeLibs ]
   );
 
