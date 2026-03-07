@@ -604,7 +604,7 @@ lib.optionalAttrs useCuda {
 }
 
 # Disable accelerate test that fails with torch 2.10.0 inductor in Nix sandbox
-// lib.optionalAttrs (prev ? accelerate) {
+// lib.optionalAttrs ((useCuda || useRocm) && (prev ? accelerate)) {
   accelerate = prev.accelerate.overridePythonAttrs (old: {
     disabledTests = (old.disabledTests or [ ]) ++ [ "test_convert_to_fp32" ];
   });
