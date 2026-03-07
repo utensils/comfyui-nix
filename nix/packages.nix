@@ -12,6 +12,40 @@ let
 
   python = pkgs.python312.override { packageOverrides = pythonOverrides; };
 
+  # ROCm 7.x runtime libraries extracted from the standard ROCm 7.1 torch wheel.
+  # The gfx1151 nightly wheels don't bundle ROCm libs (unlike standard ROCm 7.1 wheels),
+  # so we extract them here and add to LD_LIBRARY_PATH at runtime.
+  rocmRuntimeLibs = pkgs.stdenv.mkDerivation {
+    pname = "rocm-runtime-libs";
+    version = "7.1";
+    src = pkgs.fetchurl {
+      url = versions.pytorchWheels.rocm71.torch.url;
+      hash = versions.pytorchWheels.rocm71.torch.hash;
+    };
+    nativeBuildInputs = [ pkgs.unzip ];
+    dontUnpack = true;
+    dontConfigure = true;
+    dontBuild = true;
+    dontFixup = true;
+    installPhase = ''
+      mkdir -p $out/lib
+      unzip -q "$src" 'torch/lib/*' -d _tmp || true
+      # Copy ROCm runtime shared libs (not PyTorch's own libs)
+      for f in _tmp/torch/lib/lib{amdhip64,hiprtc,hipfft,hiprand,hipsparse,hipsolver,hipsparselt,hipblaslt,hipblas,rocblas,rocsolver,rccl,rocm-core,rocm_smi64,roctracer64,roctx64,rocm-openblas,rocm_sysdeps_liblzma,MIOpen,amd_comgr,hsa-runtime64,hsa-amd-aqlprofile64}.so*; do
+        if [[ -f "$f" ]]; then
+          cp -a "$f" $out/lib/
+        fi
+      done
+      # Also copy the rocblas/hipblaslt tuning data directories if present
+      if [[ -d _tmp/torch/lib/rocblas ]]; then
+        cp -a _tmp/torch/lib/rocblas $out/lib/
+      fi
+      if [[ -d _tmp/torch/lib/hipblaslt ]]; then
+        cp -a _tmp/torch/lib/hipblaslt $out/lib/
+      fi
+    '';
+  };
+
   vendored = import ./vendored-packages.nix { inherit pkgs python versions; };
 
   # Template input files (images, audio, etc. for workflow templates)
@@ -231,27 +265,31 @@ let
 
   # NOTE: Some custom nodes (and some Python wheels) dlopen GUI-related libs at runtime
   # (e.g. OpenCV highgui / Qt platform plugins). Ensure common X11 libs are discoverable.
-  libPath = lib.makeLibraryPath [
-    pkgs.stdenv.cc.cc.lib
-    pkgs.glib
-    pkgs.libGL
-    # X11 / XCB runtime libs (fixes: libxcb.so.1 not found)
-    pkgs.xorg.libxcb
-    pkgs.xorg.libX11
-    pkgs.xorg.libXext
-    pkgs.xorg.libXrender
-    pkgs.xorg.libXfixes
-    pkgs.xorg.libXi
-    pkgs.xorg.libXrandr
-    pkgs.xorg.libXcursor
-    pkgs.xorg.libXcomposite
-    pkgs.xorg.libXdamage
-    pkgs.xorg.libXau
-    pkgs.xorg.libXdmcp
-    pkgs.xorg.libSM
-    pkgs.xorg.libICE
-    pkgs.libxkbcommon
-  ];
+  libPath = lib.makeLibraryPath (
+    [
+      pkgs.stdenv.cc.cc.lib
+      pkgs.glib
+      pkgs.libGL
+      # X11 / XCB runtime libs (fixes: libxcb.so.1 not found)
+      pkgs.xorg.libxcb
+      pkgs.xorg.libX11
+      pkgs.xorg.libXext
+      pkgs.xorg.libXrender
+      pkgs.xorg.libXfixes
+      pkgs.xorg.libXi
+      pkgs.xorg.libXrandr
+      pkgs.xorg.libXcursor
+      pkgs.xorg.libXcomposite
+      pkgs.xorg.libXdamage
+      pkgs.xorg.libXau
+      pkgs.xorg.libXdmcp
+      pkgs.xorg.libSM
+      pkgs.xorg.libICE
+      pkgs.libxkbcommon
+    ]
+    # gfx1151 nightly wheels don't bundle ROCm libs — provide them from the ROCm 7.1 wheel
+    ++ lib.optionals useRocmGfx1151 [ rocmRuntimeLibs ]
+  );
 
   # Platform-specific default data directory
   # macOS: ~/Library/Application Support/comfy-ui (Apple convention)
