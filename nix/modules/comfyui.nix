@@ -12,7 +12,7 @@ let
   useCpu = cfg.gpuSupport == "none";
 
   # Determine which package to use based on configuration
-  # CUDA package uses pre-built wheels supporting all GPU architectures (Pascal through Hopper)
+  # CUDA package uses pre-built wheels supporting all GPU architectures (Pascal through Blackwell)
   resolvePackage =
     if useCuda then
       pkgs.comfy-ui-cuda
@@ -95,7 +95,7 @@ in
         with NVIDIA graphics cards as it provides significant performance improvements.
 
         When selected, uses pre-built PyTorch CUDA wheels that support all GPU
-        architectures from Pascal (GTX 1080) through Hopper (H100) in a single package.
+        architectures from Pascal (GTX 1080) through Blackwell (RTX 5090) in a single package.
         Requires NVIDIA drivers to be installed on the system.
 
         ---
@@ -118,7 +118,7 @@ in
         nixpkgs configuration, so it affects other CUDA packages too.
 
         Note: ComfyUI's pre-built PyTorch wheels already support all GPU
-        architectures (Pascal through Hopper). This setting is primarily useful
+        architectures (Pascal through Blackwell). This setting is primarily useful
         for optimizing other CUDA-enabled packages in your system configuration.
 
         Example: [ "8.9" ] for Ada Lovelace (RTX 40xx) GPUs.
@@ -131,6 +131,8 @@ in
         - "8.6": Ampere (RTX 30xx)
         - "8.9": Ada Lovelace (RTX 40xx)
         - "9.0": Hopper (H100)
+        - "10.0": Blackwell (RTX 50xx)
+        - "12.0": Blackwell (B200)
 
         See: https://developer.nvidia.com/cuda-gpus
       '';
