@@ -24,7 +24,7 @@ For CUDA (Linux/NVIDIA):
 nix run github:utensils/comfyui-nix#cuda
 ```
 
-CUDA builds use pre-built PyTorch wheels from pytorch.org, so builds are fast (~2GB download) and support all GPU architectures from Pascal (GTX 1080) through Hopper (H100) in a single package.
+CUDA builds use pre-built PyTorch wheels from pytorch.org, so builds are fast (~2GB download) and support all GPU architectures from Pascal (GTX 1080) through Blackwell (RTX 5090) in a single package.
 
 For ROCm (Linux/AMD):
 
@@ -61,8 +61,8 @@ CUDA builds are available for Linux with NVIDIA GPUs. The `#cuda` package uses p
 
 - **Fast builds**: Downloads ~2GB of pre-built wheels instead of compiling for hours
 - **Low memory**: No 30-60GB RAM requirement for compilation
-- **All architectures**: Supports Pascal (GTX 1080) through Hopper (H100) in one package
-- **Bundled runtime**: CUDA 12.4 libraries included in wheels (no separate toolkit needed)
+- **All architectures**: Supports Pascal (GTX 1080) through Blackwell (RTX 5090) in one package
+- **Bundled runtime**: CUDA 12.8 libraries included in wheels (no separate toolkit needed)
 
 ```bash
 nix run github:utensils/comfyui-nix#cuda
@@ -421,7 +421,7 @@ Pre-built images on GitHub Container Registry:
 docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
 
 # CUDA (x86_64 only, requires nvidia-container-toolkit)
-# Supports ALL GPU architectures: Pascal, Volta, Turing, Ampere, Ada, Hopper
+# Supports ALL GPU architectures: Pascal, Volta, Turing, Ampere, Ada, Hopper, Blackwell
 docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest-cuda
 
 # ROCm (x86_64 only)
