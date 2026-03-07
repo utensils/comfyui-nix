@@ -122,8 +122,8 @@ lib.optionalAttrs useCuda {
         "8.6"
         "8.9"
         "9.0"
-        "10.0"
-        "12.0"
+        "10.0" # Blackwell (B100/B200 data center)
+        "12.0" # Blackwell (RTX 50xx consumer)
       ];
       # Provide cudaPackages for packages that need it (use default version)
       cudaPackages = pkgs.cudaPackages;

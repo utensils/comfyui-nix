@@ -131,8 +131,8 @@ in
         - "8.6": Ampere (RTX 30xx)
         - "8.9": Ada Lovelace (RTX 40xx)
         - "9.0": Hopper (H100)
-        - "10.0": Blackwell (RTX 50xx)
-        - "12.0": Blackwell (B200)
+        - "10.0": Blackwell (B100/B200 data center)
+        - "12.0": Blackwell (RTX 50xx consumer)
 
         See: https://developer.nvidia.com/cuda-gpus
       '';
