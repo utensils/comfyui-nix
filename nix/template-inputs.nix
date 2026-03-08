@@ -11,1531 +11,1559 @@ let
   # All template input files with their URLs and hashes
   inputFiles = {
     "02_qwen_Image_edit_subgraphed_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/02_qwen_Image_edit_subgraphed_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/02_qwen_Image_edit_subgraphed_input_image.png";
       hash = "sha256-59bT3r+KLjOVC6FxJv/nqb0i2hh2xAljavb3R6KsEjA=";
     };
     "03_video_wan2_2_14B_i2v_subgraphed_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/03_video_wan2_2_14B_i2v_subgraphed_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/03_video_wan2_2_14B_i2v_subgraphed_input_image.png";
       hash = "sha256-j9P3/eDmdh2A5nkNN/TfRFScegnwyMaS/8wSyQtZkFY=";
     };
     "04_hunyuan_3d_2.1_subgraphed_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/04_hunyuan_3d_2.1_subgraphed_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/04_hunyuan_3d_2.1_subgraphed_input_image.png";
       hash = "sha256-SGLOW2OPYQvQrDF0dZVSBGEZ6LWfmC3W0U1Yl6CwGfI=";
     };
     "1950_new_york.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/1950_new_york.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/1950_new_york.png";
       hash = "sha256-5UO/5aN/MZkUThHaQYAKn7EaQs3T/86CDMCroxmYVZM=";
     };
     "2_pass_pose_worship_input.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/2_pass_pose_worship_input.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/2_pass_pose_worship_input.png";
       hash = "sha256-2D2VWXfj+QUzEC4PNuqqjkdIMWk4yO2Jh2OULFHXmgA=";
     };
     "2x2_grid_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/2x2_grid_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/2x2_grid_image.png";
       hash = "sha256-/UAoFuXFv1NpepFLl8pcPCY38UAdKpwEmNWdmwtZPN0=";
     };
     "3d_character_back_view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_character_back_view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_character_back_view.png";
       hash = "sha256-sSkd69s+7Cm3C4QGoMXQo+jsKgURWZ/0701kewPGdXU=";
     };
     "3d_character_front_view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_character_front_view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_character_front_view.png";
       hash = "sha256-6eKd35/x3RG+QaVyDx0Q8nauEgpJ/Iii50b1R5QvP2Q=";
     };
     "3d_character_left_view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_character_left_view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_character_left_view.png";
       hash = "sha256-KWVsU4PsYEfVB8bZIqd/0San7X4JYI7Fz/k6cr5/dZ4=";
     };
     "3d_hunyuan3d-v2.1_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_hunyuan3d-v2.1_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_hunyuan3d-v2.1_input_image.png";
       hash = "sha256-tojqBCMgbT8gixzRktQbDRG/VAkgsu6gUi8y2DXaDD4=";
     };
     "3d_hunyuan3d_image_to_model_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_hunyuan3d_image_to_model_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_hunyuan3d_image_to_model_input_image.png";
       hash = "sha256-AA+/kxSPY4Fq6nZUAOmMv0kWqHtJKNcQb8CSrH8Jrzk=";
     };
     "3d_hunyuan3d_multiview_to_model_back_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_hunyuan3d_multiview_to_model_back_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_hunyuan3d_multiview_to_model_back_image.png";
       hash = "sha256-HAdO5wQRGSkuvRJiSzP4K4kAmAm+zgcPDJchT9QzIg4=";
     };
     "3d_hunyuan3d_multiview_to_model_front_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_hunyuan3d_multiview_to_model_front_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_hunyuan3d_multiview_to_model_front_image.png";
       hash = "sha256-6Cklgrwi8Uhf4KUdfeIIipKphVXWA8YkUPxfcPRBbtg=";
     };
     "3d_hunyuan3d_multiview_to_model_left_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_hunyuan3d_multiview_to_model_left_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_hunyuan3d_multiview_to_model_left_image.png";
       hash = "sha256-uf8zSzu5i/2WXtt/+FkNks13shC5rtBfcxzq1DtCjow=";
     };
     "3d_hunyuan3d_multiview_to_model_right_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_hunyuan3d_multiview_to_model_right_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_hunyuan3d_multiview_to_model_right_image.png";
       hash = "sha256-owB6TRcfwncBz8cLX6kl56UC9Qo8Trl7KrtEQoamPzE=";
     };
     "3d_hunyuan3d_multiview_to_model_turbo_back_view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_hunyuan3d_multiview_to_model_turbo_back_view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_hunyuan3d_multiview_to_model_turbo_back_view.png";
       hash = "sha256-O9mvgB1fwrOM4tMWx8aL6iFhicg2Og/hmq7FxTS3uzc=";
     };
     "3d_hunyuan3d_multiview_to_model_turbo_front_view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_hunyuan3d_multiview_to_model_turbo_front_view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_hunyuan3d_multiview_to_model_turbo_front_view.png";
       hash = "sha256-d4RmlAT27B6V7nQcZyE0NAekpr8PCjUryQAi6QNy57w=";
     };
     "3d_hunyuan3d_multiview_to_model_turbo_left_view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_hunyuan3d_multiview_to_model_turbo_left_view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_hunyuan3d_multiview_to_model_turbo_left_view.png";
       hash = "sha256-35xmPXOjvKNNzmYrNPU2eZNcFvA3tOkYWrWnt2H1urY=";
     };
     "3d_hunyuan3d_multiview_to_model_turbo_right_view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/3d_hunyuan3d_multiview_to_model_turbo_right_view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/3d_hunyuan3d_multiview_to_model_turbo_right_view.png";
       hash = "sha256-0PSEki9dwDX3jkKHdZC4ariiHfBHVjqQdPuTPBqhZQ0=";
     };
     "6-key-frames-1.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/6-key-frames-1.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/6-key-frames-1.jpg";
       hash = "sha256-E6wSB459UrZQ4oEMRjoYvCfL4OqTKZxhqxVWDzlrC+E=";
     };
     "6-key-frames-2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/6-key-frames-2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/6-key-frames-2.png";
       hash = "sha256-gLAlOFl9+UoZV0mTURdZyXyMh421i7HUhBEAPLuhXzk=";
     };
     "6-key-frames-3.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/6-key-frames-3.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/6-key-frames-3.png";
       hash = "sha256-GlxZBG8ObuZPnXMI0vMC/+QKna3QD05rY7M3dD393tg=";
     };
     "6-key-frames-4.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/6-key-frames-4.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/6-key-frames-4.png";
       hash = "sha256-OPHcp5StWDzyvSwPBJtCWmn9oWyPn3QVHkNJ4Qxm6Gc=";
     };
     "6-key-frames-5.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/6-key-frames-5.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/6-key-frames-5.png";
       hash = "sha256-s8hYVFsJcXJyaZ1WSmVOu3q/UG7kja787nlBcnBOITY=";
     };
     "6-key-frames-6.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/6-key-frames-6.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/6-key-frames-6.png";
       hash = "sha256-7a1lfkqn1s8nLYP1cnWLjBAoknhwpJj09EkFQcdJW3s=";
     };
     "Init.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/Init.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/Init.png";
       hash = "sha256-jHPUl+kEbdANdw4RqNb+HXZsARPudb5Y7/3gtdSl0yA=";
     };
     "Mask.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/Mask.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/Mask.mp4";
       hash = "sha256-ivKD5I1yyWZTUTGZCVdjuXRWewwIS0f5rY9Bq3gmE2c=";
     };
     "Noise_injection.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/Noise_injection.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/Noise_injection.mp4";
       hash = "sha256-pKp3AbS/tIVJTcibTiGtK1d4C1u+rrpLM4RBYVtD+Yk=";
     };
     "Urban_Fashion.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/Urban_Fashion.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/Urban_Fashion.png";
       hash = "sha256-nylkaZhQLT8HEsKztkAPq0JM/idtABPUiAmxrZXTFzc=";
     };
     "api_bfl_flux_1_kontext_max_image_style_ref.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_bfl_flux_1_kontext_max_image_style_ref.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_bfl_flux_1_kontext_max_image_style_ref.png";
       hash = "sha256-kNZd+gAmydTfqBcN5+pAwBXTYK+F1l4wEycJqe8Z7q0=";
     };
     "api_bfl_flux_1_kontext_multiple_images_input_dog.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_bfl_flux_1_kontext_multiple_images_input_dog.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_bfl_flux_1_kontext_multiple_images_input_dog.jpg";
       hash = "sha256-B+B07v14EWIhSpo1zfsYtY2ZdFlPbHV6Ic8CQBLzqF4=";
     };
     "api_bfl_flux_1_kontext_multiple_images_input_girl.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_bfl_flux_1_kontext_multiple_images_input_girl.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_bfl_flux_1_kontext_multiple_images_input_girl.jpg";
       hash = "sha256-UIwo5IeprbE6yEohGfFTgdaoOwHIBMWAyFz6WjG0ySc=";
     };
     "api_bfl_flux_1_kontext_multiple_images_input_sofa.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_bfl_flux_1_kontext_multiple_images_input_sofa.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_bfl_flux_1_kontext_multiple_images_input_sofa.jpg";
       hash = "sha256-DI4s+SUzOuvWW99gvY+cxS5gU7DKCm9qroZc/D2Qg/0=";
     };
     "api_bfl_flux_1_kontext_pro_image_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_bfl_flux_1_kontext_pro_image_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_bfl_flux_1_kontext_pro_image_input_image.png";
       hash = "sha256-z5Z8UX0GGMOogulkwSiWdOFNqMZHDyOvw8IDwgYVS9A=";
     };
     "api_bytedance_flf2v_first_frame.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_bytedance_flf2v_first_frame.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_bytedance_flf2v_first_frame.png";
       hash = "sha256-YbXKRG50HeSTyQ4cXCmbfE2h2sWx+tFDrQdXwJRzS28=";
     };
     "api_bytedance_flf2v_last_frame.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_bytedance_flf2v_last_frame.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_bytedance_flf2v_last_frame.png";
       hash = "sha256-rpJum+py5AUBjvALj+NIRHBHsQvhj6alN5RWtMdtBW4=";
     };
     "api_bytedance_image_to_video_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_bytedance_image_to_video_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_bytedance_image_to_video_input_image.png";
       hash = "sha256-z5TrGQ2Rr0HgbXTioEIPgUuDbz50+Uh9k8bsVPEQGpU=";
     };
     "api_elevenlabs_speech_to_speech.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_elevenlabs_speech_to_speech.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_elevenlabs_speech_to_speech.mp3";
       hash = "sha256-Wp8YhlzMJneChUpgU2WyHyiNo7721T0TME6cQoqicUI=";
     };
     "api_flux2_input_image_1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_flux2_input_image_1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_flux2_input_image_1.png";
       hash = "sha256-cUq+sJuG7kjgvjKpSoGBrStW/7+E4+aFmp8O7K4AS5A=";
     };
     "api_flux2_input_image_2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_flux2_input_image_2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_flux2_input_image_2.png";
       hash = "sha256-3mjFB2xVLRuCYXToUr1qFNYBNAJeqtlbxGC9kk+7suI=";
     };
     "api_flux2_input_image_3.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_flux2_input_image_3.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_flux2_input_image_3.png";
       hash = "sha256-ncdruDqm2vppQgrFcjuqY6s7Z4UINdnxnWpJw+IDcZo=";
     };
     "api_flux2_input_image_4.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_flux2_input_image_4.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_flux2_input_image_4.png";
       hash = "sha256-O4UiI8vJpCFd8iKa+Fj+cn6HQgr4JlCNg3rFZuhj8ww=";
     };
     "api_from_photo_2_miniature_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_from_photo_2_miniature_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_from_photo_2_miniature_input_image.png";
       hash = "sha256-NBU3XyOYMa6/p1LZmerKrlKmMctLg/8FbGuW+opECew=";
     };
     "api_hailuo_minimax_i2v_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_hailuo_minimax_i2v_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_hailuo_minimax_i2v_input_image.png";
       hash = "sha256-Wl2IXJ83VKoSb7+nmgqFDh3qQOIiczHlIkse6KYXZ94=";
     };
     "api_hailuo_minimax_video_first_frame.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_hailuo_minimax_video_first_frame.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_hailuo_minimax_video_first_frame.png";
       hash = "sha256-Ccwv+Qsoh2c3Mrl+zQkMMxCWf+v1FIA8IgI2lkbenG4=";
     };
     "api_kling_effects_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_kling_effects_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_kling_effects_input_image.png";
       hash = "sha256-CALDdXih977L9vxxFwslOAo7D1t8OWgmQVEtMZvzmdY=";
     };
     "api_kling_flf_first_frame.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_kling_flf_first_frame.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_kling_flf_first_frame.png";
       hash = "sha256-sed5uXIjgFC+xrPmXWQ1xWdywejn/ywaFMUHLuD2Qno=";
     };
     "api_kling_flf_last_frame.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_kling_flf_last_frame.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_kling_flf_last_frame.png";
       hash = "sha256-3PAZCNwJeHbbnVZKJr5p0NyNBommpQRgeoalIPK/VNo=";
     };
     "api_kling_i2v_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_kling_i2v_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_kling_i2v_input_image.png";
       hash = "sha256-5Ns97FtZeuzel8+v26QYIwukcWMvENSN6TecECPypl4=";
     };
     "api_kling_omni_edit_video_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_kling_omni_edit_video_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_kling_omni_edit_video_input_image.png";
       hash = "sha256-RBSQqdKEJ23xgdJEn9xvp2596DFONvO4uZedRX6IkZo=";
     };
     "api_kling_omni_edit_video_input_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_kling_omni_edit_video_input_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_kling_omni_edit_video_input_video.mp4";
       hash = "sha256-QcqDD59FRsa2Lr+6R6uMEG9pvx0uT+qvRb/2HelTeik=";
     };
     "api_ltxv_image_to_video_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_ltxv_image_to_video_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_ltxv_image_to_video_input_image.png";
       hash = "sha256-RMy/4N82ERXcwheuve9jdWYS2T7kOij4dIbdMSCtu0o=";
     };
     "api_luma_i2v_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_luma_i2v_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_luma_i2v_input_image.png";
       hash = "sha256-fTvwvjDSeohWQeBAt4Y3b7K4/Ufs/pTGD2lbh3BFlZg=";
     };
     "api_luma_photon_i2i_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_luma_photon_i2i_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_luma_photon_i2i_input_image.png";
       hash = "sha256-QVoS5yjUs594+vt6gX+lpuGHfeedryBhsoX8d9rUa/o=";
     };
     "api_luma_photon_i2i_ref_image_1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_luma_photon_i2i_ref_image_1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_luma_photon_i2i_ref_image_1.png";
       hash = "sha256-0pCfGHQUjUYbLs2ZLtFyNIE5dHwQ2EOBqZQNa/6ECoU=";
     };
     "api_luma_photon_i2i_ref_image_2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_luma_photon_i2i_ref_image_2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_luma_photon_i2i_ref_image_2.png";
       hash = "sha256-3nrEGDdZ3eKAlhlLKEYLsOj+JHTMFk8JZT2XL9oOWRU=";
     };
     "api_moonvalley_image_to_video_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_moonvalley_image_to_video_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_moonvalley_image_to_video_input_image.jpg";
       hash = "sha256-g+Tytx53vqiSK4cSCv7r7fs5aW/2ctRKFZZdN1utP58=";
     };
     "api_moonvalley_video_to_video_motion_transfer_input_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_moonvalley_video_to_video_motion_transfer_input_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_moonvalley_video_to_video_motion_transfer_input_video.mp4";
       hash = "sha256-7vAoYTJCiCXzvsXH4hbcA9IkiCLydOQDUowIH5uv6zc=";
     };
     "api_moonvalley_video_to_video_pose_control_input_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_moonvalley_video_to_video_pose_control_input_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_moonvalley_video_to_video_pose_control_input_video.mp4";
       hash = "sha256-HaHEpTDxmoNf6NsC56sxLqCMVfLQHXDBto6SWc6LMEw=";
     };
     "api_nano_banana_pro_input_image_1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_nano_banana_pro_input_image_1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_nano_banana_pro_input_image_1.png";
       hash = "sha256-xL+Ms7CmJWAeUJyeVkV2dPE3icOLAW8laOprFb7myX0=";
     };
     "api_nano_banana_pro_input_image_2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_nano_banana_pro_input_image_2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_nano_banana_pro_input_image_2.png";
       hash = "sha256-YV8dilDV7lX7ViyuEGof8Mdca+R5lLpHB9X/Ramul+Q=";
     };
     "api_openai_dall_e_2_inpaint_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_openai_dall_e_2_inpaint_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_openai_dall_e_2_inpaint_input_image.png";
       hash = "sha256-4r3Y2cqxOn35O8SQwyaT68I3GCPKWOjKi1YwGZyQo/I=";
     };
     "api_openai_image_1_hat.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_openai_image_1_hat.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_openai_image_1_hat.png";
       hash = "sha256-NWTThErUmUca/q40mrF9vG00aAUt7Y3sXF1l2EYVUKA=";
     };
     "api_openai_image_1_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_openai_image_1_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_openai_image_1_input_image.jpg";
       hash = "sha256-8MFj8yq5NjbG5iv5FLJNyX1mhBr4hh8JEbq289ZyYS4=";
     };
     "api_openai_image_1_input_image_mask.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_openai_image_1_input_image_mask.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_openai_image_1_input_image_mask.jpg";
       hash = "sha256-xzNopgjOS6rpgtzmAOEXOVdpbzTMG9bqAZhSwEHuIlc=";
     };
     "api_openai_sora_video_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_openai_sora_video_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_openai_sora_video_input_image.png";
       hash = "sha256-etVtOOYz9Z+1VJhzNQYh8O8cKmWE0bpx8EVENZJBzUY=";
     };
     "api_pika_i2v_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_pika_i2v_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_pika_i2v_input_image.png";
       hash = "sha256-ODFaeU3nO1Yt73Z7RSeVSI7HrvQnSkuJooCutPDEkIQ=";
     };
     "api_pika_scene_ref_image_1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_pika_scene_ref_image_1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_pika_scene_ref_image_1.png";
       hash = "sha256-aalWv2G+aS5yhCxeuU8NwqfnR0fPQEY0qTnTBnbKKAo=";
     };
     "api_pika_scene_ref_image_2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_pika_scene_ref_image_2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_pika_scene_ref_image_2.png";
       hash = "sha256-rheGEjYnr/XwP4gBUfbHL173zny6j3QuZn1mT07vEio=";
     };
     "api_pixverse_template_i2v_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_pixverse_template_i2v_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_pixverse_template_i2v_input_image.png";
       hash = "sha256-SvQUZtUi7cZaTmD/THQa/ujGc/XIjtY88R6MQvtaYLw=";
     };
     "api_rodin_gen2_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_rodin_gen2_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_rodin_gen2_input_image.png";
       hash = "sha256-vGFcKPZwOvOWA0Dy2i/BQl8WM1awzophp/CoddPjkKc=";
     };
     "api_rodin_image_to_model_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_rodin_image_to_model_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_rodin_image_to_model_input_image.png";
       hash = "sha256-/Lmlt8XHCBDgE40OtPBzD2nDbsr/yo7K22B+45ceU3s=";
     };
     "api_rodin_multiview_to_model_back.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_rodin_multiview_to_model_back.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_rodin_multiview_to_model_back.jpg";
       hash = "sha256-wqQMr9xUo6IssmvnGG5Y6C+tnZec5wjLFJvQSPDWQkE=";
     };
     "api_rodin_multiview_to_model_front.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_rodin_multiview_to_model_front.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_rodin_multiview_to_model_front.jpg";
       hash = "sha256-SFIMrl7IPA54je8dE/JfRRryt26/B+iCbWkwqxI4ORw=";
     };
     "api_rodin_multiview_to_model_left.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_rodin_multiview_to_model_left.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_rodin_multiview_to_model_left.jpg";
       hash = "sha256-hycgIV7pqk2nuvqF0947VyR0gD4J2zX+GyiEz1scCio=";
     };
     "api_runway_first_last_frame_first_frame.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_runway_first_last_frame_first_frame.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_runway_first_last_frame_first_frame.jpg";
       hash = "sha256-oCnSvvoQS9FL1GJXw6PPcjvC2BLeQTHhEb6ZOjGoJ7g=";
     };
     "api_runway_first_last_frame_last_frame.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_runway_first_last_frame_last_frame.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_runway_first_last_frame_last_frame.jpg";
       hash = "sha256-EF7JNm833S9HWOPPlJ+zi+8o63vRbOOMf9VdRb82iaw=";
     };
     "api_runway_gen3a_turbo_image_to_video_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_runway_gen3a_turbo_image_to_video_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_runway_gen3a_turbo_image_to_video_input_image.png";
       hash = "sha256-tJTitqMYwIbPGwWFjYgLi4RIwxU2Cyd9Dnc7JvuL4Cw=";
     };
     "api_runway_gen4_turo_image_to_video_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_runway_gen4_turo_image_to_video_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_runway_gen4_turo_image_to_video_input_image.jpg";
       hash = "sha256-RkouDCAmS+8x2VEHXr2FpJIEDfsiqHFB9GyzrDdakxE=";
     };
     "api_runway_reference_to_image_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_runway_reference_to_image_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_runway_reference_to_image_input_image.png";
       hash = "sha256-GNcouMimGoYv4MYLpyAH1eeuXRUYJjEMteNhU1UCn48=";
     };
     "api_stability_ai_audio_inpaint_input_audio.wav" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_stability_ai_audio_inpaint_input_audio.wav";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_stability_ai_audio_inpaint_input_audio.wav";
       hash = "sha256-CASfQv80I5A+63+dRq43PIgTZ1bu3sjFvfZXBFgdQPE=";
     };
     "api_stability_ai_audio_to_audio_input_audio.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_stability_ai_audio_to_audio_input_audio.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_stability_ai_audio_to_audio_input_audio.mp3";
       hash = "sha256-Xa5F7M/MckniFg5EsUvCjCJoyibmQj9n3P3Uhtv2XQA=";
     };
     "api_stability_ai_i2i_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_stability_ai_i2i_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_stability_ai_i2i_input_image.jpg";
       hash = "sha256-DeXsVuFAHdXdu2c+j37NrTlGrgFY94G3orWMzCUVsUw=";
     };
     "api_stability_ai_sd3.5_i2i_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_stability_ai_sd3.5_i2i_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_stability_ai_sd3.5_i2i_input_image.jpg";
       hash = "sha256-VkA5QYKb4HE5HCcEVKq8l2N0JfeNPhgIFl3tpPrcLVQ=";
     };
     "api_topaz_image_enhance_input_image.webp" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_topaz_image_enhance_input_image.webp";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_topaz_image_enhance_input_image.webp";
       hash = "sha256-acTP47zK+mzpKoyyx6rJYhHnyUnOhvoj7oX6yAu7v3k=";
     };
     "api_topaz_video_enhance_input_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_topaz_video_enhance_input_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_topaz_video_enhance_input_video.mp4";
       hash = "sha256-BDFw2mgCwJx5wF5DrDe+42F505UNZFdDfeGMZRlyAh4=";
     };
     "api_tripo_image_to_model_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_tripo_image_to_model_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_tripo_image_to_model_input_image.jpg";
       hash = "sha256-gxzU+8pr1D0EtdnN97rSV/2UThUdt4QeNP/fBFEuc1I=";
     };
     "api_tripo_multiview_to_model_back_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_tripo_multiview_to_model_back_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_tripo_multiview_to_model_back_image.jpg";
       hash = "sha256-wv6TQLYSeGL4pjikvdeODAUcRot1wOt17c+4RgFhqDo=";
     };
     "api_tripo_multiview_to_model_front_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_tripo_multiview_to_model_front_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_tripo_multiview_to_model_front_image.jpg";
       hash = "sha256-mM43dcyybQQ932wc/uqoCmt1tLQxz0k8BiyIzX9EpK8=";
     };
     "api_veo2_i2v_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_veo2_i2v_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_veo2_i2v_input_image.png";
       hash = "sha256-Menr+nqMIwiKhy+9InVSQkdy6KFCfJV/Bkev+pQ7Id0=";
     };
     "api_veo3_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_veo3_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_veo3_input_image.png";
       hash = "sha256-pCUoMBkxy5noLu81ftizeaWL2kKALJppJopxXWgI3bY=";
     };
     "api_vidu_image_to_video_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_vidu_image_to_video_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_vidu_image_to_video_input_image.png";
       hash = "sha256-CtM1LgYT5D4/E0ZHQ3QWhwcCMXXi9Og4iHFsFWPnx4k=";
     };
     "api_vidu_q2_r2v_red_haired_girl.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_vidu_q2_r2v_red_haired_girl.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_vidu_q2_r2v_red_haired_girl.jpg";
       hash = "sha256-Ld949sGP6V+SHdx8z4z2/9MxbSf+ji0vK9bfxHcMy9w=";
     };
     "api_vidu_reference_to_video_reference_image_1.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_vidu_reference_to_video_reference_image_1.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_vidu_reference_to_video_reference_image_1.jpg";
       hash = "sha256-d16kaTDCHVzL6moAbVGd+OZYyyKHv6pRt+AgAE4YKwQ=";
     };
     "api_vidu_reference_to_video_reference_image_2.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_vidu_reference_to_video_reference_image_2.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_vidu_reference_to_video_reference_image_2.jpg";
       hash = "sha256-bHx2mDe3etuFoKZox81S1HJZ5cuvf0AzRodShJnvRwQ=";
     };
     "api_vidu_reference_to_video_reference_image_3.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_vidu_reference_to_video_reference_image_3.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_vidu_reference_to_video_reference_image_3.jpg";
       hash = "sha256-e5QLQ4kt0FieWwAmtx+zIcRgx+oRfMx2lO4mt0SBuDI=";
     };
     "api_vidu_start_end_to_video_last_frame.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_vidu_start_end_to_video_last_frame.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_vidu_start_end_to_video_last_frame.jpg";
       hash = "sha256-tITHRN2XKBxK4vAaSwm9zhRSopo78vZxHaWdLNzO8ks=";
     };
     "api_vidu_start_end_to_video_start_frame.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_vidu_start_end_to_video_start_frame.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_vidu_start_end_to_video_start_frame.jpg";
       hash = "sha256-2TiUfe+QZeH9JegKxsmn1CsrQB3L5e64U+yW9VtCka8=";
     };
     "api_wan_image_to_video_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/api_wan_image_to_video_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/api_wan_image_to_video_input_image.png";
       hash = "sha256-JrksHkqmdNmuFvtcmjz6xDzsyQpNkckrjCauC1ZpBx0=";
     };
     "armored_warrior.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/armored_warrior.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/armored_warrior.mp4";
       hash = "sha256-FtXxfb9fMa66d+oFojVrU0ET79scTddyppA/181egwQ=";
     };
     "audio_ace_step_1_m2m_editing_input_audio.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/audio_ace_step_1_m2m_editing_input_audio.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/audio_ace_step_1_m2m_editing_input_audio.mp3";
       hash = "sha256-VY9O3l8XxVeWAFJhr+fJy8j9VmUqWoE4zAfXm0HEOa0=";
     };
     "audio_speaker1_woman.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/audio_speaker1_woman.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/audio_speaker1_woman.mp3";
       hash = "sha256-0AhJSXbjSwUQjxgZQqbUNj4r8RduurwQ7LadLmEkWvs=";
     };
     "audio_speaker2_man.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/audio_speaker2_man.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/audio_speaker2_man.mp3";
       hash = "sha256-YyrstFOppY03+fnnDQf2dIq2BK9ZpWS4TrdgMUQNNUU=";
     };
     "baby_otter.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/baby_otter.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/baby_otter.png";
       hash = "sha256-Gu/PIxjXXybynlqiEBuMfhpc0ByFkO3qTi+id5GhyKo=";
     };
     "billboard.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/billboard.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/billboard.png";
       hash = "sha256-Q4OjXIRPXei1Ny5o57/Vacgy63srihBDtzg5Vb7DtzU=";
     };
     "black_coat_model.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/black_coat_model.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/black_coat_model.png";
       hash = "sha256-q4P8AS08lpOUte9f+3sInyd5i6XkWUTa2/vS7p9PNI0=";
     };
     "blue_shirt_rabbit.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/blue_shirt_rabbit.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/blue_shirt_rabbit.jpg";
       hash = "sha256-hZg5zpKj0UTtHv9wZGzyp/tQtRMvI5BPcIlb00kkqdQ=";
     };
     "blue_tone_woman.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/blue_tone_woman.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/blue_tone_woman.png";
       hash = "sha256-KfjST3Ks9fCEuvRaI8fUw8LRe64QALjAJVQlDeqmEu8=";
     };
     "bold_outfit_woman.jpeg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/bold_outfit_woman.jpeg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/bold_outfit_woman.jpeg";
       hash = "sha256-HT3cIt+vLhL8M2CmMdSqIa98QyU8sDfdKN211mxD+fU=";
     };
     "boxing.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/boxing.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/boxing.png";
       hash = "sha256-PBoa28r2eMEHj0U28pd9VT31xK0iS8KKXs556zWKBnM=";
     };
+    "boxing_man.mp4" = {
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/boxing_man.mp4";
+      hash = "sha256-WpNI2slNhVQ7RY9ivLzhH52EdOkyIae631WnoVRYk+M=";
+    };
     "brown_moisturizer_bottle.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/brown_moisturizer_bottle.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/brown_moisturizer_bottle.jpg";
       hash = "sha256-0r/0gGCoiBqbmFY4uug46xhbw8xeZ2+GqZ5AKoc9Xr8=";
     };
     "butterfly_girl.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/butterfly_girl.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/butterfly_girl.png";
       hash = "sha256-4VEYt8Ul6JSd1MWFS0jKztzNLzPp66G470QlHymdPWU=";
     };
     "car_interior_white.jpeg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/car_interior_white.jpeg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/car_interior_white.jpeg";
       hash = "sha256-i2rGGeWYF6zJ2n8iRhBTIvbYGn0KHpcXiV4pczdNhVU=";
     };
     "cartier-glasses-1.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/cartier-glasses-1.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/cartier-glasses-1.jpg";
       hash = "sha256-iMHGJy7ZV7UTm7wM3BTu9EcHpmmFy3pb5SKDTA84hss=";
     };
     "character-1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/character-1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/character-1.png";
       hash = "sha256-tibzr35+Jbq4hBdWXaUkqolpsNlQ/3eAvAoR/SaMxrA=";
     };
     "character_in_red_jacket.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/character_in_red_jacket.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/character_in_red_jacket.png";
       hash = "sha256-Fyhe0t5UpYosSCpX59mWGx+PorXQmGz4aFjW5bSn+cc=";
     };
     "character_input.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/character_input.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/character_input.png";
       hash = "sha256-2J8OxMo3fuHICQOuYX+sMR/6ITjA7hIL4jBArxLCDN4=";
     };
     "chasing_the_light.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/chasing_the_light.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/chasing_the_light.png";
       hash = "sha256-ZsUfDOf8/a5pRLOGb3KgyyH5+SGwXCnFzuoCw4bLar8=";
     };
     "chatterbox_input_gettysburg.wav" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/chatterbox_input_gettysburg.wav";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/chatterbox_input_gettysburg.wav";
       hash = "sha256-2o9PO0PvcG2oFpeZ/XOi0LCnTmHPE9mEZkoPswvtN0c=";
     };
     "chatterbox_input_target_voice.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/chatterbox_input_target_voice.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/chatterbox_input_target_voice.mp3";
       hash = "sha256-vSeMxqKwZUtV6srFdDuoboQ187PZiQe0CTOrpfbFG6c=";
     };
     "close_up_girl_skin.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/close_up_girl_skin.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/close_up_girl_skin.png";
       hash = "sha256-CtvuOSWJAKBG7W2NPrX+RHB6yat3dUPAuw5dg1lXAJw=";
     };
     "coastal_smiling_woman.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/coastal_smiling_woman.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/coastal_smiling_woman.png";
       hash = "sha256-14uy/od1MZOOWWAmyzxXf/evcYjLkR6ixvScHa9i0XQ=";
     };
     "comfy_billboard.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfy_billboard.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfy_billboard.png";
       hash = "sha256-D1+N++9od6L8MZNOPbKms1HEA77Hevo9o5Pc0ip30Ao=";
     };
     "comfy_cloud_bottle.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfy_cloud_bottle.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfy_cloud_bottle.png";
       hash = "sha256-xW/746mZxVEYirZQ15NiAthjzYWAdN6RPFt617VoSaI=";
     };
     "comfy_cloud_water_can.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfy_cloud_water_can.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfy_cloud_water_can.jpg";
       hash = "sha256-Ja2etAUFP25K/czxV9BQwWz1KjXr2Soosc/JVIIehjs=";
     };
     "comfy_gpu.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfy_gpu.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfy_gpu.png";
       hash = "sha256-rP2wI2XdRUCMZcS/r/wud7mdZR8KKB+CtIqhRw6g9Bc=";
     };
     "comfy_logo_b.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfy_logo_b.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfy_logo_b.png";
       hash = "sha256-RGQx12jKKENhxZYJ7e1qsKHzfRVrmATVeGWA1fRDD6E=";
     };
     "comfy_logo_blue.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfy_logo_blue.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfy_logo_blue.png";
       hash = "sha256-OStPixbTqhl3gfkVl2gZBcEyDjd7DYGvUwyHZAsES/Y=";
     };
     "comfy_logo_c.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfy_logo_c.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfy_logo_c.png";
       hash = "sha256-J0rO0sotqTs50beA052IxaPhTlTD2rgZAnfwnmq+8c0=";
     };
     "comfy_shampoo.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfy_shampoo.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfy_shampoo.png";
       hash = "sha256-PK2yNZFdVLktD9rrLAUH5eBbq6CCfgqkXDGNjR+EmPY=";
     };
     "comfy_sofa.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfy_sofa.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfy_sofa.png";
       hash = "sha256-XtGj0LS1D6tjTLj4pD6kYXK+KlsDJA2i0eV+i+aJz/A=";
     };
     "comfyorg_logo.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfyorg_logo.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfyorg_logo.png";
       hash = "sha256-9l4Tn0PtOehfzldBoBQ9xQvHoSODmQM3P+Ucljn6QR0=";
     };
     "comfyui_logo.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/comfyui_logo.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/comfyui_logo.png";
       hash = "sha256-vCgOZHgXOc8C65tfKRzuF20x4dNVWOHhNQGqMnp05YE=";
     };
     "controlnet_example_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/controlnet_example_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/controlnet_example_input_image.png";
       hash = "sha256-qxT2K8sdwcQeQ5dq7E9F3z2QldoxLjENARRUiGbNwL8=";
     };
     "cozy_bear.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/cozy_bear.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/cozy_bear.jpg";
       hash = "sha256-K7OvRWDdF8JobLqHt9VZS4dhd3wAxOBEKDbJ16O5EeI=";
     };
     "crystal_flower.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/crystal_flower.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/crystal_flower.png";
       hash = "sha256-7DNzVKjWG81hT9YzkeIVZBdO0/9waGRooJ4qbMgxb3A=";
     };
     "cube_robot.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/cube_robot.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/cube_robot.jpg";
       hash = "sha256-RXJuM6YKV2WQoLhAcAR+yBaQy6S6LatpizZXpd0EPUo=";
     };
     "cyber_genesis.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/cyber_genesis.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/cyber_genesis.png";
       hash = "sha256-rSOwIGFTlJ0FxNZx7iLPOAASmdl9yLc9PrqW6XexQX8=";
     };
     "cyberpunk_robot.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/cyberpunk_robot.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/cyberpunk_robot.png";
       hash = "sha256-8hFk4RdYBtRY45oeBs2oVGFF1mkRk2JLfFfckZlcPCg=";
     };
     "dad_carry_daughter.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/dad_carry_daughter.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/dad_carry_daughter.mp4";
       hash = "sha256-yU9Oi+S5qCkOGFPBS4u2MYCVUJN1+BmQX2NKCHyK2VU=";
     };
     "dancer.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/dancer.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/dancer.png";
       hash = "sha256-G6a6lmb2e8XsyrDDVF5iNm5y4WNlcpm5KTS6vpN3anA=";
     };
     "dancing_capybara.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/dancing_capybara.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/dancing_capybara.png";
       hash = "sha256-kpHKJMDc/rbVsGu/GHiGG6zN2XDd3WZrXtnS1pwHDOY=";
     };
     "dancing_women.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/dancing_women.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/dancing_women.mp4";
       hash = "sha256-Is80Ztdy/8y6+gsWKgGAdbl2sKH8mkljUO/Y+n8UO38=";
     };
     "deep_curl_portrait.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/deep_curl_portrait.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/deep_curl_portrait.png";
       hash = "sha256-WqPdXW23nbTT1iqfPko2XqCJeIwu7jW+9dOvDcn6ZgM=";
     };
     "denim_girl.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/denim_girl.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/denim_girl.png";
       hash = "sha256-X68wNXAtJp1NHT97nsPvKY0TaBmFW89DF6SdzsBmZvI=";
     };
     "depth_controlnet_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/depth_controlnet_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/depth_controlnet_input_image.png";
       hash = "sha256-yhSAsCr8qnfZfCCOXMK3LCJH8teSe+xTaLG9sliER9k=";
     };
     "depth_t2i_adapter_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/depth_t2i_adapter_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/depth_t2i_adapter_input_image.png";
       hash = "sha256-PnVrZNMnu0vsQiqbGoIS4XewZDZ7xe7G0g4uXWU1wB0=";
     };
     "dieline.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/dieline.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/dieline.jpg";
       hash = "sha256-BZ2FGcLQGVbAEHpmLbi2OeLfeJAW8iMmv9Fua6K8Vbg=";
     };
     "dj_capybara.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/dj_capybara.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/dj_capybara.png";
       hash = "sha256-AiDJwp7vA3hHM6r5g/Maq4Sni5XMHDQ5jhKfvV/7Jfs=";
     };
     "downhill_run.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/downhill_run.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/downhill_run.jpg";
       hash = "sha256-jLOS0/6MpeCqinGweldPjk2WB96KQoyr498lQHf+QfQ=";
     };
     "egyptian_queen.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/egyptian_queen.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/egyptian_queen.png";
       hash = "sha256-yikANilHBmSbYGzxqbFM6/WFPqyZS7SKecYqSVGrFEA=";
     };
     "example.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/example.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/example.png";
       hash = "sha256-qOIVrTKgBS/EGQ6cWGNCjV7jXNmLJGJDhCuoNgURt8Q=";
     };
     "fighter_jet.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/fighter_jet.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/fighter_jet.png";
       hash = "sha256-Kly/QejnnOsemlp5yNdd/xUR/NXZbmIcJSz/Q4a4TY8=";
     };
     "flower_sea.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/flower_sea.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/flower_sea.png";
       hash = "sha256-o/emLVJnZcS2Q8gqP6NrGrf2cSCMg45+QV9XNNokv/0=";
     };
     "fluffy_beige_sofa.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/fluffy_beige_sofa.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/fluffy_beige_sofa.png";
       hash = "sha256-WjpMUPxJJsGrel0z4uXcU2zZvfM6O3aaIzVhzDUoD04=";
     };
     "flux1_dev_uso_reference_image_gen_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/flux1_dev_uso_reference_image_gen_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/flux1_dev_uso_reference_image_gen_input_image.png";
       hash = "sha256-FPypwQhXMqDkTG6wqD2Xgbnz9mKnX+wLUMo0hjGhpJM=";
     };
     "flux_canny_model_example_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/flux_canny_model_example_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/flux_canny_model_example_input_image.png";
       hash = "sha256-a9GwG+npz1E9XefM2DvLkuU8+XtWh+32rwbkD6N54iE=";
     };
     "flux_depth_lora_example_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/flux_depth_lora_example_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/flux_depth_lora_example_input_image.png";
       hash = "sha256-ZV3BR6VEpuXYCLwNxHDUMLxZUkuKPvoNrwiHCGnmMqc=";
     };
     "flux_fill_inpaint_example_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/flux_fill_inpaint_example_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/flux_fill_inpaint_example_input_image.png";
       hash = "sha256-PPbMCWDfXVn3mgcFfrcye4eeNvgHyDrxsi/STtO35/g=";
     };
     "flux_fill_outpaint_example_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/flux_fill_outpaint_example_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/flux_fill_outpaint_example_input_image.png";
       hash = "sha256-QnnAnLLBzauSBGIshzVm75jd5B5h1gktO/8noWAWiPA=";
     };
     "flux_kontext_dev_basic_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/flux_kontext_dev_basic_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/flux_kontext_dev_basic_input_image.jpg";
       hash = "sha256-0oTft7YLQaIzgdBd1ad3WAeC+Unzdo1RoC9ouWSYiV4=";
     };
     "flux_redux_model_example_reference_image_1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/flux_redux_model_example_reference_image_1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/flux_redux_model_example_reference_image_1.png";
       hash = "sha256-tZ5as16Ak0wmUmBz5Hrqof3Wgn4iNb5+DBwCnuHbrP0=";
     };
     "flux_redux_model_example_reference_image_2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/flux_redux_model_example_reference_image_2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/flux_redux_model_example_reference_image_2.png";
       hash = "sha256-dbx2RFiJnQ8vjLgVXkjdvKLP6Mgv/Sj711aXQ7nVn7k=";
     };
     "forest_background.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/forest_background.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/forest_background.jpg";
       hash = "sha256-cz6RWAVnijOR8c+zxtNoca1L3+VIFQWbyGE7mzI5jb4=";
     };
     "frame_interpolation-input.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/frame_interpolation-input.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/frame_interpolation-input.mp4";
       hash = "sha256-RZQE3/9F4SVnh+mTBKu+XXuAgqsH7nVj3xM+WCjG98Q=";
     };
     "freckled_curly_girl.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/freckled_curly_girl.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/freckled_curly_girl.png";
       hash = "sha256-Qh3rE+6eKr1olayn78YhGfxjhV4pMfsIgrajXSkDoBc=";
     };
     "furry_ball.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/furry_ball.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/furry_ball.png";
       hash = "sha256-BdLS4OFmmxrL40pO5vpxwG0hHcmoeH93SBNK8X6VFpc=";
     };
     "furry_tech.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/furry_tech.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/furry_tech.png";
       hash = "sha256-F/9bE/viDPJ1+1AYPGtlVOnDjwsUe7a3To7xHQVCiso=";
     };
+    "future_portrait.png" = {
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/future_portrait.png";
+      hash = "sha256-jBngZrCQd+EmC5N463WVmh5Ac7I/0hu0nupjNJdhKok=";
+    };
+    "future_robot.png" = {
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/future_robot.png";
+      hash = "sha256-ew4aCVUkg7F/oG2lrVin116Ja81DoKB3znDa7VJktIQ=";
+    };
     "futuristic_motorcycle.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/futuristic_motorcycle.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/futuristic_motorcycle.mp4";
       hash = "sha256-QlJsLxGO6FVNxZILzHiFvf2BsVcWEPVclQaWKsRDwU4=";
     };
+    "game_style.png" = {
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/game_style.png";
+      hash = "sha256-mYf5QqNqaT5S03oDAUQw+7TpNToYeGa8Y/R7+I/7H70=";
+    };
     "gan_input.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/gan_input.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/gan_input.mp4";
       hash = "sha256-IO0LjxuIvI8GbiOS6GTWhRt5KfBWQd5SeNiCMuCvgWw=";
     };
+    "gas_lamp.png" = {
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/gas_lamp.png";
+      hash = "sha256-BRdddRFSXYwoiAhKPkD6nnom8rZ7LUAupIyhtIqulZo=";
+    };
     "giant_trees_sky_pyramid.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/giant_trees_sky_pyramid.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/giant_trees_sky_pyramid.png";
       hash = "sha256-WDx1p80jZcUMQ04+Wh7BRdEm5Ncpe7303ZOxYC6/Ilg=";
     };
     "girl_riding_unicorn.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/girl_riding_unicorn.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/girl_riding_unicorn.png";
       hash = "sha256-VI7gUuqOW+HGpzGLxL0AtlczbaOZ84qAGE/qA8gxc2g=";
     };
     "goldenfish_in_bag.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/goldenfish_in_bag.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/goldenfish_in_bag.png";
       hash = "sha256-mdDvP+m7xDMN8HCpHA8k0q6MF/yuuc82csL83UEQbVM=";
     };
     "gs2_image1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/gs2_image1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/gs2_image1.png";
       hash = "sha256-IB16G+xa4LccN3xd+QKcTJRd9D+kWcUssLXL0UYGm7U=";
     };
     "gs2_image2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/gs2_image2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/gs2_image2.png";
       hash = "sha256-q4XSECXByl+S3DsOd2uPCTabSjBfMQ9rafRMT1Bctyo=";
     };
     "gs2_image3.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/gs2_image3.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/gs2_image3.png";
       hash = "sha256-2BTtJBRxDdB1QvM/+0shmGxGQKKpXzQE04nZ9QJCjjA=";
     };
     "gs2_image4.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/gs2_image4.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/gs2_image4.png";
       hash = "sha256-FxB1tbII8Xna7QVa5234wxhAGE12QNuTkZ2HZAv0hNI=";
     };
     "gsc3_car.jpeg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/gsc3_car.jpeg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/gsc3_car.jpeg";
       hash = "sha256-UnGgMH/6NcpJeiG/tsIxYaKwIcRBlxiYyDIRXYfbrWs=";
     };
     "gsc3_landscape.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/gsc3_landscape.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/gsc3_landscape.png";
       hash = "sha256-sxQXSUCXtm6AsppTe9CTeDXIkixj7B7nd+lEq6Yn2gg=";
     };
     "gsc_creator_2_2_input.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/gsc_creator_2_2_input.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/gsc_creator_2_2_input.png";
       hash = "sha256-mBk5dPLHPOJWL6HCORNVDCmAsy0C09RmQYXHc1cB0PU=";
     };
     "handbag_white.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/handbag_white.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/handbag_white.png";
       hash = "sha256-037DHurwaDLvWbCUjN16wJpbyWqVFhTFIH/BLmRuStQ=";
     };
     "hidream_e1_1_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/hidream_e1_1_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/hidream_e1_1_input_image.jpg";
       hash = "sha256-cThRWI8GzJ7fL+0uDL/aRJTnb494dM1COfE/wX2sSbo=";
     };
     "hidream_e1_full_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/hidream_e1_full_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/hidream_e1_full_input_image.jpg";
       hash = "sha256-lf/N/sx0xmNRRnz5xMQunOHywyDzL9XvvNvqUzFNwto=";
     };
     "hk_scene.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/hk_scene.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/hk_scene.png";
       hash = "sha256-wQZQN75OtCCz5bqfyuvCzmbddeE5DCWkAQM8NuK8Wl4=";
     };
     "horse_running.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/horse_running.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/horse_running.mp4";
       hash = "sha256-Ece2+rEFbRV3oBUAdbTYAPnLt4jzaQzAzUq3PZGtTJw=";
     };
     "hovering_figure.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/hovering_figure.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/hovering_figure.png";
       hash = "sha256-KNFCklZid1k6KCQwzOeavYyaMdGWu5geAeJKd9touSo=";
     };
     "illustration_bw.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/illustration_bw.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/illustration_bw.png";
       hash = "sha256-t0VmjaXKl0ukTNcwROy+DwWY3DsgBXZxzjnZNNyP8ng=";
     };
     "image2image_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image2image_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image2image_input_image.jpg";
       hash = "sha256-9StBf+r36LZbMYdenOvb+r74JK7Lvgs6mA+LVRum1SA=";
     };
     "image_chrono_edit_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_chrono_edit_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_chrono_edit_input_image.png";
       hash = "sha256-OXE6zsf66cinQLyRsubKO1N0wQC4weCuMobeRcO92v8=";
     };
     "image_flux.1_fill_dev_OneReward_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_flux.1_fill_dev_OneReward_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_flux.1_fill_dev_OneReward_input_image.png";
       hash = "sha256-VevagyeOEy6KTj1FXeZQaLAokmjxXn/szTQJZECgzco=";
     };
     "image_flux2_input_Illustration.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_flux2_input_Illustration.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_flux2_input_Illustration.png";
       hash = "sha256-QKuCevU6PQqN714POZUMr3+IkGxyuXx30anTDhPsm4A=";
     };
     "image_flux2_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_flux2_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_flux2_input_image.png";
       hash = "sha256-/kFtfPQIUG9uSKiKtT6/xh6hNSoU29F4fRwh1XS++4g=";
     };
     "image_flux2_input_ref_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_flux2_input_ref_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_flux2_input_ref_image.png";
       hash = "sha256-PraK9GGrUC3+ADi0ccgusvVc6EQgzprbLsIBhzWrlBY=";
     };
     "image_lotus_depth_v1_1_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_lotus_depth_v1_1_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_lotus_depth_v1_1_input_image.png";
       hash = "sha256-bVKPtGnLgpnVQN14qMTzK1dMDLPdDeGkgpyMLx8tFec=";
     };
     "image_omnigen2_image_edit_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_omnigen2_image_edit_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_omnigen2_image_edit_input_image.png";
       hash = "sha256-Jk2cH+rfO9v2KLDVd/paq/AAioZBXkPZcFYU43O2oUI=";
     };
     "image_qwen_image_controlnet_patch_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_qwen_image_controlnet_patch_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_qwen_image_controlnet_patch_input_image.png";
       hash = "sha256-XNO5EDIGeHcqvBbQjjx3wjLA8O4pJAOTkov5TlEr3cU=";
     };
     "image_qwen_image_edit_2509_input_image-2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_qwen_image_edit_2509_input_image-2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_qwen_image_edit_2509_input_image-2.png";
       hash = "sha256-0ZyfQ8IOOP8u2T/Lag9TAl30SHDG2b5bSdVo+iO6YRc=";
     };
     "image_qwen_image_edit_2509_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_qwen_image_edit_2509_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_qwen_image_edit_2509_input_image.png";
       hash = "sha256-Nx2TvRp5fdhyeWKD11PC3wtNCIBRXFycEhP0gOOBJ54=";
     };
     "image_qwen_image_edit_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_qwen_image_edit_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_qwen_image_edit_input_image.png";
       hash = "sha256-aqYPFkzu8fuE1ldioLNDrcekEbwsYcKXCm4G5xMF9ZI=";
     };
     "image_qwen_image_instantx_controlnet_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_qwen_image_instantx_controlnet_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_qwen_image_instantx_controlnet_input_image.jpg";
       hash = "sha256-2q/Xf4GDbPA517SdC2npZ6l0CWfPUS2gzVtwBjsuRr0=";
     };
     "image_qwen_image_instantx_inpainting_controlnet_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_qwen_image_instantx_inpainting_controlnet_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_qwen_image_instantx_inpainting_controlnet_input_image.png";
       hash = "sha256-uNkkGduAwNDoNfLLlx6lQvY88t/TCrN7AFWDrJyL5LA=";
     };
     "image_qwen_image_union_control_lora_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_qwen_image_union_control_lora_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_qwen_image_union_control_lora_input_image.png";
       hash = "sha256-S1L0dxDtt6XrFAOnqQ9wHSFhSifRMpNGJLGIk7YfjLs=";
     };
     "image_to_video_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_to_video_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_to_video_input_image.png";
       hash = "sha256-cq5bJlp8d51WujZCep5zo1QenPmR7GLNFIdUqAlc9mg=";
     };
     "image_to_video_wan_start_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_to_video_wan_start_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_to_video_wan_start_image.png";
       hash = "sha256-1eOIKrmnAeFd4cZ6ibhZxxsjh8T7wTJXJPUgPqTokDc=";
     };
     "image_z_image_turbo_fun_union_controlnet_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/image_z_image_turbo_fun_union_controlnet_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/image_z_image_turbo_fun_union_controlnet_input_image.png";
       hash = "sha256-OHnVIKNCkTBID+5jaiYcp0PGmQdu4USsIoJObiY2+Bg=";
     };
     "inflated_character.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/inflated_character.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/inflated_character.png";
       hash = "sha256-fD0JAh7fRpMZD3/mwzi5By4haWmvWtFpu+ch3SX69sQ=";
     };
     "inflation_lora_input.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/inflation_lora_input.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/inflation_lora_input.png";
       hash = "sha256-Auwr/0aha/OTV8LwjiDM+eA1fThxoo3AmQC90WPwijg=";
     };
     "inpaint_example_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/inpaint_example_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/inpaint_example_input_image.png";
       hash = "sha256-678kJVt5kHyQ/mkmlu6kH9vpgi1LvIrg9mAHnwqbRVk=";
     };
     "inpaint_model_outpainting_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/inpaint_model_outpainting_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/inpaint_model_outpainting_input_image.png";
       hash = "sha256-Oz2LO18bGvy8PIGeixO1o4WTkXDMEz2/yk8qIULkEDc=";
     };
     "input-sprite-1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/input-sprite-1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/input-sprite-1.png";
       hash = "sha256-vfs+g8j6vA7OJcjktznX85uljneWJnJojfLtPt1O+c4=";
     };
     "input_3d.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/input_3d.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/input_3d.mp4";
       hash = "sha256-viLu+qMaGOcn3NX75+b39OeNGE6V9Ug6kRbTCQTqXfs=";
     };
     "input_reference_icon.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/input_reference_icon.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/input_reference_icon.png";
       hash = "sha256-C2EBZQ1NSSGUlRHfHQrIL0MkBUKaJ1aw2OOWa4YTnd4=";
     };
     "input_style_1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/input_style_1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/input_style_1.png";
       hash = "sha256-mjGtgKUABzLrPOt3l3XZkaXyTrMe9A4OGkPaCSZPX6w=";
     };
     "input_style_2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/input_style_2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/input_style_2.png";
       hash = "sha256-2fBxKGJvMW+oiqkRqpWG+Mp7ntJBa6u8OgG/Ti9YRZs=";
     };
     "input_style_3.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/input_style_3.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/input_style_3.png";
       hash = "sha256-4fRqK4bsw0tBwE6ebdsB2IyJzRu56D+Ge4gIDJfCf/s=";
     };
     "input_style_4.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/input_style_4.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/input_style_4.png";
       hash = "sha256-yZcJGuojXermzaDla29a8iSQoKELuyK3xfHSsJXiA+8=";
     };
     "input_style_5.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/input_style_5.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/input_style_5.png";
       hash = "sha256-sOFQbhQzYarn1a3YW8vcpHyvATEAVRaE3Vuaq/bcyHs=";
     };
     "input_upscale.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/input_upscale.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/input_upscale.mp4";
       hash = "sha256-f4IB7DAXuhPOB96ca1Micaimze/Ltzi5qTf+PilIDH0=";
     };
     "ivory_rider.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/ivory_rider.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/ivory_rider.png";
       hash = "sha256-hAOuVECexIZEG3Y1nB1l15wAVpahwB0VOF7BkRKMgus=";
     };
     "ivory_rider_left_side_view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/ivory_rider_left_side_view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/ivory_rider_left_side_view.png";
       hash = "sha256-4RBNNUTdOkv0LWVdxgeEMl9DHPFtNgHVbehCm9QQD0w=";
     };
     "ivory_rider_right_front_view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/ivory_rider_right_front_view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/ivory_rider_right_front_view.png";
       hash = "sha256-ZfwrXWzcWtxaUFBTY5UUIut5Oy5amj9q8KZubMDD1t4=";
     };
     "ivory_rider_right_side_view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/ivory_rider_right_side_view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/ivory_rider_right_side_view.png";
       hash = "sha256-OjbAM4kq03kRJPZ91+veqs+/r+1M2za8LAhCBxya5Uk=";
     };
     "joker_back.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/joker_back.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/joker_back.jpg";
       hash = "sha256-QM+74krViHf1o/QX4KhWbqSul/RzMKQ584ogyf8PEKA=";
     };
     "joker_front.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/joker_front.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/joker_front.jpg";
       hash = "sha256-4lROnavniMiDr1c5E1MrP2KVsw8vE+WJwvXuHh/HRP8=";
     };
     "joker_side.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/joker_side.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/joker_side.jpg";
       hash = "sha256-JkIIe2jTUv9wTIfHOhVMrv+sl7tFU0s4jcdR13Z1/eI=";
     };
     "joy_snap.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/joy_snap.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/joy_snap.png";
       hash = "sha256-5HleZYKLVEOGvCtn442I5EqOQx7MwwRuXmP0UQ59eC0=";
     };
     "kling_avatar_input.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/kling_avatar_input.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/kling_avatar_input.mp3";
       hash = "sha256-4LE19o6XObHESq7NJ61mgyEUigcCy+7YvUBbe3OJg7I=";
     };
     "kling_o3_video_input.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/kling_o3_video_input.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/kling_o3_video_input.mp4";
       hash = "sha256-1ARWXKSg98nN8virNxyIE3ddMMF+msVLrQckaQyR2PU=";
     };
     "lawyer.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/lawyer.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/lawyer.mp4";
       hash = "sha256-QWTqBYo9pP5qvAKvDwssuuPNSJC8rLTT8lnJe+QraXI=";
     };
     "leather_sofa.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/leather_sofa.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/leather_sofa.png";
       hash = "sha256-vkOH5zTxTFutPxMowXMdSsb4W5UXVmxN37HUSNltUcQ=";
     };
     "lighter.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/lighter.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/lighter.mp4";
       hash = "sha256-e3a0opvuD0YSSIncTP7kN0rM/Cmr19+VoD40Xp5ecEw=";
     };
     "lightning_man.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/lightning_man.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/lightning_man.png";
       hash = "sha256-py1qKvAiiByo+QzsGiNC0PqruEp29ZhkuOuPS6ex85Y=";
     };
     "little_bot.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/little_bot.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/little_bot.png";
       hash = "sha256-4U0u4QZiNdq0TjslSZJGqqs+Qq2hK2YQgHdgUta9bq0=";
     };
+    "live_portrait_character.png" = {
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/live_portrait_character.png";
+      hash = "sha256-EY5Et0ifmZmPbykJyELLUEDMnokYk8ub1O5oo1HBscU=";
+    };
+    "live_portrait_expression.mp4" = {
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/live_portrait_expression.mp4";
+      hash = "sha256-kSoC3P/vmxptZkHJpI4XBJAIDDcV3J9V2R4WhIPSfm4=";
+    };
     "lizard_rapper_in_bar.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/lizard_rapper_in_bar.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/lizard_rapper_in_bar.png";
       hash = "sha256-zV0DPdbA9wbOMZDul+bjkl1tSRBae7yLjqa4aaQKHu8=";
     };
     "logotype_texture.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/logotype_texture.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/logotype_texture.png";
       hash = "sha256-OVjMegnmh4oDSbqjk6hT7M4SXU4I1yBUGwB/Fdxv8T4=";
     };
     "low_angle_shot.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/low_angle_shot.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/low_angle_shot.png";
       hash = "sha256-io5ogiitBYRXToiR5JGB4aLbZuevKnRSWyDGEas2XdA=";
     };
     "ltx2-a2v-input.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/ltx2-a2v-input.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/ltx2-a2v-input.mp3";
       hash = "sha256-Oc/qMB+x5vmANlVfJ64PR9nuA6UGvBgqIyrJCxgvpIA=";
     };
     "ltx2-a2v-input.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/ltx2-a2v-input.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/ltx2-a2v-input.png";
       hash = "sha256-M4IGxnA9UfVBnTScDzHYJuiKsPtO6SD7qFyWdpkfIqY=";
     };
     "ltx_2_canny_1st_frame.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/ltx_2_canny_1st_frame.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/ltx_2_canny_1st_frame.png";
       hash = "sha256-sGbXt3QJk8dpi5SRJmc1aKYsnDNXBhxHOxPThU1W260=";
     };
     "ltxv_image_to_video_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/ltxv_image_to_video_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/ltxv_image_to_video_input_image.jpg";
       hash = "sha256-eQ9Dkm4Bz4Hc6q8JHp6M9eP8fASf+7IGjDRvDOTgM2g=";
     };
     "magical-portrait.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/magical-portrait.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/magical-portrait.png";
       hash = "sha256-uUtszH35G/6a5+kMP6D0wX7VO6pbDByS/iwtRPtNdMg=";
     };
     "magnific_style_reference.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/magnific_style_reference.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/magnific_style_reference.png";
       hash = "sha256-IydN70w5lkiTxwRaPOISggSPsMBYtUCPLjKOhwjnF6w=";
     };
     "man_in_daydream.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/man_in_daydream.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/man_in_daydream.png";
       hash = "sha256-kAqvoEDs49Z8kv0jWeBT+4iGv0h3epImeH6xrJi005A=";
     };
     "man_in_the_rain.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/man_in_the_rain.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/man_in_the_rain.mp4";
       hash = "sha256-gqRbF3IbNbT8CaBNVq9pC3/Pwk6KAGcmIVh9Ra3w4+I=";
     };
     "man_on_desert.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/man_on_desert.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/man_on_desert.png";
       hash = "sha256-whBp9CsHkjTchwo39/JqayRFySWQiQ3FIDGVBnlwx4w=";
     };
     "man_with_dog.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/man_with_dog.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/man_with_dog.png";
       hash = "sha256-hcbPy/0oOuDuHWQPyMlQmjoC4B6TO4OfG/y82c/erLc=";
     };
     "man_with_old_computers.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/man_with_old_computers.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/man_with_old_computers.png";
       hash = "sha256-c+z43v1g+2fSpjoENWPaM6/SKuc1OpGi7mqsb3PJFcg=";
     };
     "man_with_rose.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/man_with_rose.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/man_with_rose.png";
       hash = "sha256-6kbDdp1d7gp//Df4H8wTSQlCDwjWpwV6jIrdpDnnoTg=";
     };
     "midnight_coasta.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/midnight_coasta.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/midnight_coasta.png";
       hash = "sha256-Hvwdc5pptG36UT5dFHzMk70+Ke2Bq4XYvR2X5MJFLx8=";
     };
     "minimalist_sky_view_lounge.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/minimalist_sky_view_lounge.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/minimalist_sky_view_lounge.mp4";
       hash = "sha256-iIUmj68r4Fiel8IDf6PnuGnu1qF7SiA8gRn/DfJKTTk=";
     };
     "minimalist_sky_view_lounge.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/minimalist_sky_view_lounge.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/minimalist_sky_view_lounge.png";
       hash = "sha256-oahzVt/+6WJSN7ckQhi09WZBSnDgQ/CU8YfwTTR8WlI=";
     };
     "minimalist_wooden_sofa_living_room.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/minimalist_wooden_sofa_living_room.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/minimalist_wooden_sofa_living_room.png";
       hash = "sha256-z9AAx6PWD/K5BnCf+oTlF0CPRunLMF/hpdq0p5BfTpk=";
     };
     "mixing_controlnets_pose_input.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/mixing_controlnets_pose_input.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/mixing_controlnets_pose_input.png";
       hash = "sha256-bf8jZZtQ825j0kK9yoQBFlkMgpJivtHVqBmWJ5AHCRI=";
     };
     "mixing_controlnets_scribble_input.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/mixing_controlnets_scribble_input.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/mixing_controlnets_scribble_input.png";
       hash = "sha256-ZNohZPw0CuwdVNR5o/tMiTmG78x3RSv04IO2xFEBHiE=";
     };
     "moonlit_cliff_house.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/moonlit_cliff_house.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/moonlit_cliff_house.png";
       hash = "sha256-sqYb8Ee6Wr7+R2BR4ckpOi4mA3SxG3GZBGtQMlU8VqI=";
     };
     "noisy_background.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/noisy_background.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/noisy_background.mp3";
       hash = "sha256-CrfiCTRQpNVZ1vuQKT+FDZTsmodUYEb0Z9eB/n3P7J8=";
     };
     "normals_input.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/normals_input.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/normals_input.mp4";
       hash = "sha256-VKxbNsuQe05lxT5vCdlI3TxOUUpenBTaOmZkTFbj8ZQ=";
     };
     "nun_in_church-1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/nun_in_church-1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/nun_in_church-1.png";
       hash = "sha256-wnS17j1iMLBJwbienwWbEdFmPyw1lS6h59TJwIFwr34=";
     };
     "nun_in_church-2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/nun_in_church-2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/nun_in_church-2.png";
       hash = "sha256-4CXRlHM984zT4SAsMPFAsWtBUSeAHeeyQXpK+BBNErk=";
     };
     "orange_beauty_trio.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/orange_beauty_trio.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/orange_beauty_trio.png";
       hash = "sha256-3qN/30fP612Wo6iCfswDX/ELmdgCDTiQl4wEVptpiks=";
     };
     "outfit-streetwear.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/outfit-streetwear.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/outfit-streetwear.png";
       hash = "sha256-e1wHTlsOmPCiXeUFFXCc0leuFhnl4Zm0KBhuLfmZwQk=";
     };
     "outfit.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/outfit.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/outfit.png";
       hash = "sha256-ItLaeBPxcvEIhNNGligUvoU5kn6TkFns+h7wX/TACSY=";
     };
     "outfit_image-2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/outfit_image-2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/outfit_image-2.png";
       hash = "sha256-DMDyZgLdFn4RszFbi76hEvuim/ZR+FufwLx3opK7nlA=";
     };
     "pink_robot_back.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/pink_robot_back.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/pink_robot_back.png";
       hash = "sha256-Gwn3cQFrbZtUSo4tAsOuNpZzi25L0huNDvE39xwgfzs=";
     };
     "pink_robot_front.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/pink_robot_front.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/pink_robot_front.png";
       hash = "sha256-H7U44kMYPq8f5bak2CK/RP72+4Doxebj5dompDhdCWU=";
     };
     "pink_tone_chair.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/pink_tone_chair.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/pink_tone_chair.png";
       hash = "sha256-Y1YwPbNE2JRyP24+drRYopv0QHRSLbR03XYoJfXgu0s=";
     };
     "pirates_dancing.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/pirates_dancing.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/pirates_dancing.png";
       hash = "sha256-CYPRHfzLkH1oJEjwA2lLf5dgjileCNUArLFbzqFjohI=";
     };
     "pose_input.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/pose_input.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/pose_input.mp4";
       hash = "sha256-gxRpeVnByFs9QxLCim7mIbReK9YAXpxEKtJNgo8QvRU=";
     };
     "pray.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/pray.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/pray.png";
       hash = "sha256-lnGowwAyvlPwzBAoYmEuEtZR59knln81zSEq3zhkmI8=";
     };
     "prince_and_phoenix.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/prince_and_phoenix.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/prince_and_phoenix.mp4";
       hash = "sha256-1ARWXKSg98nN8virNxyIE3ddMMF+msVLrQckaQyR2PU=";
     };
     "product-cleanser.jpeg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/product-cleanser.jpeg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/product-cleanser.jpeg";
       hash = "sha256-sLl0CZEewHbvL203wUrnFs3sHDgD+Mm8GC+oC4Xnz28=";
     };
     "product-toothbrush.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/product-toothbrush.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/product-toothbrush.png";
       hash = "sha256-KKxSgfsv/el6UeQPK0dUDV/qdcgKkqB/s9+CyF3as8o=";
     };
     "product_car.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/product_car.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/product_car.jpg";
       hash = "sha256-X4b9knKKBYqxEbwS/rJI+ykl39mQOHr7SpBQItaw8A4=";
     };
     "product_shoe.jpeg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/product_shoe.jpeg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/product_shoe.jpeg";
       hash = "sha256-CTMUkZqXGj5B4Byq7ogIPdOpMV53jG+ti8THHdwG9Yg=";
     };
     "puppy_with_blue_bandana.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/puppy_with_blue_bandana.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/puppy_with_blue_bandana.png";
       hash = "sha256-V8gWYimH0vn1lAazlTbTZZ99LgJkmoHcSREunWDJJqM=";
     };
     "quokka_bath.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/quokka_bath.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/quokka_bath.jpg";
       hash = "sha256-pY+wZAAoku7+LIYYNyLVXKXLP81URX6/AdAg9apS/Eo=";
     };
     "quokka_relax.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/quokka_relax.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/quokka_relax.jpg";
       hash = "sha256-2UJwlQ1LXg2LJitTptxVu55zOYW+bjNnA2Krt3rbmqI=";
     };
     "raccoon_rocker.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/raccoon_rocker.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/raccoon_rocker.png";
       hash = "sha256-HqH8helNabUl/ez1fdJ8rVy7qYiDNJh/Vb97scl4w3M=";
     };
     "recraft_style_ref-1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/recraft_style_ref-1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/recraft_style_ref-1.png";
       hash = "sha256-wskUiRTUwi5s5oKmiB37feRMpgzNBrLwtDhoXcb/aTQ=";
     };
     "recraft_style_ref-2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/recraft_style_ref-2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/recraft_style_ref-2.png";
       hash = "sha256-GJ4zJh6dLASpe51att2EEZ3rAh/KqSJCiPEMFmL5Hhk=";
     };
     "recraft_style_ref-3.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/recraft_style_ref-3.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/recraft_style_ref-3.png";
       hash = "sha256-vCHUQ6kK60cI0DbZfsydVslRlZg8VgrI9XSZICc0JT4=";
     };
     "recraft_style_ref-4.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/recraft_style_ref-4.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/recraft_style_ref-4.png";
       hash = "sha256-x9WroH4KCgKbXGfmoT0R+WhbMJmJUZ0RdIdBHzGfahc=";
     };
     "red_car.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/red_car.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/red_car.png";
       hash = "sha256-u87/LYi3ybMxS6IRHI55SwH2WiqiwoEDAUaqX45BqRg=";
     };
     "red_haired_girl.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/red_haired_girl.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/red_haired_girl.jpg";
       hash = "sha256-Ld949sGP6V+SHdx8z4z2/9MxbSf+ji0vK9bfxHcMy9w=";
     };
     "reference_ad.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/reference_ad.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/reference_ad.png";
       hash = "sha256-GK6bTlUEpXtHgmW9r3fyQUMFvQrJqmgj6iT4MdF8liQ=";
     };
     "robed_women.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/robed_women.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/robed_women.png";
       hash = "sha256-5ey7Aw15ndjzC0GWwre2AcSvt1B6m49EKz3H0Y2fFOk=";
     };
     "robot-warrior.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/robot-warrior.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/robot-warrior.png";
       hash = "sha256-O5Fpe3R8LQ6igrjZLROJGsi8ME+x28cIqydZungdmoQ=";
     };
     "robot_office_worker_in_space.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/robot_office_worker_in_space.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/robot_office_worker_in_space.png";
       hash = "sha256-BdwhI2qjy20WGPDcsz40ulKcg58ieo/RYfDwMpdgpOo=";
     };
     "roller_coaster.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/roller_coaster.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/roller_coaster.mp4";
       hash = "sha256-7aeEhp5G02yWu4zuoN38eVJntl+ANwIDAnuVNHvTurs=";
     };
     "sci-fi_mech.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/sci-fi_mech.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/sci-fi_mech.png";
       hash = "sha256-1bHd95QVlTdOnTXTtGO/pWuYVZsQO1RnBP6HEUhezNY=";
     };
     "sd3.5_large_blur_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/sd3.5_large_blur_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/sd3.5_large_blur_input_image.png";
       hash = "sha256-LgiE0IjXv3k16Du6lnYRrYEqgqG2nf8bvm5mAoGpwdw=";
     };
     "sd3.5_large_canny_controlnet_example_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/sd3.5_large_canny_controlnet_example_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/sd3.5_large_canny_controlnet_example_input_image.png";
       hash = "sha256-lLQ9UUmIF4NKXRLalSY0Y8lSN8NqLyM3Bf0FRlwJHAY=";
     };
     "sd3.5_large_depth_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/sd3.5_large_depth_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/sd3.5_large_depth_input_image.png";
       hash = "sha256-DcQmisZx1CungoxQ2m5zDnim1/eNSqZBQp11BZUpSfk=";
     };
     "sdxl_revision_text_prompts_ref_image1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/sdxl_revision_text_prompts_ref_image1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/sdxl_revision_text_prompts_ref_image1.png";
       hash = "sha256-vsexTh5veCMK3cZEhSfT9T7oX8mGd82cYpMtE5yx1K4=";
     };
     "sdxl_revision_text_prompts_ref_image2.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/sdxl_revision_text_prompts_ref_image2.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/sdxl_revision_text_prompts_ref_image2.png";
       hash = "sha256-5OzySXpJaETiYtc4pU+dW1FdgMg8PTRniooag84MdUs=";
     };
     "sheep_knit.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/sheep_knit.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/sheep_knit.jpg";
       hash = "sha256-VUj/0lV+WE4fpU8isunNgAOPBbwAJAs3vZZcYmCl4ng=";
     };
     "silent_sanctuary.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/silent_sanctuary.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/silent_sanctuary.jpg";
       hash = "sha256-rnCEhMPGYlLfG0Z1Q8oWrzAaz3PjVPltpUhP20bl6Jk=";
     };
     "snake_on_jacket.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/snake_on_jacket.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/snake_on_jacket.jpg";
       hash = "sha256-4D8HhhrAgnyXVjMteNEfkJnRzOE4xxJ8fakcLPElMW0=";
     };
     "snow_bike_jump_crew.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/snow_bike_jump_crew.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/snow_bike_jump_crew.png";
       hash = "sha256-BtvIMqR9nndmzswvu6/N9tWz8rjTC7QEBr5l5P82dyM=";
     };
     "snowboard_rush.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/snowboard_rush.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/snowboard_rush.png";
       hash = "sha256-xqP8Cvut8h4SG9Jv7Y6ipTW8E5IP6WmbrEf1FLnW5eA=";
     };
     "spear_warrior.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/spear_warrior.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/spear_warrior.mp4";
       hash = "sha256-nP2vx0UlzY64/Pb0yUBLJ1KWaTBkyrWCgQ2focIfw3k=";
     };
     "sportbike_rider.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/sportbike_rider.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/sportbike_rider.png";
       hash = "sha256-fvjkwyBhOJw5HBySbTbmE4lf9x8XDST1NQNfalNZQfg=";
     };
     "squirrel_in_flower_garden.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/squirrel_in_flower_garden.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/squirrel_in_flower_garden.mp4";
       hash = "sha256-cRsWjljWtOUf94ca9+1skxPAWn9bAwSt+XYMkwOMj68=";
     };
     "street_dancer.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/street_dancer.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/street_dancer.mp4";
       hash = "sha256-/g22opGKO37x2XBGZNTyMmif/RMQyKriwh4mEyDD5M4=";
     };
     "streetwear_fox.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/streetwear_fox.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/streetwear_fox.jpg";
       hash = "sha256-FAlhPd9wYZNcWNGPSdqGYI0UpoSbL1vbLLKJVH/daRE=";
     };
     "subject-1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/subject-1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/subject-1.png";
       hash = "sha256-uzUUyDzapzCgROeUSISqWIZZQROlOwDI2d3rnysh6BU=";
     };
     "subject-elderly-lady-portrait.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/subject-elderly-lady-portrait.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/subject-elderly-lady-portrait.png";
       hash = "sha256-LYyGLdIEdM88YQyXUTAioq6MwpmegXrWu7SQf0S51o0=";
     };
     "subject-girl-holding-skincare-bottle.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/subject-girl-holding-skincare-bottle.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/subject-girl-holding-skincare-bottle.png";
       hash = "sha256-RgNqPi/c1s8uTLlszV7CmqKovxTVKIEJ9tUBZdAvmcI=";
     };
     "subject-profile.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/subject-profile.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/subject-profile.png";
       hash = "sha256-oPzknvwy87EVzKH1m9Y6K+byH7cGTjVrbvKugry3/NI=";
     };
     "subject.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/subject.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/subject.png";
       hash = "sha256-UC4bd3RaUoJuOs7VHeyWl2a7PtM937UieKVdkff/X3c=";
     };
     "subject_leopard_hair_croc_jacket.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/subject_leopard_hair_croc_jacket.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/subject_leopard_hair_croc_jacket.png";
       hash = "sha256-2s+JA4ZIFULEssTe94w+Z6yZtO/d1YHxQ+j90H1RzaI=";
     };
     "sunlit_girl_portrait.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/sunlit_girl_portrait.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/sunlit_girl_portrait.png";
       hash = "sha256-7h9oEoOuy83ixg6yuuctFknKBgMP5WaHrklyYigWNVA=";
     };
     "sunlit_rooftop_capture.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/sunlit_rooftop_capture.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/sunlit_rooftop_capture.png";
       hash = "sha256-OISFIRKuWYP9kWRSwl5UNOEXnFX4hv3LLkX26ZD+CWo=";
     };
     "template-3x3_Grid_For_Product_Ads Assets.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/template-3x3_Grid_For_Product_Ads%20Assets.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/template-3x3_Grid_For_Product_Ads%20Assets.png";
       hash = "sha256-N6WzNJr4vwtJAbP+sEkmdy6N+RIcHCvlUYURettPHtY=";
     };
     "template-Magazine_Cover_&_Packag_Design.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/template-Magazine_Cover_%26_Packag_Design.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/template-Magazine_Cover_%26_Packag_Design.png";
       hash = "sha256-LZSHf9u8g1wxmJUkVHKmq4pkGO+siPUwx6bSvAvb64o=";
     };
     "template_Poster_Scene_Mockups.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/template_Poster_Scene_Mockups.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/template_Poster_Scene_Mockups.jpg";
       hash = "sha256-0HF8NFPt4IEfftjQJ49CBEzKq8GOPpiKkFn0mSV+tdU=";
     };
     "templates-character_sheet_pink_silver_outfit.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/templates-character_sheet_pink_silver_outfit.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/templates-character_sheet_pink_silver_outfit.jpg";
       hash = "sha256-3TwGj+Pr3Y6TYsc0p93q+yW7eH3d752ULN13l2+4xaM=";
     };
     "templates-sprite_sheet_input-sprite-1.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/templates-sprite_sheet_input-sprite-1.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/templates-sprite_sheet_input-sprite-1.png";
       hash = "sha256-vfs+g8j6vA7OJcjktznX85uljneWJnJojfLtPt1O+c4=";
     };
     "texture_fur.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/texture_fur.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/texture_fur.png";
       hash = "sha256-boN/Z4DxseVnTqsk+CisKSDifrj5966DWDt30FfX3Hg=";
     };
     "two_character_talking.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/two_character_talking.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/two_character_talking.png";
       hash = "sha256-iKnXvTgyMEpbZmJsRCiG8Lgt284XYInlBLiur0zDMz4=";
     };
     "two_characters.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/two_characters.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/two_characters.png";
       hash = "sha256-bPEnut+SRKQKyv7MsNilZihkDAGmzv55pjLPgHcdRAg=";
     };
     "utility-audioseparation-audio-input.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/utility-audioseparation-audio-input.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/utility-audioseparation-audio-input.mp3";
       hash = "sha256-lKvD15M5HEbs14loiPlYVSMXjW8lWSLIsZU6ZXNgS00=";
     };
     "utility-lineart-video-input.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/utility-lineart-video-input.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/utility-lineart-video-input.mp4";
       hash = "sha256-Z5UTG5EIuJotD4Fdj1DjqPBeMF1cQjVieKCl1saBoL0=";
     };
     "video_humo_input_audio.wav" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_humo_input_audio.wav";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_humo_input_audio.wav";
       hash = "sha256-TpIIktPTPruKBNdylgoCfxhfpVITzgxgz9DsP68ZHo8=";
     };
     "video_humo_reference_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_humo_reference_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_humo_reference_image.png";
       hash = "sha256-OmZi66CcELctdjy5R8o45xeZi6/FXX0MFPcqFBDuHrA=";
     };
     "video_hunyuan_video_1.5_720p_i2v_input_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_hunyuan_video_1.5_720p_i2v_input_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_hunyuan_video_1.5_720p_i2v_input_image.png";
       hash = "sha256-8lAqnITcI3m920RM/ZXgBX8J0zAO6z8RzpNkdIxmW14=";
     };
     "video_wan2.1_fun_camera_v1.1_1.3B_start_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2.1_fun_camera_v1.1_1.3B_start_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2.1_fun_camera_v1.1_1.3B_start_image.jpg";
       hash = "sha256-/PYZEO01bQ9s4FIanmZJ/qIhBYdOBT2EfW33q59uptU=";
     };
     "video_wan2.1_fun_camera_v1.1_14B_start_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2.1_fun_camera_v1.1_14B_start_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2.1_fun_camera_v1.1_14B_start_image.jpg";
       hash = "sha256-5CsKCe2E2Qwn6Wwp7nVZCK48vdsuLgFVMWzNQ44wt8o=";
     };
     "video_wan2_2_14B_animate_original_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_animate_original_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_animate_original_video.mp4";
       hash = "sha256-YA2ShjHZEmYdwPwWStDBR2wVqsBamjU6XKfdlmy5Nzg=";
     };
     "video_wan2_2_14B_animate_reference_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_animate_reference_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_animate_reference_image.png";
       hash = "sha256-mkYSY6vUJ55xv/YxpQvcoYCezxUFZGYo386nPyVI7Rg=";
     };
     "video_wan2_2_14B_flf2v_end_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_flf2v_end_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_flf2v_end_image.png";
       hash = "sha256-nMzPhtUBvwIroo1EnJxBujg87wQWSlBKyFwJc/NBzO0=";
     };
     "video_wan2_2_14B_flf2v_start_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_flf2v_start_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_flf2v_start_image.png";
       hash = "sha256-9Qpjq2q1QGw5Pdfyl/l5O6OcHwiLxnm3vRikMdjk73g=";
     };
     "video_wan2_2_14B_fun_camera_start_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_fun_camera_start_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_fun_camera_start_image.jpg";
       hash = "sha256-IdA73u+9qfD1Jdg8lF3AgjJrGeBtI5Wh0ajLiTaCRx8=";
     };
     "video_wan2_2_14B_fun_control_start_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_fun_control_start_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_fun_control_start_image.jpg";
       hash = "sha256-f078fvVKMomsFBs9PY+pOpNK4UgAdWKuds/mkSU+j4E=";
     };
     "video_wan2_2_14B_fun_control_start_image_control_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_fun_control_start_image_control_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_fun_control_start_image_control_video.mp4";
       hash = "sha256-8Xs8yRKH1miZgbYkvnZDu5dcXzUEUuEbPmSab/0ySVQ=";
     };
     "video_wan2_2_14B_fun_inpaint_end_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_fun_inpaint_end_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_fun_inpaint_end_image.png";
       hash = "sha256-ZOhYTL4am5VKAlmdqZ2+dAymjYQMRgisanG9oAPfO2M=";
     };
     "video_wan2_2_14B_fun_inpaint_start_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_fun_inpaint_start_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_fun_inpaint_start_image.png";
       hash = "sha256-Sip4aVFcP4iHcH+lZ2Api9RRSVYOkGDR72CC/WafUu8=";
     };
     "video_wan2_2_14B_i2v_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_i2v_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_i2v_input_image.jpg";
       hash = "sha256-u32aN9qx9Qj3I1jlc8YSEpYuM3xE1RHDKF22cMUp4O8=";
     };
     "video_wan2_2_14B_s2v_input_audio.MP3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_s2v_input_audio.MP3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_s2v_input_audio.MP3";
       hash = "sha256-BrU8d36/JDPEIpBEHoe+2uoXp9zuG2r+47YsjpZ76ls=";
     };
     "video_wan2_2_14B_s2v_reference_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_14B_s2v_reference_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_14B_s2v_reference_image.jpg";
       hash = "sha256-zKFDzkYQtckeo0ZbEQAe8/AxZ0HggUHulCy8211daYE=";
     };
     "video_wan2_2_5B_fun_control_control_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_5B_fun_control_control_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_5B_fun_control_control_video.mp4";
       hash = "sha256-/aWvd7LQGOuPMK69OkH/woGICvCUYE0ZpcBAbVX2k5I=";
     };
     "video_wan2_2_5B_fun_control_start_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_5B_fun_control_start_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_5B_fun_control_start_image.png";
       hash = "sha256-4ZrPfVPkV6g8k1PACgMIMLK+88MRMZjSI16wwoyipDA=";
     };
     "video_wan2_2_5B_fun_inpaint_end_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_5B_fun_inpaint_end_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_5B_fun_inpaint_end_image.png";
       hash = "sha256-hGttylHtW/X+f2tdp6bFdB/KpU5bA9y8WOUXYVQejHM=";
     };
     "video_wan2_2_5B_fun_inpaint_start_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan2_2_5B_fun_inpaint_start_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan2_2_5B_fun_inpaint_start_image.png";
       hash = "sha256-J5LnNl5r2kck8wEojx2oWO68kVxu7dUVF3oWhKt2l1Q=";
     };
     "video_wan_ati_input_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan_ati_input_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan_ati_input_image.jpg";
       hash = "sha256-bXOXVVfWxjnuXgVUOGH9DGLoBNx0xvzBLwA6+AKEwLE=";
     };
     "video_wan_vace_14B_ref2v_reference_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan_vace_14B_ref2v_reference_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan_vace_14B_ref2v_reference_image.jpg";
       hash = "sha256-TSjYsviHjq7oLGS59nWrMcCyIWE4hA1cPMJ94C5okGQ=";
     };
     "video_wan_vace_14B_v2v_reference_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan_vace_14B_v2v_reference_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan_vace_14B_v2v_reference_image.jpg";
       hash = "sha256-B8Ok+zQBDojkRv+oWFQ7yl0rnNn5k/ppxYiSDha9OIE=";
     };
     "video_wan_vace_14B_v2v_reference_image_control_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan_vace_14B_v2v_reference_image_control_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan_vace_14B_v2v_reference_image_control_video.mp4";
       hash = "sha256-/00FNekObM3z0MBOjPjuHZZ+k7VTysgw4xAwiQwPaR4=";
     };
     "video_wan_vace_flf2v_end_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan_vace_flf2v_end_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan_vace_flf2v_end_image.png";
       hash = "sha256-Oiaai0GT4KH+SBSjpKnMuZ2HnK+8Kr2pXOR6xlvG+iQ=";
     };
     "video_wan_vace_flf2v_start_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan_vace_flf2v_start_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan_vace_flf2v_start_image.png";
       hash = "sha256-VdcFhHesdmGXU8f6rn/phnN80Magr887NRUj7TCnScU=";
     };
     "video_wan_vace_inpainting_1st_frame_and_mask.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan_vace_inpainting_1st_frame_and_mask.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan_vace_inpainting_1st_frame_and_mask.png";
       hash = "sha256-eaMCTb+vk8nfq56QZdszu6u5yNbwV5dSR8Ef8pjaWRs=";
     };
     "video_wan_vace_inpainting_input_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan_vace_inpainting_input_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan_vace_inpainting_input_video.mp4";
       hash = "sha256-L2ir7bFciZr48opobg8v1FouBx/N9z1vO6hwLT9NEHY=";
     };
     "video_wan_vace_inpainting_reference_image.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan_vace_inpainting_reference_image.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan_vace_inpainting_reference_image.jpg";
       hash = "sha256-B+B07v14EWIhSpo1zfsYtY2ZdFlPbHV6Ic8CQBLzqF4=";
     };
     "video_wan_vace_outpainting_input_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/video_wan_vace_outpainting_input_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/video_wan_vace_outpainting_input_video.mp4";
       hash = "sha256-DSMg0cweB1MJLADKvlTYTOhXCRVeJWwQPeEwDTUN/Q8=";
     };
     "view.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/view.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/view.png";
       hash = "sha256-PeH3lHAuPP/mYh9ufoGV4c173VD3HFzeLBqvNcd1pK4=";
     };
     "vintage-girl.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/vintage-girl.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/vintage-girl.png";
       hash = "sha256-qpOUHd8NyWN6m1JukozY/GB4OE8bRo7cW4zo/JLnluw=";
     };
     "vintage_portrait.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/vintage_portrait.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/vintage_portrait.png";
       hash = "sha256-fbdLrJzzVQxjhh8mGWwNVeoF9/ZL5bV0Y1qnDdtL+mA=";
     };
     "vintage_robot.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/vintage_robot.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/vintage_robot.jpg";
       hash = "sha256-J7GrDmrD1DPKckCONie1hDi50S5txW5cTyWeUaiqH18=";
     };
     "voice_demo.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/voice_demo.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/voice_demo.mp3";
       hash = "sha256-jPmdU9yDTYoRIn+EgfxcqARGJbxu22peTWRg5fpZ660=";
     };
     "vr_ad.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/vr_ad.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/vr_ad.png";
       hash = "sha256-bCRu0Pe6oazVS2XZyd6UHXfY5AvzsZvfEYntCoe/kns=";
     };
     "wan2.1_flf2v_720_f16_end_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wan2.1_flf2v_720_f16_end_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wan2.1_flf2v_720_f16_end_image.png";
       hash = "sha256-np9tFQ8tJmsykY79ojYe+0RcwZuLLTaEt3YDeZAFQ+0=";
     };
     "wan2.1_flf2v_720_f16_start_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wan2.1_flf2v_720_f16_start_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wan2.1_flf2v_720_f16_start_image.png";
       hash = "sha256-dVIU+MkteUFfrHdKbZc/mXon6xaaJ/pSxTvEciUwbaY=";
     };
     "wan2.1_fun_control_control_video.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wan2.1_fun_control_control_video.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wan2.1_fun_control_control_video.mp4";
       hash = "sha256-PyqGyxQWqBC6PMFGIp8ZFNDr165p9iAVZCqy0uEH4AM=";
     };
     "wan2.1_fun_control_start_frame.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wan2.1_fun_control_start_frame.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wan2.1_fun_control_start_frame.png";
       hash = "sha256-DiHMqxIiNQ6WwyUNc+nDyApiGoaVCiNm/5h3VdhpBW4=";
     };
     "wan2.1_fun_inp_end_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wan2.1_fun_inp_end_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wan2.1_fun_inp_end_image.png";
       hash = "sha256-TdiVih+atrSmFlYvRcQO9r5aws51Oq38a40tPRzSrUo=";
     };
     "wan2.1_fun_inp_start_image.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wan2.1_fun_inp_start_image.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wan2.1_fun_inp_start_image.png";
       hash = "sha256-rIhYvO4yn5eZc7D5gFlbTj8j2j5q2WQt7furNjzdUaE=";
     };
     "wan21_scail-input.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wan21_scail-input.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wan21_scail-input.mp4";
       hash = "sha256-NsZAmnOJyWxXCdFJBJNlKQ8nSzGIkJ2R4Hjxq1D6aTY=";
     };
     "wan2_1_infinitetalk_audio.mp3" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wan2_1_infinitetalk_audio.mp3";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wan2_1_infinitetalk_audio.mp3";
       hash = "sha256-qKEDU7wBEITyoNfgKz7ToWWH2JOHW8lfo1V7QKXPK/w=";
     };
     "wan2_1_infinitetalk_first_frame.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wan2_1_infinitetalk_first_frame.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wan2_1_infinitetalk_first_frame.png";
       hash = "sha256-mHXhLMtcGyTNIN1dkwbYqxWUd0CCC/Lo4PIzZR2ntYU=";
     };
     "warm_living_room.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/warm_living_room.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/warm_living_room.png";
       hash = "sha256-hRH0eSSoKbLOS7I9plinr9IjEuGMFc68jzh4wkvMIOU=";
     };
     "wind_woman.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wind_woman.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wind_woman.png";
       hash = "sha256-wh4HSFL49bIWXw0EqJlvER2LQpMd/rBYmf2ngjxkk/s=";
     };
     "woman_behind_veil.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/woman_behind_veil.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/woman_behind_veil.png";
       hash = "sha256-Ebq7caXyPOQ/Uz/+2qOUC6tXZYXkTV1zJC8D48eCX5o=";
     };
     "woman_in_red.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/woman_in_red.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/woman_in_red.png";
       hash = "sha256-2LRwXUpaPjBEPZenpr22QZmSXha5CH8yrBV1QILkapQ=";
     };
     "woman_with_paper.mp4" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/woman_with_paper.mp4";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/woman_with_paper.mp4";
       hash = "sha256-fFB+Fr6qn+mLJ8JFj40x6T6dG3ek/hKEBb8KaXpgLsg=";
     };
     "woman_with_red_hat.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/woman_with_red_hat.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/woman_with_red_hat.png";
       hash = "sha256-LI3PVxo1FVwZvx2OgL5ePjDg5erlO0u6CiW1e/uzU7w=";
     };
     "woman_with_sunbeam.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/woman_with_sunbeam.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/woman_with_sunbeam.jpg";
       hash = "sha256-DCarPnniFu6fKDoFGE3VCQYB2VR9Dil+0LAvX2evbR4=";
     };
     "women_with_blue_orb.jpg" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/women_with_blue_orb.jpg";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/women_with_blue_orb.jpg";
       hash = "sha256-xtwTsjYi2354RNkG80ts7/o0UZBJShK454XK+aqhw20=";
     };
     "women_with_paper.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/women_with_paper.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/women_with_paper.png";
       hash = "sha256-ihT0/qeJpK3B5/ufSbWxTOz2q1p6sPkcgrj1ddRU6g4=";
     };
     "wooden_chair.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wooden_chair.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wooden_chair.png";
       hash = "sha256-QF8EFxGxOBdsVBamuHnwJac6+NnRUqCwlRkicz+KNpU=";
     };
     "wooden_facade_building.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/wooden_facade_building.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/wooden_facade_building.png";
       hash = "sha256-xz+ebhTGH0NM5TiGKT1QKoJYhqB6SiMPW895aPCIEbA=";
     };
     "young_baseball_player.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/young_baseball_player.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/young_baseball_player.png";
       hash = "sha256-1/ajROlYhON/EDmOzRLpK2PufCd8sQgcf9ZAMunMoIQ=";
     };
     "young_woman_portrait.png" = {
-      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/2f4a69987c76b2748b2a6617e47621b3c107ae46/input/young_woman_portrait.png";
+      url = "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/973f809f04c1339ddc3e86e82506fcc31af25d54/input/young_woman_portrait.png";
       hash = "sha256-VSQpjPjvM9EqG6BmfTXVGGqyDltCOPRfcTwFyTVJirA=";
     };
   };

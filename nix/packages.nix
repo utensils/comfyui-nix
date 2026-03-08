@@ -129,6 +129,7 @@ let
         sqlalchemy
         av
         pydantic-settings
+        simpleeval
       ];
       # ComfyUI Manager and common custom node dependencies
       extras =
@@ -200,6 +201,8 @@ let
         ) [ ps.kornia ]
         ++ lib.optionals (ps ? pydantic && available ps.pydantic) [ ps.pydantic ]
         ++ lib.optionals (ps ? spandrel && available ps.spandrel) [ ps.spandrel ]
+        ++ lib.optionals (ps ? pyopengl && available ps.pyopengl) [ ps.pyopengl ]
+        ++ lib.optionals (ps ? glfw && available ps.glfw) [ ps.glfw ]
         ++ lib.optionals (ps ? gitpython && available ps.gitpython) [ ps.gitpython ]
         ++ lib.optionals (ps ? toml && available ps.toml) [ ps.toml ]
         ++ lib.optionals (ps ? rich && available ps.rich) [ ps.rich ]
