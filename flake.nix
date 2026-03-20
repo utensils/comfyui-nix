@@ -131,12 +131,14 @@
           # Docker CUDA images use pre-built wheels (all architectures supported)
           linuxX86PackagesCuda = mkComfyPackages pkgsLinuxX86 { gpuSupport = "cuda"; };
           linuxX86PackagesRocm = mkComfyPackages pkgsLinuxX86 { gpuSupport = "rocm"; };
+          linuxX86PackagesRocmGfx1151 = mkComfyPackages pkgsLinuxX86 { gpuSupport = "rocm-gfx1151"; };
           linuxArm64Packages = mkComfyPackages pkgsLinuxArm64 { };
 
           nativePackages = mkComfyPackages pkgs { };
           # CUDA uses pre-built wheels (supports all GPU architectures)
           nativePackagesCuda = mkComfyPackages pkgs { gpuSupport = "cuda"; };
           nativePackagesRocm = mkComfyPackages pkgs { gpuSupport = "rocm"; };
+          nativePackagesRocmGfx1151 = mkComfyPackages pkgs { gpuSupport = "rocm-gfx1151"; };
 
           pythonEnv = mkPythonEnv pkgs;
 
@@ -189,6 +191,7 @@
             dockerImageLinux = linuxX86Packages.dockerImage;
             dockerImageLinuxCuda = linuxX86PackagesCuda.dockerImageCuda;
             dockerImageLinuxRocm = linuxX86PackagesRocm.dockerImageRocm;
+            dockerImageLinuxRocmGfx1151 = linuxX86PackagesRocmGfx1151.dockerImageRocm;
             dockerImageLinuxArm64 = linuxArm64Packages.dockerImage;
           }
           // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
@@ -200,6 +203,8 @@
             dockerImageCuda = nativePackagesCuda.dockerImageCuda;
             rocm = nativePackagesRocm.default;
             dockerImageRocm = nativePackagesRocm.dockerImageRocm;
+            rocm-gfx1151 = nativePackagesRocmGfx1151.default;
+            dockerImageRocmGfx1151 = nativePackagesRocmGfx1151.dockerImageRocm;
           };
 
           # Expose custom nodes for direct use
@@ -254,6 +259,7 @@
             {
               default = buildShell pythonEnv;
               rocm = buildShell nativePackagesRocm.pythonRuntime;
+              rocm-gfx1151 = buildShell nativePackagesRocmGfx1151.pythonRuntime;
             };
 
           formatter = pkgs.nixfmt-rfc-style;
@@ -288,6 +294,12 @@
               self.packages.${final.system}.rocm
             else
               throw "comfy-ui-rocm is only available on x86_64 Linux";
+          # ROCm gfx1151 variant (x86_64 Linux only) - AMD nightly wheels for Strix Halo APUs
+          comfy-ui-rocm-gfx1151 =
+            if final.stdenv.isLinux && final.stdenv.isx86_64 then
+              self.packages.${final.system}.rocm-gfx1151
+            else
+              throw "comfy-ui-rocm-gfx1151 is only available on x86_64 Linux";
           # Add custom nodes to overlay
           comfyui-custom-nodes = self.legacyPackages.${final.system}.customNodes;
         };

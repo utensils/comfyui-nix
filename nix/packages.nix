@@ -3,13 +3,77 @@
   lib,
   versions,
   pythonOverrides,
-  gpuSupport ? "none", # "none", "cuda", "rocm"
+  gpuSupport ? "none", # "none", "cuda", "rocm", "rocm-gfx1151"
 }:
 let
   useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
-  useRocm = gpuSupport == "rocm" && pkgs.stdenv.isLinux;
+  useRocm = (gpuSupport == "rocm" || gpuSupport == "rocm-gfx1151") && pkgs.stdenv.isLinux;
+  useRocmGfx1151 = gpuSupport == "rocm-gfx1151" && pkgs.stdenv.isLinux;
 
   python = pkgs.python312.override { packageOverrides = pythonOverrides; };
+
+  # ROCm 7.12 runtime libraries from AMD's gfx1151 nightly SDK wheels.
+  # The gfx1151 torch wheels don't bundle ROCm libs (unlike standard ROCm 7.1 wheels),
+  # so we extract the matching ROCm 7.12 runtime from AMD's rocm-sdk-core and
+  # rocm-sdk-libraries-gfx1151 wheels and add them to LD_LIBRARY_PATH at runtime.
+  rocmRuntimeLibs = pkgs.stdenv.mkDerivation {
+    pname = "rocm-runtime-libs";
+    version = "7.12.0a";
+    srcs = [
+      (pkgs.fetchurl {
+        url = versions.pytorchWheels."rocm-gfx1151".rocm-sdk-core.url;
+        hash = versions.pytorchWheels."rocm-gfx1151".rocm-sdk-core.hash;
+      })
+      (pkgs.fetchurl {
+        url = versions.pytorchWheels."rocm-gfx1151".rocm-sdk-libraries.url;
+        hash = versions.pytorchWheels."rocm-gfx1151".rocm-sdk-libraries.hash;
+      })
+    ];
+    nativeBuildInputs = [ pkgs.unzip ];
+    dontUnpack = true;
+    dontConfigure = true;
+    dontBuild = true;
+    dontFixup = true;
+    installPhase = ''
+      mkdir -p $out/lib
+      # Extract both SDK wheels
+      for whl in $srcs; do
+        unzip -qo "$whl" -d _tmp || true
+      done
+      # Copy all shared libraries from the SDK core (hip, hsa, comgr, profiler, etc.)
+      find _tmp/_rocm_sdk_core/lib -name '*.so*' -not -path '*/llvm/*' | while read -r f; do
+        if [[ -f "$f" && ! -L "$f" ]]; then
+          cp -a "$f" $out/lib/
+        fi
+      done
+      # Copy the host-math libs (librocm-openblas, etc.)
+      find _tmp/_rocm_sdk_core/lib/host-math -name '*.so*' 2>/dev/null | while read -r f; do
+        if [[ -f "$f" && ! -L "$f" ]]; then
+          cp -a "$f" $out/lib/
+        fi
+      done
+      # Copy all shared libraries from the SDK math libraries (rocblas, MIOpen, etc.)
+      find _tmp/_rocm_sdk_libraries_gfx1151/lib -maxdepth 1 -name '*.so*' | while read -r f; do
+        if [[ -f "$f" && ! -L "$f" ]]; then
+          cp -a "$f" $out/lib/
+        fi
+      done
+      # Copy gfx1151-specific kernel data (rocblas, hipblaslt .hsaco files)
+      for dir in rocblas hipblaslt hipdnn_plugins; do
+        if [[ -d "_tmp/_rocm_sdk_libraries_gfx1151/lib/$dir" ]]; then
+          cp -a "_tmp/_rocm_sdk_libraries_gfx1151/lib/$dir" $out/lib/
+        fi
+      done
+      # Create unversioned symlinks for libs that only have versioned names.
+      # The dynamic linker needs the SONAME form (e.g. librccl.so.1).
+      for f in $out/lib/*.so.*; do
+        base=$(echo "$(basename "$f")" | sed 's/\.so\..*/\.so/')
+        if [[ ! -e "$out/lib/$base" ]]; then
+          ln -s "$(basename "$f")" "$out/lib/$base"
+        fi
+      done
+    '';
+  };
 
   vendored = import ./vendored-packages.nix { inherit pkgs python versions; };
 
@@ -207,9 +271,9 @@ let
         ++ lib.optionals (ps ? toml && available ps.toml) [ ps.toml ]
         ++ lib.optionals (ps ? rich && available ps.rich) [ ps.rich ]
         ++ lib.optionals (ps ? "comfy-cli" && available ps."comfy-cli") [ ps."comfy-cli" ]
-        # Linux-only packages (CUDA dependencies)
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? bitsandbytes) [ ps.bitsandbytes ]
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? xformers) [ ps.xformers ]
+        # Linux-only packages (CUDA-only: xformers/bitsandbytes are compiled against CUDA)
+        ++ lib.optionals (pkgs.stdenv.isLinux && !useRocm && ps ? bitsandbytes) [ ps.bitsandbytes ]
+        ++ lib.optionals (pkgs.stdenv.isLinux && !useRocm && ps ? xformers) [ ps.xformers ]
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? triton && available ps.triton) [ ps.triton ]
         # Face analysis packages - work on all platforms (insightface override removes mxnet)
         ++ lib.optionals (ps ? insightface) [ ps.insightface ]
@@ -233,27 +297,31 @@ let
 
   # NOTE: Some custom nodes (and some Python wheels) dlopen GUI-related libs at runtime
   # (e.g. OpenCV highgui / Qt platform plugins). Ensure common X11 libs are discoverable.
-  libPath = lib.makeLibraryPath [
-    pkgs.stdenv.cc.cc.lib
-    pkgs.glib
-    pkgs.libGL
-    # X11 / XCB runtime libs (fixes: libxcb.so.1 not found)
-    pkgs.xorg.libxcb
-    pkgs.xorg.libX11
-    pkgs.xorg.libXext
-    pkgs.xorg.libXrender
-    pkgs.xorg.libXfixes
-    pkgs.xorg.libXi
-    pkgs.xorg.libXrandr
-    pkgs.xorg.libXcursor
-    pkgs.xorg.libXcomposite
-    pkgs.xorg.libXdamage
-    pkgs.xorg.libXau
-    pkgs.xorg.libXdmcp
-    pkgs.xorg.libSM
-    pkgs.xorg.libICE
-    pkgs.libxkbcommon
-  ];
+  libPath = lib.makeLibraryPath (
+    [
+      pkgs.stdenv.cc.cc.lib
+      pkgs.glib
+      pkgs.libGL
+      # X11 / XCB runtime libs (fixes: libxcb.so.1 not found)
+      pkgs.xorg.libxcb
+      pkgs.xorg.libX11
+      pkgs.xorg.libXext
+      pkgs.xorg.libXrender
+      pkgs.xorg.libXfixes
+      pkgs.xorg.libXi
+      pkgs.xorg.libXrandr
+      pkgs.xorg.libXcursor
+      pkgs.xorg.libXcomposite
+      pkgs.xorg.libXdamage
+      pkgs.xorg.libXau
+      pkgs.xorg.libXdmcp
+      pkgs.xorg.libSM
+      pkgs.xorg.libICE
+      pkgs.libxkbcommon
+    ]
+    # gfx1151 nightly wheels don't bundle ROCm libs — provide them from the ROCm 7.12 SDK
+    ++ lib.optionals useRocmGfx1151 [ rocmRuntimeLibs ]
+  );
 
   # Platform-specific default data directory
   # macOS: ~/Library/Application Support/comfy-ui (Apple convention)
@@ -411,9 +479,9 @@ let
               fi
             done
 
-            # On macOS, remove Linux-only nodes if they were linked previously
+            # Remove CUDA-only nodes if they were linked previously (macOS or ROCm)
             # Note: PuLID now works on macOS via CoreML (insightface override removes mxnet dependency)
-            if [[ "$(uname)" == "Darwin" ]]; then
+            if [[ "$(uname)" == "Darwin" ]] ${lib.optionalString useRocm "|| true"}; then
               rm -f "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" 2>/dev/null || true
             fi
 
@@ -444,10 +512,12 @@ let
             if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-Florence2" ]]; then
               ln -sf "${customNodes.florence2}" "$BASE_DIR/custom_nodes/ComfyUI-Florence2"
             fi
-            # bitsandbytes requires CUDA (Linux-only)
-            if [[ "$(uname)" != "Darwin" && ! -e "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" ]]; then
-              ln -sf "${customNodes.bitsandbytes-nf4}" "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4"
-            fi
+            # bitsandbytes requires CUDA (excluded on macOS and ROCm)
+            ${lib.optionalString (!useRocm) ''
+              if [[ "$(uname)" != "Darwin" && ! -e "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" ]]; then
+                ln -sf "${customNodes.bitsandbytes-nf4}" "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4"
+              fi
+            ''}
             if [[ ! -e "$BASE_DIR/custom_nodes/x-flux-comfyui" ]]; then
               ln -sf "${customNodes.x-flux}" "$BASE_DIR/custom_nodes/x-flux-comfyui"
             fi
@@ -475,6 +545,18 @@ let
 
             # Set platform-specific library paths for GPU support
             ${libraryPathSetup}
+
+            ${lib.optionalString useRocmGfx1151 ''
+              # gfx1151 (Strix Halo APU) optimizations
+              # Default to native dotted-decimal form; allow override via environment
+              # (e.g. NixOS module's rocmOverrideGfxVersion option)
+              export HSA_OVERRIDE_GFX_VERSION=''${HSA_OVERRIDE_GFX_VERSION:-11.5.1}
+              # Prevent checkerboard artifacts during VAE decode on APUs
+              export HSA_ENABLE_SDMA=''${HSA_ENABLE_SDMA:-0}
+              # ROCm SDK's bundled OpenBLAS lacks OpenMP support — use single-threaded
+              # mode to avoid "Detect OpenMP Loop" warnings (PyTorch uses its own OpenMP)
+              export OPENBLAS_NUM_THREADS=1
+            ''}
 
             # Create a mutable PEP 405 venv structure for ComfyUI-Manager package installs
             # This allows both pip and uv to install packages to a writable location

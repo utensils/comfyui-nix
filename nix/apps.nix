@@ -127,6 +127,15 @@ in
     };
   };
 }
+// pkgs.lib.optionalAttrs (packages ? rocm-gfx1151) {
+  rocm-gfx1151 = {
+    type = "app";
+    program = "${packages.rocm-gfx1151}/bin/comfy-ui";
+    meta = {
+      description = "Run ComfyUI with ROCm for gfx1151 (Strix Halo APU)";
+    };
+  };
+}
 // pkgs.lib.optionalAttrs (packages ? dockerImage) {
   buildDocker = mkApp "build-docker" "Build ComfyUI Docker image (CPU)" ''
     echo "Building Docker image for ComfyUI..."
@@ -152,6 +161,17 @@ in
     echo "ROCm-enabled Docker image built successfully! You can now run it with:"
     echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:rocm"
   '' [ pkgs.docker ];
+}
+// pkgs.lib.optionalAttrs (packages ? dockerImageRocmGfx1151) {
+  buildDockerRocmGfx1151 =
+    mkApp "build-docker-rocm-gfx1151" "Build ComfyUI Docker image with ROCm gfx1151"
+      ''
+        echo "Building Docker image for ComfyUI with ROCm gfx1151 support..."
+        docker load < ${packages.dockerImageRocmGfx1151}
+        echo "ROCm gfx1151 Docker image built successfully! You can now run it with:"
+        echo "docker run --device /dev/kfd --device /dev/dri -p 8188:8188 -v \$PWD/data:/data comfy-ui:rocm-gfx1151"
+      ''
+      [ pkgs.docker ];
 }
 # Cross-platform Docker build apps (always available, use remote builder on non-Linux)
 // pkgs.lib.optionalAttrs (packages ? dockerImageLinux) {
