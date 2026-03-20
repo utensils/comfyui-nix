@@ -128,6 +128,7 @@ let
         alembic
         sqlalchemy
         av
+        blake3
         pydantic-settings
         simpleeval
       ];
@@ -422,46 +423,24 @@ let
               find "$BASE_DIR/web/extensions" -maxdepth 1 -type d ! -writable -exec rm -rf {} \; 2>/dev/null || true
             fi
 
-            # Link bundled nodes
-            if [[ ! -e "$BASE_DIR/custom_nodes/model_downloader" ]]; then
-              ln -sf "${modelDownloaderDir}" "$BASE_DIR/custom_nodes/model_downloader"
-            fi
-            if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-Impact-Pack" ]]; then
-              ln -sf "${customNodes.impact-pack}" "$BASE_DIR/custom_nodes/ComfyUI-Impact-Pack"
-            fi
-            if [[ ! -e "$BASE_DIR/custom_nodes/rgthree-comfy" ]]; then
-              ln -sf "${customNodes.rgthree-comfy}" "$BASE_DIR/custom_nodes/rgthree-comfy"
-            fi
-            if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-KJNodes" ]]; then
-              ln -sf "${customNodes.kjnodes}" "$BASE_DIR/custom_nodes/ComfyUI-KJNodes"
-            fi
-            if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-GGUF" ]]; then
-              ln -sf "${customNodes.gguf}" "$BASE_DIR/custom_nodes/ComfyUI-GGUF"
-            fi
-            if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-LTXVideo" ]]; then
-              ln -sf "${customNodes.ltxvideo}" "$BASE_DIR/custom_nodes/ComfyUI-LTXVideo"
-            fi
-            if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-Florence2" ]]; then
-              ln -sf "${customNodes.florence2}" "$BASE_DIR/custom_nodes/ComfyUI-Florence2"
-            fi
+            # Link bundled nodes (always update symlinks to pick up new Nix store paths)
+            ln -sfn "${modelDownloaderDir}" "$BASE_DIR/custom_nodes/model_downloader"
+            ln -sfn "${customNodes.impact-pack}" "$BASE_DIR/custom_nodes/ComfyUI-Impact-Pack"
+            ln -sfn "${customNodes.rgthree-comfy}" "$BASE_DIR/custom_nodes/rgthree-comfy"
+            ln -sfn "${customNodes.kjnodes}" "$BASE_DIR/custom_nodes/ComfyUI-KJNodes"
+            ln -sfn "${customNodes.gguf}" "$BASE_DIR/custom_nodes/ComfyUI-GGUF"
+            ln -sfn "${customNodes.ltxvideo}" "$BASE_DIR/custom_nodes/ComfyUI-LTXVideo"
+            ln -sfn "${customNodes.florence2}" "$BASE_DIR/custom_nodes/ComfyUI-Florence2"
             # bitsandbytes requires CUDA (Linux-only)
-            if [[ "$(uname)" != "Darwin" && ! -e "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" ]]; then
-              ln -sf "${customNodes.bitsandbytes-nf4}" "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4"
+            if [[ "$(uname)" != "Darwin" ]]; then
+              ln -sfn "${customNodes.bitsandbytes-nf4}" "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4"
             fi
-            if [[ ! -e "$BASE_DIR/custom_nodes/x-flux-comfyui" ]]; then
-              ln -sf "${customNodes.x-flux}" "$BASE_DIR/custom_nodes/x-flux-comfyui"
-            fi
-            if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-MMAudio" ]]; then
-              ln -sf "${customNodes.mmaudio}" "$BASE_DIR/custom_nodes/ComfyUI-MMAudio"
-            fi
+            ln -sfn "${customNodes.x-flux}" "$BASE_DIR/custom_nodes/x-flux-comfyui"
+            ln -sfn "${customNodes.mmaudio}" "$BASE_DIR/custom_nodes/ComfyUI-MMAudio"
             # PuLID - face ID for consistent face generation
             # Works on all platforms: Linux uses CUDA, macOS uses CoreML via onnxruntime
-            if [[ ! -e "$BASE_DIR/custom_nodes/PuLID_ComfyUI" ]]; then
-              ln -sf "${customNodes.pulid}" "$BASE_DIR/custom_nodes/PuLID_ComfyUI"
-            fi
-            if [[ ! -e "$BASE_DIR/custom_nodes/ComfyUI-WanVideoWrapper" ]]; then
-              ln -sf "${customNodes.wanvideo}" "$BASE_DIR/custom_nodes/ComfyUI-WanVideoWrapper"
-            fi
+            ln -sfn "${customNodes.pulid}" "$BASE_DIR/custom_nodes/PuLID_ComfyUI"
+            ln -sfn "${customNodes.wanvideo}" "$BASE_DIR/custom_nodes/ComfyUI-WanVideoWrapper"
 
             # Create default ComfyUI-Manager config if it doesn't exist
             # Note: Manager moved config from user/default/ComfyUI-Manager to user/__manager

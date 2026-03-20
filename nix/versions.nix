@@ -1,9 +1,9 @@
 {
   comfyui = {
-    version = "0.16.4";
-    releaseDate = "2026-03-07T22:37:49Z";
-    rev = "a7a6335be538f55faa2abf7404c9b8e970847d1f";
-    hash = "sha256-wPPsXQytzpb7gSzE4dUT5JME/q03Z2g6pk9RidHNy8A=";
+    version = "0.17.2";
+    releaseDate = "2026-03-15T02:28:33Z";
+    rev = "040460495c5713b852e4aac29a909aa63b309da7";
+    hash = "sha256-jymf2noIR/QUk7pd1yA3Z+HQ1BZdAVM3Wax91G/d35I=";
   };
 
   vendored = {
@@ -14,45 +14,45 @@
     };
 
     frontendPackage = {
-      version = "1.39.19";
-      url = "https://files.pythonhosted.org/packages/a4/26/de6a7662abbbf8a77bab23f3077530a1bebf55473ff68e67c4086466602f/comfyui_frontend_package-1.39.19-py3-none-any.whl";
-      hash = "sha256-WDQ9157KNxutvjVMErm8R8fcWPf5IkO+U34XjfuvIDY=";
+      version = "1.41.20";
+      url = "https://files.pythonhosted.org/packages/3b/e6/f7222e0c17e1f9a91c4cfa04feb759387bf26edd577ea6a9ca6f8e37a99f/comfyui_frontend_package-1.41.20-py3-none-any.whl";
+      hash = "sha256-dLbXqC5K8V88yDh8KeyATuBuSkWUIjT2lf1QYaUCTjU=";
     };
 
     workflowTemplates = {
-      version = "0.9.11";
-      url = "https://files.pythonhosted.org/packages/eb/8c/45932048be4573d780e055288ae734798f36c3d76e6991f2dd38f4e3aa01/comfyui_workflow_templates-0.9.11-py3-none-any.whl";
-      hash = "sha256-C7CwtGBAkNTaSi2S5S2wRIaKT9ktDCSBmng5erM+cZc=";
+      version = "0.9.21";
+      url = "https://files.pythonhosted.org/packages/3f/26/080d3fb30bea9f91b361d640324ef94cc4ed378616f0427704323b707ac5/comfyui_workflow_templates-0.9.21-py3-none-any.whl";
+      hash = "sha256-qC10QM9IZG6Xmedde4ysYBRl89M1p+eLnAMyIqZmya0=";
     };
 
     workflowTemplatesCore = {
-      version = "0.3.159";
-      url = "https://files.pythonhosted.org/packages/36/43/cee9a36447b51f8d62f3cbd9fbf8db37c0bdf31a1f6f8e270633717520b8/comfyui_workflow_templates_core-0.3.159-py3-none-any.whl";
-      hash = "sha256-d2I/9a29/4WFocJwF+8NNF29PiCntfbmoL1te5piCdE=";
+      version = "0.3.168";
+      url = "https://files.pythonhosted.org/packages/8d/05/c8f8419d31d683263bfdf51295ab79e50dfc5434d6ebf7a4c8fbcb9fbe69/comfyui_workflow_templates_core-0.3.168-py3-none-any.whl";
+      hash = "sha256-viY0lsCIXGIY0yeLqPycGmpmsePwwAfgdQY8gpW6A+w=";
     };
 
     workflowTemplatesMediaApi = {
-      version = "0.3.59";
-      url = "https://files.pythonhosted.org/packages/a2/a0/8de362bdc99cdb8c40329910609f4042a74670e35c29e13c199563ecf8ef/comfyui_workflow_templates_media_api-0.3.59-py3-none-any.whl";
-      hash = "sha256-j2IAb/MByv9kiintlmDlpkpYNHuAfeDvwGd2l5GDNcs=";
+      version = "0.3.64";
+      url = "https://files.pythonhosted.org/packages/d5/f6/47c7e4413bb5e30e3a2788b742ce7f6f6bc162a0ab805b8a7f7962ca8860/comfyui_workflow_templates_media_api-0.3.64-py3-none-any.whl";
+      hash = "sha256-6p4Or4rbuct5B3SDQhoyCGoHGYMvyA7czoTiPxoc9Hc=";
     };
 
     workflowTemplatesMediaVideo = {
-      version = "0.3.57";
-      url = "https://files.pythonhosted.org/packages/f6/cc/dab7b5227e206245aa0566e636031f9b3fa8eb4b9986f4a0a83cf3cff5aa/comfyui_workflow_templates_media_video-0.3.57-py3-none-any.whl";
-      hash = "sha256-A35Ix3AKKFczpWC1wcSLL05OLGj3TiWF0rUUnehcaX8=";
+      version = "0.3.60";
+      url = "https://files.pythonhosted.org/packages/6d/a0/6e915c086938572c6e1ae7f1dcffc3b3b44f9898e9a19f4aa0c66f6c977b/comfyui_workflow_templates_media_video-0.3.60-py3-none-any.whl";
+      hash = "sha256-thoDH1amsg5yfg4eZtlxXSo7ogopctM/SPlraIZP990=";
     };
 
     workflowTemplatesMediaImage = {
-      version = "0.3.98";
-      url = "https://files.pythonhosted.org/packages/81/fd/1989fe77a2cc165231dbd7e65427934a63176f7ad5ba8ee708174af31ac1/comfyui_workflow_templates_media_image-0.3.98-py3-none-any.whl";
-      hash = "sha256-CY7b7bV5ht4uxOYt58pJL5O4oL4DGbtGr2WMEo2SYjg=";
+      version = "0.3.104";
+      url = "https://files.pythonhosted.org/packages/e7/da/200a361d7d6880549c76b0e22bdd03dfea9315a0d920b1b99d15da01aa6e/comfyui_workflow_templates_media_image-0.3.104-py3-none-any.whl";
+      hash = "sha256-GMjU/48YtZcSZYmP8S97+JCJhgh06jX+WJgkbK8taLw=";
     };
 
     workflowTemplatesMediaOther = {
-      version = "0.3.131";
-      url = "https://files.pythonhosted.org/packages/bb/25/b923bad1ffcaea2e28e425e1cd556fd6873bd1cfb7f2686f6bb8f6c08ddd/comfyui_workflow_templates_media_other-0.3.131-py3-none-any.whl";
-      hash = "sha256-zQbi0OC/6vAQmJSZ56cFoJT+479B9maQYiGL6goq4Ko=";
+      version = "0.3.141";
+      url = "https://files.pythonhosted.org/packages/a5/b3/179745959152231283dcae2c4db455c7a07d83b51e933ff193938b8e44e8/comfyui_workflow_templates_media_other-0.3.141-py3-none-any.whl";
+      hash = "sha256-lagRSSPtGVZ3Iq6ecQb6pgFlD9am0bPGKvgaksaSiAQ=";
     };
 
     embeddedDocs = {
@@ -62,22 +62,22 @@
     };
 
     manager = {
-      version = "4.0.5";
-      url = "https://files.pythonhosted.org/packages/e3/e2/9ff20f1f14462ed8c13612a26d274ae4adf916ad495292d50319ad46a619/comfyui_manager-4.0.5-py3-none-any.whl";
-      hash = "sha256-mh4ZGoFzWQemx0WItAu2KhFZPrBoXTwZQICAQBfoi00=";
+      version = "4.1b2";
+      url = "https://files.pythonhosted.org/packages/55/72/94ae1dca446db396d6eadc0549a59e51c3477dc7cda5fbfd4d4ead55e83a/comfyui_manager-4.1b2-py3-none-any.whl";
+      hash = "sha256-JeOFpniZ8gdKBOYoW+20A1M11ou833sFIirVwKLS3Us=";
     };
 
     # New ComfyUI core deps (not in nixpkgs)
     comfyKitchen = {
-      version = "0.2.7";
-      url = "https://files.pythonhosted.org/packages/f8/65/d483613734d0b9753bd9bfa297ff334cb2c7766e82306099db6b259b4e2c/comfy_kitchen-0.2.7-py3-none-any.whl";
-      hash = "sha256-+PqlebadMx0vHqwJ6WqVWGwqa5WKVLwZ5/HBp3hS3TY=";
+      version = "0.2.8";
+      url = "https://files.pythonhosted.org/packages/46/b0/64c3e0656db822cb4f7dbc928d6a13cf2cad861cc178e6386114634e355b/comfy_kitchen-0.2.8-py3-none-any.whl";
+      hash = "sha256-CzIpks8Wgevj1BOseVDznlzEJVBcE8740IUnzoL+XjI=";
     };
 
     comfyAimdo = {
-      version = "0.2.7";
-      url = "https://files.pythonhosted.org/packages/cd/b7/aeb11a92468f97dd2ed1fb7ac25a54d6de9cd252dda0d1fb7d2f131cac4c/comfy_aimdo-0.2.7-py3-none-any.whl";
-      hash = "sha256-+VFU9BDtAbybx2qugbvckHc5srl3VedAuHSGYoxwm5U=";
+      version = "0.2.10";
+      url = "https://files.pythonhosted.org/packages/82/bf/8324fc034d07a975292c2dba2443acbf90e7ff8c30584dfdc286a6d8ee4d/comfy_aimdo-0.2.10-py3-none-any.whl";
+      hash = "sha256-d6eTQS1Q+Z9Ux/73tIaQ0UbuYUseIhyjCBVZUQOsAQ4=";
     };
 
     # UI deps some custom nodes expect
