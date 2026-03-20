@@ -158,27 +158,65 @@
     }
   }
 
-  // ── Directory guessing from DOM ──────────────────────────────────────
+  // ── Directory detection ───────────────────────────────────────────────
+  // ComfyUI folder_paths directory names that map to model types
+  const KNOWN_DIRS = [
+    'checkpoints', 'clip', 'clip_vision', 'controlnet', 'diffusion_models',
+    'embeddings', 'gligen', 'hypernetworks', 'loras', 'style_models',
+    'text_encoders', 'unet', 'upscale_models', 'vae', 'vae_approx',
+    'photomaker', 'classifiers', 'mmdets'
+  ];
+
+  // Guess the ComfyUI model directory from the download URL path segments
+  function guessDirectoryFromUrl(url) {
+    try {
+      const segments = new URL(url).pathname.toLowerCase().split('/');
+      // Walk path segments and return the first that matches a known ComfyUI directory
+      for (const seg of segments) {
+        if (KNOWN_DIRS.includes(seg)) return seg;
+      }
+      // Also check for common aliases
+      for (const seg of segments) {
+        if (seg === 'lora') return 'loras';
+        if (seg === 'embedding') return 'embeddings';
+        if (seg === 'checkpoint') return 'checkpoints';
+        if (seg === 'unet') return 'diffusion_models';
+      }
+    } catch (e) { /* ignore */ }
+    return '';
+  }
+
+  // Scan the Missing Models panel DOM for a filename → directory mapping.
+  // The panel groups models under category headers like "text_encoders (1)".
   function guessDirectoryFromDom(filename) {
-    const candidates = document.querySelectorAll('p[title]');
-    for (const el of candidates) {
-      if (el.title !== filename && !el.textContent.trim().startsWith(filename)) continue;
-      let node = el.parentElement;
-      for (let i = 0; i < 10 && node; i++) {
-        const header = node.querySelector('.text-destructive-background-hover');
-        if (header) {
-          const match = header.textContent.trim().match(/^(\S+)/);
-          if (match) return match[1];
+    // Find elements whose text content matches the filename
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let textNode;
+    while ((textNode = walker.nextNode())) {
+      const text = textNode.textContent.trim();
+      if (!text.startsWith(filename)) continue;
+      // Walk up from the matched text node to find a category header
+      // Category headers contain text like "text_encoders (2)" or "vae (1)"
+      let el = textNode.parentElement;
+      for (let i = 0; i < 20 && el; i++) {
+        // Look for sibling or parent elements with category text pattern
+        const siblings = el.parentElement?.children || [];
+        for (const sib of siblings) {
+          const sibText = sib.textContent.trim();
+          const match = sibText.match(/^(\w+)\s*\(\d+\)$/);
+          if (match && KNOWN_DIRS.includes(match[1])) {
+            return match[1];
+          }
         }
-        node = node.parentElement;
+        el = el.parentElement;
       }
     }
-    const headers = document.querySelectorAll('.text-destructive-background-hover');
-    if (headers.length === 1) {
-      const match = headers[0].textContent.trim().match(/^(\S+)/);
-      if (match) return match[1];
-    }
-    return 'checkpoints';
+    return '';
+  }
+
+  // Combined directory detection: URL first, DOM second, default last
+  function detectDirectory(url, filename) {
+    return guessDirectoryFromUrl(url) || guessDirectoryFromDom(filename) || 'checkpoints';
   }
 
   // ── WebSocket message handler ────────────────────────────────────────
@@ -302,7 +340,7 @@
       if (this.download && this.href && !this.isConnected && isTrustedDomain(this.href)) {
         const url = this.href;
         const filename = this.download || url.split('/').pop() || 'model';
-        const folder = guessDirectoryFromDom(filename);
+        const folder = detectDirectory(url, filename);
 
         console.log('[MODEL_DOWNLOADER] Intercepted browser download:', { url, filename, folder });
 
