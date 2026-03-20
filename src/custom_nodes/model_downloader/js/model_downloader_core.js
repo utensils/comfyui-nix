@@ -160,63 +160,128 @@
 
   // ── Directory detection ───────────────────────────────────────────────
   // ComfyUI folder_paths directory names that map to model types
-  const KNOWN_DIRS = [
+  const KNOWN_DIRS = new Set([
     'checkpoints', 'clip', 'clip_vision', 'controlnet', 'diffusion_models',
     'embeddings', 'gligen', 'hypernetworks', 'loras', 'style_models',
     'text_encoders', 'unet', 'upscale_models', 'vae', 'vae_approx',
     'photomaker', 'classifiers', 'mmdets'
-  ];
+  ]);
+
+  // Proactive cache: filename → directory, populated by observing the Missing Models panel
+  const dirCache = {};
+
+  // Scan the DOM for the Missing Models panel and build filename → directory mappings.
+  // The panel groups models under category headers like "loras (1)".
+  // Each model row has a <p title="filename.safetensors"> element.
+  function scanMissingModelsPanel() {
+    // Find all elements whose direct text matches "dirname (N)" pattern
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let textNode;
+    let currentDir = '';
+    const headerElements = [];
+
+    // First pass: find all category headers
+    while ((textNode = walker.nextNode())) {
+      const text = textNode.textContent.trim();
+      const match = text.match(/^(\w+)\s*\(\d+\)$/);
+      if (match && KNOWN_DIRS.has(match[1])) {
+        headerElements.push({ dir: match[1], element: textNode.parentElement });
+      }
+    }
+
+    // Second pass: for each header, find model names in its section
+    for (const header of headerElements) {
+      // Walk up to find the section container (category group)
+      let container = header.element;
+      for (let i = 0; i < 5 && container; i++) {
+        container = container.parentElement;
+      }
+      if (!container) continue;
+
+      // Find all p[title] elements within this container - these have model filenames
+      const modelNames = container.querySelectorAll('p[title]');
+      for (const p of modelNames) {
+        const name = p.getAttribute('title');
+        if (name && name.includes('.')) {
+          dirCache[name] = header.dir;
+        }
+      }
+
+      // Also check text content for filenames (backup)
+      const allText = container.textContent;
+      // Look for .safetensors, .ckpt, .pt, .bin filenames
+      const fileMatches = allText.match(/[\w\-\.]+\.(?:safetensors|ckpt|pt|bin|pth|onnx)/g);
+      if (fileMatches) {
+        for (const fname of fileMatches) {
+          if (!dirCache[fname]) {
+            dirCache[fname] = header.dir;
+          }
+        }
+      }
+    }
+
+    if (Object.keys(dirCache).length > 0) {
+      console.log('[MODEL_DOWNLOADER] Cached directory map:', { ...dirCache });
+    }
+  }
+
+  // Set up a MutationObserver to detect the Missing Models panel appearing
+  function observeMissingModelsPanel() {
+    let scanned = false;
+    const observer = new MutationObserver(() => {
+      // Look for "Missing Models" text appearing in the DOM
+      if (!scanned && document.body.textContent.includes('Missing Models')) {
+        scanMissingModelsPanel();
+        if (Object.keys(dirCache).length > 0) {
+          scanned = true;
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Also scan periodically as fallback
+    const interval = setInterval(() => {
+      if (document.body.textContent.includes('Missing Models')) {
+        scanMissingModelsPanel();
+        if (Object.keys(dirCache).length > 0) {
+          clearInterval(interval);
+        }
+      }
+    }, 2000);
+
+    // Stop polling after 60 seconds
+    setTimeout(() => clearInterval(interval), 60000);
+  }
 
   // Guess the ComfyUI model directory from the download URL path segments
   function guessDirectoryFromUrl(url) {
     try {
       const segments = new URL(url).pathname.toLowerCase().split('/');
-      // Walk path segments and return the first that matches a known ComfyUI directory
       for (const seg of segments) {
-        if (KNOWN_DIRS.includes(seg)) return seg;
+        if (KNOWN_DIRS.has(seg)) return seg;
       }
-      // Also check for common aliases
+      // Common aliases
       for (const seg of segments) {
         if (seg === 'lora') return 'loras';
         if (seg === 'embedding') return 'embeddings';
         if (seg === 'checkpoint') return 'checkpoints';
-        if (seg === 'unet') return 'diffusion_models';
       }
     } catch (e) { /* ignore */ }
     return '';
   }
 
-  // Scan the Missing Models panel DOM for a filename → directory mapping.
-  // The panel groups models under category headers like "text_encoders (1)".
-  function guessDirectoryFromDom(filename) {
-    // Find elements whose text content matches the filename
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    let textNode;
-    while ((textNode = walker.nextNode())) {
-      const text = textNode.textContent.trim();
-      if (!text.startsWith(filename)) continue;
-      // Walk up from the matched text node to find a category header
-      // Category headers contain text like "text_encoders (2)" or "vae (1)"
-      let el = textNode.parentElement;
-      for (let i = 0; i < 20 && el; i++) {
-        // Look for sibling or parent elements with category text pattern
-        const siblings = el.parentElement?.children || [];
-        for (const sib of siblings) {
-          const sibText = sib.textContent.trim();
-          const match = sibText.match(/^(\w+)\s*\(\d+\)$/);
-          if (match && KNOWN_DIRS.includes(match[1])) {
-            return match[1];
-          }
-        }
-        el = el.parentElement;
-      }
-    }
-    return '';
-  }
-
-  // Combined directory detection: URL first, DOM second, default last
+  // Combined directory detection: cache first, URL second, rescan DOM third, default last
   function detectDirectory(url, filename) {
-    return guessDirectoryFromUrl(url) || guessDirectoryFromDom(filename) || 'checkpoints';
+    // 1. Check proactive cache (built from Missing Models panel)
+    if (dirCache[filename]) return dirCache[filename];
+    // 2. Parse URL path for known directory names
+    const fromUrl = guessDirectoryFromUrl(url);
+    if (fromUrl) return fromUrl;
+    // 3. Try rescanning the DOM right now (panel may still be visible)
+    scanMissingModelsPanel();
+    if (dirCache[filename]) return dirCache[filename];
+    // 4. Default
+    return 'checkpoints';
   }
 
   // ── WebSocket message handler ────────────────────────────────────────
@@ -362,13 +427,15 @@
 
   function initialize() {
     interceptBrowserDownloads();
+    observeMissingModelsPanel();
     return true;
   }
 
   // Expose to global scope
   window.modelDownloaderCore = {
     isTrustedDomain, downloadModelWithBackend, interceptBrowserDownloads,
-    initialize, handleMessageEvent, getOrCreateRow, updateRow
+    initialize, handleMessageEvent, getOrCreateRow, updateRow,
+    scanMissingModelsPanel, detectDirectory, dirCache
   };
 
   if (!window.modelDownloader) {
