@@ -112,10 +112,14 @@
       row = document.createElement('div');
       row.className = 'mdl-row';
       row.setAttribute('data-dl-id', downloadId);
-      row.innerHTML = `
-        <div class="mdl-row-name" title="${filename}">${filename}</div>
-        <div class="mdl-row-bar-bg"><div class="mdl-row-bar" style="width:0%"></div></div>
-        <div class="mdl-row-info"><span class="mdl-pct">0%</span><span class="mdl-speed"></span></div>`;
+      const nameEl = document.createElement('div');
+      nameEl.className = 'mdl-row-name';
+      nameEl.setAttribute('title', filename);
+      nameEl.textContent = filename;
+      row.appendChild(nameEl);
+      row.insertAdjacentHTML('beforeend',
+        '<div class="mdl-row-bar-bg"><div class="mdl-row-bar" style="width:0%"></div></div>' +
+        '<div class="mdl-row-info"><span class="mdl-pct">0%</span><span class="mdl-speed"></span></div>');
       panelBodyEl.appendChild(row);
     }
     return row;
@@ -234,6 +238,7 @@
         scanMissingModelsPanel();
         if (Object.keys(dirCache).length > 0) {
           scanned = true;
+          observer.disconnect();
         }
       }
     });
@@ -367,10 +372,9 @@
       const result = await response.json();
 
       if (result.success) {
-        // Map server download ID to our tracking
-        if (window.modelDownloader.activeDownloads[clientDownloadId]) {
-          window.modelDownloader.activeDownloads[clientDownloadId].server_download_id = result.download_id;
-        }
+        // Replace client ID entry with server ID entry to avoid stale duplicates
+        // that prevent checkAllDone() from detecting completion
+        delete window.modelDownloader.activeDownloads[clientDownloadId];
         window.modelDownloader.activeDownloads[result.download_id] = {
           button: button, url, folder, filename,
           status: 'downloading',

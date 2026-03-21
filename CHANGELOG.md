@@ -35,8 +35,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.16.4] - 2026-03-20
 
+### Added
+- RTX 5090 (Blackwell / `sm_120`) CUDA support via PyTorch cu128 wheels (#39)
+- New Python dependencies: `simpleeval`, `pyopengl`, `glfw` for ComfyUI core features
+- CUDA library dependencies: `libcusparseLt`, `libcufile`, `libnvshmem` for cu128 wheels
+
 ### Changed
-- Upgraded ComfyUI from v0.14.2 to v0.16.4 with all vendored deps (#40)
+- Upgraded ComfyUI from v0.14.2 to v0.16.4 (7 upstream releases) (#40)
+- Upgraded CUDA PyTorch wheels from cu124 (2.5.1) to cu128 (2.10.0), supporting Pascal through Blackwell
+- Updated ROCm PyTorch wheels to 2.10.0+rocm7.1
 - Updated `comfyui-frontend-package` 1.38.14 → 1.39.19
 - Updated `comfyui-workflow-templates` 0.8.43 → 0.9.11
 - Updated `comfyui-workflow-templates-core` 0.3.147 → 0.3.159
@@ -45,14 +52,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `comfyui-workflow-templates-media-image` 0.3.90 → 0.3.98
 - Updated `comfyui-workflow-templates-media-other` 0.3.123 → 0.3.131
 - Updated `comfyui-embedded-docs` 0.4.1 → 0.4.3
-- Updated `comfy-kitchen` 0.1.8 → 0.2.7
 - Updated `comfy-aimdo` 0.1.8 → 0.2.7
-- Updated all vendored custom node pins
+- Updated `spandrel` 0.4.1 → 0.4.2
+- Updated custom nodes: ComfyUI-KJNodes, ComfyUI-LTXVideo, ComfyUI-Florence2, ComfyUI-WanVideoWrapper
+
+### Upstream Highlights (v0.14.3 – v0.16.4)
+- Math Expression node using `simpleeval` (replaces JSONata)
+- Database support via `alembic` + `SQLAlchemy` (`--database-url`)
+- 3D rendering via `PyOpenGL` + `glfw`
+- Dynamic VRAM CPU optimization for text encoders
 
 ### Fixed
-- Added RTX 5090 (Blackwell / sm_120) CUDA support (#39)
-- Pinned template input URLs to commit hashes (#36)
-
+- Pin template input URLs to commit SHA instead of mutable `refs/heads/main` branch ref, preventing hash mismatch errors (#36)
+- Fix `sed -re` (GNU-only) → `sed -E` (POSIX-portable) in update script for macOS compatibility (#36)
+- xformers OOM during CUDA build by limiting ninja parallelism (`MAX_JOBS=2`) (#39)
 ## [0.14.2] - 2026-02-19
 
 ### Added
@@ -232,7 +245,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apple Silicon (M-series) support
 - Basic persistence for user data
 
-[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.14.2...HEAD
+[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.16.4...HEAD
+[0.16.4]: https://github.com/utensils/comfyui-nix/compare/v0.14.2...v0.16.4
 [0.14.2]: https://github.com/utensils/comfyui-nix/compare/v0.12.2...v0.14.2
 [0.12.2]: https://github.com/utensils/comfyui-nix/compare/v0.7.0-2...v0.12.2
 [0.7.0-2]: https://github.com/utensils/comfyui-nix/compare/v0.7.0-1...v0.7.0-2
