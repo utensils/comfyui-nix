@@ -195,12 +195,13 @@
 
     // Second pass: for each header, find model names in its section
     for (const header of headerElements) {
-      // Walk up to find the section container (category group)
-      let container = header.element;
-      for (let i = 0; i < 5 && container; i++) {
+      // Walk up until we find a container that holds model name elements
+      let container = header.element.parentElement;
+      while (container && container !== document.body) {
+        if (container.querySelectorAll('p[title]').length > 0) break;
         container = container.parentElement;
       }
-      if (!container) continue;
+      if (!container || container === document.body) continue;
 
       // Find all p[title] elements within this container - these have model filenames
       const modelNames = container.querySelectorAll('p[title]');
@@ -236,10 +237,8 @@
       // Look for "Missing Models" text appearing in the DOM
       if (!scanned && document.body.textContent.includes('Missing Models')) {
         scanMissingModelsPanel();
-        if (Object.keys(dirCache).length > 0) {
-          scanned = true;
-          observer.disconnect();
-        }
+        scanned = true;
+        observer.disconnect();
       }
     });
     observer.observe(document.body, { childList: true, subtree: true });
