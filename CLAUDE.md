@@ -49,7 +49,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Version Management
 
-- Current ComfyUI version: v0.16.4 (pinned in `nix/versions.nix`)
+- Current ComfyUI version: v0.17.2 (pinned in `nix/versions.nix`)
 - To update ComfyUI: modify `version`, `rev`, and `hash` in `nix/versions.nix`
 - Vendored wheels (spandrel, frontend, docs, etc.) also pinned in `nix/versions.nix`
 - Template input files: auto-generated in `nix/template-inputs.nix`
@@ -71,9 +71,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - **apps.nix**: Flake app definitions (run, update, Docker build commands)
   - **docker.nix**: Docker image builders
   - **checks.nix**: CI check definitions (ruff, pyright, nixfmt, shellcheck)
+  - **custom-nodes.nix**: Bundled custom node package definitions
   - **modules/comfyui.nix**: NixOS service module with declarative custom nodes
   - **lib/custom-nodes.nix**: Helper functions for custom node management
 - **scripts/**: Maintenance scripts (update-template-inputs.sh, push-to-cachix.sh, download-pulid-models.sh)
+
+### GPU Support Architecture
+
+The `gpuSupport` parameter is a string enum (`"none"`, `"cuda"`, `"rocm"`) that flows through the entire build:
+
+`flake.nix` → `packages.nix` / `python-overrides.nix` / `docker.nix` / `apps.nix` / `modules/comfyui.nix`
+
+Each module branches on this value to select platform-specific PyTorch wheels, runtime libraries, environment variables, and launcher behavior. When adding a new GPU backend, every file in this chain needs updates.
 
 ### Key Components
 

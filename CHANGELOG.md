@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Upgraded ComfyUI from v0.16.4 to v0.17.2 (3 upstream releases)
+- Updated `comfyui-frontend-package` 1.39.19 → 1.41.20
+- Updated `comfyui-workflow-templates` 0.9.11 → 0.9.21
+- Updated `comfyui-workflow-templates-core` 0.3.159 → 0.3.168
+- Updated `comfyui-workflow-templates-media-api` 0.3.59 → 0.3.64
+- Updated `comfyui-workflow-templates-media-video` 0.3.57 → 0.3.60
+- Updated `comfyui-workflow-templates-media-image` 0.3.98 → 0.3.104
+- Updated `comfyui-workflow-templates-media-other` 0.3.131 → 0.3.141
+- Updated `comfyui-manager` 4.0.5 → 4.1b2
+- Updated `comfy-kitchen` 0.2.7 → 0.2.8
+- Updated `comfy-aimdo` 0.2.7 → 0.2.10
+
+### Added
+- `blake3` Python dependency (new upstream requirement)
+
+### Upstream Highlights (v0.16.5 – v0.17.2)
+- Assets refactor: modular architecture with async two-phase scanner and background seeder
+- Flux 2 Klein KV Cache model support (new `FluxKVCache` node) with lower memory usage
+- Pre-attention patches API for Flux models; post-input patches for Qwen image model
+- New nodes: Painter node, Reve Image API nodes
+- Lora fix for text encoder loading on wrapped models
+- `torch.AcceleratorError` guard for torch < 2.8.0 compatibility
+- Python faulthandler enabled by default for better crash diagnostics
+- Bug fixes: batch_size > 1, OOM handling, audio extraction/truncation, Float gradient_stops
+
 ## [0.16.4] - 2026-03-20
 
 ### Added
@@ -40,7 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pin template input URLs to commit SHA instead of mutable `refs/heads/main` branch ref, preventing hash mismatch errors (#36)
 - Fix `sed -re` (GNU-only) → `sed -E` (POSIX-portable) in update script for macOS compatibility (#36)
 - xformers OOM during CUDA build by limiting ninja parallelism (`MAX_JOBS=2`) (#39)
-
 ## [0.14.2] - 2026-02-19
 
 ### Added
