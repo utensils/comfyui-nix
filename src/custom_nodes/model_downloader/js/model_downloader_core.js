@@ -149,15 +149,17 @@
     }
   }
 
+  let autoHideTimer = null;
+
   function checkAllDone() {
     if (!window.modelDownloader?.activeDownloads) return;
     const all = Object.values(window.modelDownloader.activeDownloads);
     if (all.length === 0) return;
     const done = all.every(d => d.status === 'completed' || d.status === 'error');
-    if (done) {
-      // Auto-hide panel after 8 seconds when all downloads finish
-      setTimeout(() => {
+    if (done && !autoHideTimer) {
+      autoHideTimer = setTimeout(() => {
         if (panelEl) panelEl.style.display = 'none';
+        autoHideTimer = null;
       }, 8000);
     }
   }
@@ -393,8 +395,11 @@
     } catch (error) {
       console.error('[MODEL_DOWNLOADER] Download request failed:', error.message);
       updateRow(clientDownloadId, { status: 'error', error: error.message });
-      if (window.modelDownloader.activeDownloads[clientDownloadId]) {
-        window.modelDownloader.activeDownloads[clientDownloadId].status = 'error';
+      // Entry may have been deleted after server ID mapping; update whichever exists
+      const entry = window.modelDownloader.activeDownloads[clientDownloadId] ||
+        Object.values(window.modelDownloader.activeDownloads).find(d => d.client_id === clientDownloadId);
+      if (entry) {
+        entry.status = 'error';
       }
       throw error;
     }
@@ -402,6 +407,7 @@
 
   // ── Intercept browser-initiated model downloads ──────────────────────
   function interceptBrowserDownloads() {
+    if (HTMLAnchorElement.prototype.click._mdlPatched) return;
     const originalClick = HTMLAnchorElement.prototype.click;
 
     HTMLAnchorElement.prototype.click = function() {
@@ -424,6 +430,7 @@
       }
       return originalClick.call(this);
     };
+    HTMLAnchorElement.prototype.click._mdlPatched = true;
 
     console.log('[MODEL_DOWNLOADER] Browser download interception active');
   }
