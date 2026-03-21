@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.2] - 2026-03-20
+
 ### Changed
 - Upgraded ComfyUI from v0.16.4 to v0.17.2 (3 upstream releases)
 - Updated `comfyui-frontend-package` 1.39.19 → 1.41.20
@@ -245,7 +247,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apple Silicon (M-series) support
 - Basic persistence for user data
 
-[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.16.4...HEAD
+[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.17.2...HEAD
+[0.17.2]: https://github.com/utensils/comfyui-nix/compare/v0.16.4...v0.17.2
 [0.16.4]: https://github.com/utensils/comfyui-nix/compare/v0.14.2...v0.16.4
 [0.14.2]: https://github.com/utensils/comfyui-nix/compare/v0.12.2...v0.14.2
 [0.12.2]: https://github.com/utensils/comfyui-nix/compare/v0.7.0-2...v0.12.2
