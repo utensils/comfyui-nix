@@ -234,6 +234,14 @@ let
 
   # NOTE: Some custom nodes (and some Python wheels) dlopen GUI-related libs at runtime
   # (e.g. OpenCV highgui / Qt platform plugins). Ensure common X11 libs are discoverable.
+  # Torch's bundled libs (libc10.so, libamdhip64.so.7, etc.) must appear before
+  # /run/opengl-driver/lib which may contain older ROCm libs (e.g. libamdhip64.so.6)
+  torchLibPath =
+    if (useCuda || useRocm) then
+      "${python.pkgs.torch}/${python.sitePackages}/torch/lib"
+    else
+      "";
+
   libPath = lib.makeLibraryPath [
     pkgs.stdenv.cc.cc.lib
     pkgs.glib
@@ -275,11 +283,13 @@ let
     else
       ''
         # Linux: Set LD_LIBRARY_PATH for dynamic libraries
-        export LD_LIBRARY_PATH="${libPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        # Torch's bundled libs must come first — /run/opengl-driver/lib may contain
+        # older ROCm libs (e.g. libamdhip64.so.6) that break torch's bundled ROCm 7.1
+        export LD_LIBRARY_PATH="${torchLibPath}${lib.optionalString (torchLibPath != "") ":"}${libPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
-        # Add NVIDIA driver libraries if available (NixOS)
+        # Add NVIDIA/AMD driver libraries if available (NixOS)
         if [[ -d "/run/opengl-driver/lib" ]]; then
-          export LD_LIBRARY_PATH="/run/opengl-driver/lib:$LD_LIBRARY_PATH"
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/run/opengl-driver/lib"
         fi
       '';
 
