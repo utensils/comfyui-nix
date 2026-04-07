@@ -282,17 +282,38 @@
     return '';
   }
 
-  // Combined directory detection: cache first, URL second, rescan DOM third, default last
-  function detectDirectory(url, filename) {
-    // 1. Check proactive cache (built from Missing Models panel)
+  // Ask the backend to resolve which folder a filename belongs to
+  async function resolveDirectoryFromBackend(filename) {
+    try {
+      const resp = await fetch(`/model-downloader/resolve-folder/${encodeURIComponent(filename)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.success && data.folder) {
+          console.log('[MODEL_DOWNLOADER] Backend resolved folder:', data.folder, 'for', filename);
+          dirCache[filename] = data.folder;
+          return data.folder;
+        }
+      }
+    } catch (e) {
+      console.warn('[MODEL_DOWNLOADER] Backend resolve-folder failed:', e);
+    }
+    return '';
+  }
+
+  // Combined directory detection: backend API first, cache second, URL third, default last
+  async function detectDirectory(url, filename) {
+    // 1. Check proactive cache (built from Missing Models panel or previous API calls)
     if (dirCache[filename]) return dirCache[filename];
-    // 2. Parse URL path for known directory names
+    // 2. Ask the backend (searches all folder_paths for existing files)
+    const fromBackend = await resolveDirectoryFromBackend(filename);
+    if (fromBackend) return fromBackend;
+    // 3. Parse URL path for known directory names
     const fromUrl = guessDirectoryFromUrl(url);
     if (fromUrl) return fromUrl;
-    // 3. Try rescanning the DOM right now (panel may still be visible)
+    // 4. Try rescanning the DOM (legacy fallback)
     scanMissingModelsPanel();
     if (dirCache[filename]) return dirCache[filename];
-    // 4. Default
+    // 5. Default
     return 'checkpoints';
   }
 
@@ -420,17 +441,19 @@
       if (this.download && this.href && !this.isConnected && isTrustedDomain(this.href)) {
         const url = this.href;
         const filename = this.download || url.split('/').pop() || 'model';
-        const folder = detectDirectory(url, filename);
+        const self = this;
 
-        console.log('[MODEL_DOWNLOADER] Intercepted browser download:', { url, filename, folder });
-
-        downloadModelWithBackend(url, folder, filename, null)
+        detectDirectory(url, filename)
+          .then(folder => {
+            console.log('[MODEL_DOWNLOADER] Intercepted browser download:', { url, filename, folder });
+            return downloadModelWithBackend(url, folder, filename, null);
+          })
           .then(() => {
             console.log('[MODEL_DOWNLOADER] Backend download started for:', filename);
           })
           .catch(err => {
             console.error('[MODEL_DOWNLOADER] Backend download failed, falling back to browser:', err);
-            originalClick.call(this);
+            originalClick.call(self);
           });
         return;
       }
@@ -451,7 +474,7 @@
   window.modelDownloaderCore = {
     isTrustedDomain, downloadModelWithBackend, interceptBrowserDownloads,
     initialize, handleMessageEvent, getOrCreateRow, updateRow,
-    scanMissingModelsPanel, detectDirectory, dirCache
+    scanMissingModelsPanel, detectDirectory, resolveDirectoryFromBackend, dirCache
   };
 
   if (!window.modelDownloader) {

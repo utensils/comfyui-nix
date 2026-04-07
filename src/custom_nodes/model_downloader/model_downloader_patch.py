@@ -628,6 +628,43 @@ async def list_downloads(request: web.Request) -> web.Response:
         return web.json_response({"success": False, "error": str(e)})
 
 
+async def resolve_folder(request: web.Request) -> web.Response:
+    """Resolve which model folder a filename belongs to.
+
+    Searches all registered folder_paths to find where the filename should live.
+    If the file already exists in a folder, returns that folder. Otherwise
+    returns all folders whose file-extension filter matches the filename.
+    """
+    filename = request.match_info.get("filename", "")
+    if not filename:
+        return web.json_response({"success": False, "error": "Missing filename"})
+
+    ext = os.path.splitext(filename)[1].lower()
+
+    # First pass: check if file already exists in any folder
+    for folder_name, (paths, _extensions) in folder_paths.folder_names_and_paths.items():
+        if folder_name == "custom_nodes":
+            continue
+        for directory in paths:
+            if os.path.isfile(os.path.join(directory, filename)):
+                return web.json_response({"success": True, "folder": folder_name})
+
+    # Second pass: return folders whose extensions match (for missing models)
+    candidates = []
+    for folder_name, (_paths, extensions) in folder_paths.folder_names_and_paths.items():
+        if folder_name == "custom_nodes":
+            continue
+        if ext in extensions or len(extensions) == 0:
+            candidates.append(folder_name)
+
+    if candidates:
+        return web.json_response(
+            {"success": True, "folder": candidates[0], "candidates": candidates}
+        )
+
+    return web.json_response({"success": False, "error": f"No matching folder for {filename}"})
+
+
 def setup_js_api(app: Any, *args: Any, **kwargs: Any) -> Any:
     """
     Compatibility function for ComfyUI extension system.
