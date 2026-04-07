@@ -134,9 +134,7 @@ class TestFindWritablePath:
 class TestPrepareDownloadPath:
     def test_returns_path_when_file_does_not_exist(self, tmp_model_dir):
         full_path = str(tmp_model_dir / "new_model.safetensors")
-        result = asyncio.new_event_loop().run_until_complete(
-            mdp._prepare_download_path("dl_1", full_path, remote_size=1000)
-        )
+        result = asyncio.run(mdp._prepare_download_path("dl_1", full_path, remote_size=1000))
         assert result == full_path
 
     def test_skips_when_file_exists_with_matching_size(self, tmp_model_dir):
@@ -154,7 +152,7 @@ class TestPrepareDownloadPath:
         }
 
         with patch.object(mdp, "send_download_update", new_callable=AsyncMock):
-            result = asyncio.new_event_loop().run_until_complete(
+            result = asyncio.run(
                 mdp._prepare_download_path(download_id, str(model_file), remote_size=5000)
             )
 
@@ -174,7 +172,7 @@ class TestPrepareDownloadPath:
             "filename": "existing.safetensors",
         }
 
-        result = asyncio.new_event_loop().run_until_complete(
+        result = asyncio.run(
             mdp._prepare_download_path(download_id, str(model_file), remote_size=5000)
         )
 
@@ -194,7 +192,7 @@ class TestPrepareDownloadPath:
             "filename": "existing.safetensors",
         }
 
-        result = asyncio.new_event_loop().run_until_complete(
+        result = asyncio.run(
             mdp._prepare_download_path(download_id, str(model_file), remote_size=0)
         )
 
@@ -205,9 +203,7 @@ class TestPrepareDownloadPath:
         new_dir = tmp_path / "new_folder"
         full_path = str(new_dir / "model.safetensors")
 
-        result = asyncio.new_event_loop().run_until_complete(
-            mdp._prepare_download_path("dl_mkdir", full_path, remote_size=1000)
-        )
+        result = asyncio.run(mdp._prepare_download_path("dl_mkdir", full_path, remote_size=1000))
 
         assert result == full_path
         assert new_dir.is_dir()
@@ -384,63 +380,60 @@ class TestDownloadModelHandler:
 
     def test_rejects_missing_params(self):
         request = self._make_request({"url": "https://example.com/model.st"})
-        response = asyncio.new_event_loop().run_until_complete(mdp.download_model(request))
+        response = asyncio.run(mdp.download_model(request))
         body = json.loads(response.body)
         assert body["success"] is False
         assert "Missing required parameters" in body["error"]
 
     def test_rejects_invalid_folder(self):
-        _folder_paths_mock.get_folder_paths.side_effect = KeyError("invalid_folder")  # type: ignore[attr-defined]
-
-        request = self._make_request(
-            {
-                "url": "https://example.com/model.st",
-                "folder": "invalid_folder",
-                "filename": "model.st",
-            }
-        )
-        response = asyncio.new_event_loop().run_until_complete(mdp.download_model(request))
-        body = json.loads(response.body)
-        assert body["success"] is False
-        assert "Invalid folder" in body["error"]
-
-        _folder_paths_mock.get_folder_paths.side_effect = None  # type: ignore[attr-defined]
+        with patch.object(
+            _folder_paths_mock, "get_folder_paths", side_effect=KeyError("invalid_folder")
+        ):
+            request = self._make_request(
+                {
+                    "url": "https://example.com/model.st",
+                    "folder": "invalid_folder",
+                    "filename": "model.st",
+                }
+            )
+            response = asyncio.run(mdp.download_model(request))
+            body = json.loads(response.body)
+            assert body["success"] is False
+            assert "Invalid folder" in body["error"]
 
     def test_rejects_no_writable_path(self, tmp_readonly_dir):
-        _folder_paths_mock.get_folder_paths.return_value = [str(tmp_readonly_dir)]  # type: ignore[attr-defined]
-
-        request = self._make_request(
-            {
-                "url": "https://example.com/model.st",
-                "folder": "checkpoints",
-                "filename": "model.st",
-            }
-        )
-        response = asyncio.new_event_loop().run_until_complete(mdp.download_model(request))
-        body = json.loads(response.body)
-        assert body["success"] is False
-        assert "No writable directory" in body["error"]
-
-        _folder_paths_mock.get_folder_paths.return_value = ["/data/models/checkpoints"]  # type: ignore[attr-defined]
+        with patch.object(
+            _folder_paths_mock, "get_folder_paths", return_value=[str(tmp_readonly_dir)]
+        ):
+            request = self._make_request(
+                {
+                    "url": "https://example.com/model.st",
+                    "folder": "checkpoints",
+                    "filename": "model.st",
+                }
+            )
+            response = asyncio.run(mdp.download_model(request))
+            body = json.loads(response.body)
+            assert body["success"] is False
+            assert "No writable directory" in body["error"]
 
     def test_queues_download_successfully(self, tmp_model_dir):
-        _folder_paths_mock.get_folder_paths.return_value = [str(tmp_model_dir)]  # type: ignore[attr-defined]
-        _prompt_server_instance.loop.create_task = MagicMock()
-
-        request = self._make_request(
-            {
-                "url": "https://huggingface.co/model/resolve/main/model.safetensors",
-                "folder": "checkpoints",
-                "filename": "model.safetensors",
-            }
-        )
-        response = asyncio.new_event_loop().run_until_complete(mdp.download_model(request))
-        body = json.loads(response.body)
-        assert body["success"] is True
-        assert body["status"] == "queued"
-        assert "download_id" in body
-
-        _folder_paths_mock.get_folder_paths.return_value = ["/data/models/checkpoints"]  # type: ignore[attr-defined]
+        with patch.object(
+            _folder_paths_mock, "get_folder_paths", return_value=[str(tmp_model_dir)]
+        ):
+            _prompt_server_instance.loop.create_task = MagicMock()
+            request = self._make_request(
+                {
+                    "url": "https://huggingface.co/model/resolve/main/model.safetensors",
+                    "folder": "checkpoints",
+                    "filename": "model.safetensors",
+                }
+            )
+            response = asyncio.run(mdp.download_model(request))
+            body = json.loads(response.body)
+            assert body["success"] is True
+            assert body["status"] == "queued"
+            assert "download_id" in body
 
 
 # ---------------------------------------------------------------------------
@@ -461,7 +454,7 @@ class TestSendDownloadUpdate:
             "error": None,
         }
 
-        asyncio.new_event_loop().run_until_complete(mdp.send_download_update("dl_ws"))
+        asyncio.run(mdp.send_download_update("dl_ws"))
 
         _prompt_server_instance.send_sync.assert_called()
         call_args = _prompt_server_instance.send_sync.call_args
@@ -470,4 +463,4 @@ class TestSendDownloadUpdate:
 
     def test_ignores_missing_download(self):
         # Should not raise
-        asyncio.new_event_loop().run_until_complete(mdp.send_download_update("nonexistent"))
+        asyncio.run(mdp.send_download_update("nonexistent"))

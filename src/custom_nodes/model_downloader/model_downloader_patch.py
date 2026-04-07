@@ -139,15 +139,16 @@ def _find_writable_path(folder_paths_list: list[str], filename: str) -> str | No
     for directory in folder_paths_list:
         if os.path.isdir(directory) and os.access(directory, os.W_OK):
             return os.path.join(directory, filename)
-    # If no existing writable dir, try creating the first one
-    if folder_paths_list:
-        first_dir = folder_paths_list[0]
+    # If no existing writable dir, try creating each non-existent directory in order
+    for directory in folder_paths_list:
+        if os.path.isdir(directory):
+            continue  # already confirmed not writable above
         try:
-            os.makedirs(first_dir, exist_ok=True)
-            if os.access(first_dir, os.W_OK):
-                return os.path.join(first_dir, filename)
+            os.makedirs(directory, exist_ok=True)
+            if os.access(directory, os.W_OK):
+                return os.path.join(directory, filename)
         except OSError:
-            pass
+            continue
     return None
 
 
