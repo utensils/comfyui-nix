@@ -137,6 +137,11 @@
       bar.classList.add('done');
       pctEl.textContent = 'Complete';
       speedEl.textContent = '';
+    } else if (data.status === 'skipped') {
+      bar.style.width = '100%';
+      bar.classList.add('done');
+      pctEl.textContent = 'Already exists';
+      speedEl.textContent = 'Skipped';
     } else if (data.status === 'error') {
       bar.classList.add('fail');
       pctEl.textContent = 'Failed';
@@ -155,7 +160,7 @@
     if (!window.modelDownloader?.activeDownloads) return;
     const all = Object.values(window.modelDownloader.activeDownloads);
     if (all.length === 0) return;
-    const done = all.every(d => d.status === 'completed' || d.status === 'error');
+    const done = all.every(d => d.status === 'completed' || d.status === 'skipped' || d.status === 'error');
     if (done && !autoHideTimer) {
       autoHideTimer = setTimeout(() => {
         if (panelEl) panelEl.style.display = 'none';
@@ -167,10 +172,11 @@
   // ── Directory detection ───────────────────────────────────────────────
   // ComfyUI folder_paths directory names that map to model types
   const KNOWN_DIRS = new Set([
-    'checkpoints', 'clip', 'clip_vision', 'controlnet', 'diffusion_models',
-    'embeddings', 'gligen', 'hypernetworks', 'loras', 'style_models',
-    'text_encoders', 'unet', 'upscale_models', 'vae', 'vae_approx',
-    'photomaker', 'classifiers', 'mmdets'
+    'checkpoints', 'classifiers', 'clip', 'clip_vision', 'configs',
+    'controlnet', 'diffusers', 'diffusion_models', 'embeddings', 'gligen',
+    'hypernetworks', 'loras', 'mmdets', 'photomaker', 'style_models',
+    't2i_adapter', 'text_encoders', 'unet', 'upscale_models', 'vae',
+    'vae_approx'
   ]);
 
   // Proactive cache: filename → directory, populated by observing the Missing Models panel
@@ -276,17 +282,38 @@
     return '';
   }
 
-  // Combined directory detection: cache first, URL second, rescan DOM third, default last
-  function detectDirectory(url, filename) {
-    // 1. Check proactive cache (built from Missing Models panel)
+  // Ask the backend to resolve which folder a filename belongs to
+  async function resolveDirectoryFromBackend(filename) {
+    try {
+      const resp = await fetch(`/model-downloader/resolve-folder/${encodeURIComponent(filename)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.success && data.folder) {
+          console.log('[MODEL_DOWNLOADER] Backend resolved folder:', data.folder, 'for', filename);
+          dirCache[filename] = data.folder;
+          return data.folder;
+        }
+      }
+    } catch (e) {
+      console.warn('[MODEL_DOWNLOADER] Backend resolve-folder failed:', e);
+    }
+    return '';
+  }
+
+  // Combined directory detection: backend API first, cache second, URL third, default last
+  async function detectDirectory(url, filename) {
+    // 1. Check proactive cache (built from Missing Models panel or previous API calls)
     if (dirCache[filename]) return dirCache[filename];
-    // 2. Parse URL path for known directory names
+    // 2. Ask the backend (searches all folder_paths for existing files)
+    const fromBackend = await resolveDirectoryFromBackend(filename);
+    if (fromBackend) return fromBackend;
+    // 3. Parse URL path for known directory names
     const fromUrl = guessDirectoryFromUrl(url);
     if (fromUrl) return fromUrl;
-    // 3. Try rescanning the DOM right now (panel may still be visible)
+    // 4. Try rescanning the DOM (legacy fallback)
     scanMissingModelsPanel();
     if (dirCache[filename]) return dirCache[filename];
-    // 4. Default
+    // 5. Default
     return 'checkpoints';
   }
 
@@ -323,7 +350,7 @@
       // Update the progress panel row
       updateRow(messageData.download_id, messageData);
 
-      if (messageData.status === 'completed' || messageData.status === 'error') {
+      if (messageData.status === 'completed' || messageData.status === 'skipped' || messageData.status === 'error') {
         if (downloadData) downloadData.status = messageData.status;
         if (!window.modelDownloader.completedDownloads) {
           window.modelDownloader.completedDownloads = {};
@@ -414,17 +441,19 @@
       if (this.download && this.href && !this.isConnected && isTrustedDomain(this.href)) {
         const url = this.href;
         const filename = this.download || url.split('/').pop() || 'model';
-        const folder = detectDirectory(url, filename);
+        const self = this;
 
-        console.log('[MODEL_DOWNLOADER] Intercepted browser download:', { url, filename, folder });
-
-        downloadModelWithBackend(url, folder, filename, null)
+        detectDirectory(url, filename)
+          .then(folder => {
+            console.log('[MODEL_DOWNLOADER] Intercepted browser download:', { url, filename, folder });
+            return downloadModelWithBackend(url, folder, filename, null);
+          })
           .then(() => {
             console.log('[MODEL_DOWNLOADER] Backend download started for:', filename);
           })
           .catch(err => {
             console.error('[MODEL_DOWNLOADER] Backend download failed, falling back to browser:', err);
-            originalClick.call(this);
+            originalClick.call(self);
           });
         return;
       }
@@ -445,7 +474,7 @@
   window.modelDownloaderCore = {
     isTrustedDomain, downloadModelWithBackend, interceptBrowserDownloads,
     initialize, handleMessageEvent, getOrCreateRow, updateRow,
-    scanMissingModelsPanel, detectDirectory, dirCache
+    scanMissingModelsPanel, detectDirectory, resolveDirectoryFromBackend, dirCache
   };
 
   if (!window.modelDownloader) {

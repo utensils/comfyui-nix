@@ -130,11 +130,35 @@ def _auth_headers_for_url(url: str) -> dict[str, str]:
     return {}
 
 
+def _find_writable_path(folder_paths_list: list[str], filename: str) -> str | None:
+    """Find a writable directory from the folder_paths list.
+
+    Returns the full path (directory + filename) for the first directory that
+    is writable, or None if no writable path is found.
+    """
+    for directory in folder_paths_list:
+        if os.path.isdir(directory) and os.access(directory, os.W_OK):
+            return os.path.join(directory, filename)
+    # If no existing writable dir, try creating each non-existent directory in order
+    for directory in folder_paths_list:
+        if os.path.isdir(directory):
+            continue  # already confirmed not writable above
+        try:
+            os.makedirs(directory, exist_ok=True)
+            if os.access(directory, os.W_OK):
+                return os.path.join(directory, filename)
+        except OSError:
+            continue
+    return None
+
+
 async def download_model(request: web.Request) -> web.Response:
     """
     Handle POST requests to download models.
 
     This function returns IMMEDIATELY after starting a background download.
+    If the file already exists with a matching size, the download is skipped
+    and a "skipped" status is returned via WebSocket.
 
     Args:
         request: The aiohttp request object.
@@ -161,14 +185,22 @@ async def download_model(request: web.Request) -> web.Response:
             return web.json_response({"success": False, "error": "Missing required parameters"})
 
         # Get the model folder path
-        folder_path = folder_paths.get_folder_paths(folder)
+        try:
+            folder_path = folder_paths.get_folder_paths(folder)
+        except KeyError:
+            folder_path = []
 
         if not folder_path:
             logger.error("Invalid folder: %s", folder)
             return web.json_response({"success": False, "error": f"Invalid folder: {folder}"})
 
-        # Create the full path for the file
-        full_path = os.path.join(folder_path[0], filename)
+        # Find a writable directory from the available paths
+        full_path = _find_writable_path(folder_path, filename)
+        if full_path is None:
+            logger.error("No writable directory found for folder: %s", folder)
+            return web.json_response(
+                {"success": False, "error": f"No writable directory for folder: {folder}"}
+            )
 
         logger.info("Will download model to %s", full_path)
 
@@ -261,6 +293,8 @@ async def download_file(download_id: str, url: str, full_path: str) -> None:
     Background task to download a file and update progress.
 
     Uses aiohttp for non-blocking downloads that won't starve the event loop.
+    If the file already exists with a size matching the remote Content-Length,
+    the download is skipped and a "skipped" notification is sent.
 
     Args:
         download_id: Unique identifier for this download.
@@ -270,11 +304,6 @@ async def download_file(download_id: str, url: str, full_path: str) -> None:
     try:
         logger.info("Starting download task for %s from %s to %s", download_id, url, full_path)
 
-        # Prepare destination directory
-        prepared_path = await _prepare_download_path(download_id, full_path)
-        if prepared_path is None:
-            return
-
         # Auth headers (needed for gated HuggingFace models)
         headers = _auth_headers_for_url(url)
 
@@ -282,8 +311,21 @@ async def download_file(download_id: str, url: str, full_path: str) -> None:
         timeout = ClientTimeout(total=None, connect=30, sock_connect=30, sock_read=30)
 
         async with ClientSession(timeout=timeout) as session:
-            # Get file size via HEAD request
+            # Get file size via HEAD request first (needed for skip-if-exists check)
             await _fetch_content_length(session, download_id, url, headers=headers)
+
+            remote_size = 0
+            if download_id in active_downloads:
+                remote_size = active_downloads[download_id].get("total_size", 0)
+
+            # Prepare destination directory (may skip if file exists with same size)
+            prepared_path = await _prepare_download_path(download_id, full_path, remote_size)
+            if prepared_path is None:
+                # Either skipped (file exists) or error — both already notified
+                # Clean up after visibility timeout (same as completed downloads)
+                await asyncio.sleep(60)
+                active_downloads.pop(download_id, None)
+                return
 
             # Download the file
             await _download_with_progress(session, download_id, url, prepared_path, headers=headers)
@@ -301,8 +343,14 @@ async def download_file(download_id: str, url: str, full_path: str) -> None:
             await send_download_update(download_id)
 
 
-async def _prepare_download_path(download_id: str, full_path: str) -> str | None:
-    """Prepare the download path, creating directories and handling conflicts."""
+async def _prepare_download_path(download_id: str, full_path: str, remote_size: int) -> str | None:
+    """Prepare the download path, creating directories and handling conflicts.
+
+    If the file already exists and its size matches *remote_size*, the download
+    is skipped — a "skipped" status is sent via WebSocket and ``None`` is returned.
+    When *remote_size* is 0 (unknown) the size check is skipped and the existing
+    file is kept by appending a timestamp to the new download.
+    """
     try:
         target_directory = os.path.dirname(full_path)
         if not os.path.exists(target_directory):
@@ -311,7 +359,31 @@ async def _prepare_download_path(download_id: str, full_path: str) -> str | None
 
         # Handle existing file conflicts
         if os.path.exists(full_path):
-            logger.warning("File already exists at %s. Adding timestamp.", full_path)
+            local_size = os.path.getsize(full_path)
+
+            # If remote size is known and matches, skip the download entirely
+            if remote_size > 0 and local_size == remote_size:
+                logger.info(
+                    "File already exists at %s with matching size (%d bytes). Skipping download.",
+                    full_path,
+                    local_size,
+                )
+                if download_id in active_downloads:
+                    active_downloads[download_id]["status"] = "skipped"
+                    active_downloads[download_id]["total_size"] = local_size
+                    active_downloads[download_id]["downloaded"] = local_size
+                    active_downloads[download_id]["percent"] = 100
+                    active_downloads[download_id]["end_time"] = time.time()
+                    await send_download_update(download_id)
+                return None
+
+            # Size mismatch or unknown — append timestamp to avoid overwriting
+            logger.warning(
+                "File already exists at %s (local=%d, remote=%d). Adding timestamp.",
+                full_path,
+                local_size,
+                remote_size,
+            )
             filename_parts = os.path.splitext(os.path.basename(full_path))
             timestamped_filename = f"{filename_parts[0]}_{int(time.time())}{filename_parts[1]}"
             full_path = os.path.join(target_directory, timestamped_filename)
@@ -512,6 +584,8 @@ async def send_download_update(download_id: str) -> None:
 
     if download["status"] == "completed":
         logger.info("Download complete: %s", download.get("filename", ""))
+    elif download["status"] == "skipped":
+        logger.info("Download skipped (file exists): %s", download.get("filename", ""))
     elif download["status"] == "error":
         logger.info("Download error: %s", download.get("error", ""))
 
@@ -551,6 +625,30 @@ async def list_downloads(request: web.Request) -> web.Response:
         return web.json_response({"success": True, "downloads": active_downloads})
     except (TypeError, ValueError) as e:
         return web.json_response({"success": False, "error": str(e)})
+
+
+async def resolve_folder(request: web.Request) -> web.Response:
+    """Resolve which model folder a filename belongs to.
+
+    Searches all registered folder_paths to find where the file actually exists
+    on disk. Only returns a folder when the file is found — does NOT guess based
+    on file extension, since extensions like .safetensors are shared across many
+    folder types. When the file is not found, returns success=False so the
+    frontend can fall back to its URL/DOM-based heuristics.
+    """
+    filename = request.match_info.get("filename", "")
+    if not filename:
+        return web.json_response({"success": False, "error": "Missing filename"})
+
+    # Search all model folders for the file
+    for folder_name, (paths, _extensions) in folder_paths.folder_names_and_paths.items():
+        if folder_name == "custom_nodes":
+            continue
+        for directory in paths:
+            if os.path.isfile(os.path.join(directory, filename)):
+                return web.json_response({"success": True, "folder": folder_name})
+
+    return web.json_response({"success": False, "error": f"File not found: {filename}"})
 
 
 def setup_js_api(app: Any, *args: Any, **kwargs: Any) -> Any:

@@ -39,6 +39,7 @@ DownloadHandler = Callable[["web.Request"], Awaitable["web.Response"]]
 _download_model_handler: DownloadHandler | None = None
 _get_download_progress_handler: DownloadHandler | None = None
 _list_downloads_handler: DownloadHandler | None = None
+_resolve_folder_handler: DownloadHandler | None = None
 
 try:
     spec = importlib.util.spec_from_file_location(
@@ -55,6 +56,7 @@ try:
     _download_model_handler = model_downloader_patch.download_model
     _get_download_progress_handler = model_downloader_patch.get_download_progress
     _list_downloads_handler = model_downloader_patch.list_downloads
+    _resolve_folder_handler = model_downloader_patch.resolve_folder
 
     logger.info("Successfully imported model downloader module")
 except ImportError:
@@ -88,6 +90,15 @@ async def list_downloads(request: Any) -> Any:
     return web.json_response({"success": False, "error": "Model downloader not available"})
 
 
+async def resolve_folder(request: Any) -> Any:
+    """Resolve folder handler - delegates to loaded module or returns error."""
+    if _resolve_folder_handler is not None:
+        return await _resolve_folder_handler(request)
+    from aiohttp import web
+
+    return web.json_response({"success": False, "error": "Model downloader not available"})
+
+
 def setup_js_api(app: Any, *args: Any, **kwargs: Any) -> Any:
     """
     Define API handler for ComfyUI extension system.
@@ -113,6 +124,7 @@ def setup_js_api(app: Any, *args: Any, **kwargs: Any) -> Any:
         "/model-downloader/download",
         "/model-downloader/progress/",
         "/model-downloader/downloads",
+        "/model-downloader/resolve-folder/",
     ]
 
     # Check if any of our routes already exist
@@ -136,6 +148,10 @@ def setup_js_api(app: Any, *args: Any, **kwargs: Any) -> Any:
     if "/model-downloader/downloads" not in existing_routes:
         app.router.add_get("/model-downloader/downloads", list_downloads)
         logger.info("Registered /model-downloader/downloads endpoint")
+
+    if "/model-downloader/resolve-folder/" not in existing_routes:
+        app.router.add_get("/model-downloader/resolve-folder/{filename}", resolve_folder)
+        logger.info("Registered /model-downloader/resolve-folder endpoint")
 
     logger.info("Model downloader API endpoints registered successfully")
     return app
