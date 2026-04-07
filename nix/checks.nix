@@ -7,6 +7,25 @@
 {
   package = packages.default;
 
+  pytest =
+    let
+      pytestPython = pkgs.python3.withPackages (ps: [ ps.pytest ]);
+    in
+    pkgs.runCommand "pytest"
+      {
+        nativeBuildInputs = [ pytestPython ];
+        src = source;
+      }
+      ''
+        cp -r $src source
+        chmod -R u+w source
+        cd source
+        PYTHONPATH=src/custom_nodes/model_downloader \
+          ${pytestPython}/bin/pytest \
+          src/custom_nodes/model_downloader/test_model_downloader.py -v
+        touch $out
+      '';
+
   ruff-check =
     pkgs.runCommand "ruff-check"
       {

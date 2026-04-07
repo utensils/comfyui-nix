@@ -347,7 +347,7 @@ let
             # Create directory structure (idempotent)
             mkdir -p "$BASE_DIR"/{models,output,input,user,custom_nodes,temp,web}
             mkdir -p "$BASE_DIR/web/extensions"
-            mkdir -p "$BASE_DIR/models"/{checkpoints,loras,vae,controlnet,embeddings,upscale_models,clip,clip_vision,diffusion_models,text_encoders,unet,configs,diffusers,vae_approx,gligen,hypernetworks,photomaker,style_models}
+            mkdir -p "$BASE_DIR/models"/{checkpoints,loras,vae,controlnet,embeddings,upscale_models,clip,clip_vision,diffusion_models,text_encoders,unet,configs,diffusers,vae_approx,gligen,hypernetworks,photomaker,style_models,classifiers,t2i_adapter}
 
             # Expose base dir for custom nodes that need a writable location (Nix store is read-only)
             export COMFYUI_BASE_DIR="$BASE_DIR"

@@ -137,6 +137,11 @@
       bar.classList.add('done');
       pctEl.textContent = 'Complete';
       speedEl.textContent = '';
+    } else if (data.status === 'skipped') {
+      bar.style.width = '100%';
+      bar.classList.add('done');
+      pctEl.textContent = 'Already exists';
+      speedEl.textContent = 'Skipped';
     } else if (data.status === 'error') {
       bar.classList.add('fail');
       pctEl.textContent = 'Failed';
@@ -155,7 +160,7 @@
     if (!window.modelDownloader?.activeDownloads) return;
     const all = Object.values(window.modelDownloader.activeDownloads);
     if (all.length === 0) return;
-    const done = all.every(d => d.status === 'completed' || d.status === 'error');
+    const done = all.every(d => d.status === 'completed' || d.status === 'skipped' || d.status === 'error');
     if (done && !autoHideTimer) {
       autoHideTimer = setTimeout(() => {
         if (panelEl) panelEl.style.display = 'none';
@@ -167,10 +172,11 @@
   // ── Directory detection ───────────────────────────────────────────────
   // ComfyUI folder_paths directory names that map to model types
   const KNOWN_DIRS = new Set([
-    'checkpoints', 'clip', 'clip_vision', 'controlnet', 'diffusion_models',
-    'embeddings', 'gligen', 'hypernetworks', 'loras', 'style_models',
-    'text_encoders', 'unet', 'upscale_models', 'vae', 'vae_approx',
-    'photomaker', 'classifiers', 'mmdets'
+    'checkpoints', 'classifiers', 'clip', 'clip_vision', 'configs',
+    'controlnet', 'diffusers', 'diffusion_models', 'embeddings', 'gligen',
+    'hypernetworks', 'loras', 'mmdets', 'photomaker', 'style_models',
+    't2i_adapter', 'text_encoders', 'unet', 'upscale_models', 'vae',
+    'vae_approx'
   ]);
 
   // Proactive cache: filename → directory, populated by observing the Missing Models panel
@@ -323,7 +329,7 @@
       // Update the progress panel row
       updateRow(messageData.download_id, messageData);
 
-      if (messageData.status === 'completed' || messageData.status === 'error') {
+      if (messageData.status === 'completed' || messageData.status === 'skipped' || messageData.status === 'error') {
         if (downloadData) downloadData.status = messageData.status;
         if (!window.modelDownloader.completedDownloads) {
           window.modelDownloader.completedDownloads = {};
