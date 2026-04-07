@@ -15,7 +15,7 @@ import types
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
+import pytest  # type: ignore[import-not-found]
 
 # ---------------------------------------------------------------------------
 # Mock ComfyUI and aiohttp modules that aren't available outside the runtime
@@ -381,7 +381,7 @@ class TestDownloadModelHandler:
     def test_rejects_missing_params(self):
         request = self._make_request({"url": "https://example.com/model.st"})
         response = asyncio.run(mdp.download_model(request))
-        body = json.loads(response.body)
+        body = json.loads(response.body)  # type: ignore[arg-type]
         assert body["success"] is False
         assert "Missing required parameters" in body["error"]
 
@@ -397,7 +397,7 @@ class TestDownloadModelHandler:
                 }
             )
             response = asyncio.run(mdp.download_model(request))
-            body = json.loads(response.body)
+            body = json.loads(response.body)  # type: ignore[arg-type]
             assert body["success"] is False
             assert "Invalid folder" in body["error"]
 
@@ -413,7 +413,7 @@ class TestDownloadModelHandler:
                 }
             )
             response = asyncio.run(mdp.download_model(request))
-            body = json.loads(response.body)
+            body = json.loads(response.body)  # type: ignore[arg-type]
             assert body["success"] is False
             assert "No writable directory" in body["error"]
 
@@ -430,7 +430,7 @@ class TestDownloadModelHandler:
                 }
             )
             response = asyncio.run(mdp.download_model(request))
-            body = json.loads(response.body)
+            body = json.loads(response.body)  # type: ignore[arg-type]
             assert body["success"] is True
             assert body["status"] == "queued"
             assert "download_id" in body

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.2] - 2026-04-06
+
+### Changed
+- Upgraded ComfyUI from v0.18.0 to v0.18.2
+- Updated `comfyui-workflow-templates` 0.9.26 → 0.9.36
+- Updated `comfyui-workflow-templates-core` 0.3.175 → 0.3.185
+- Updated `comfyui-workflow-templates-media-api` 0.3.64 → 0.3.67
+- Updated `comfyui-workflow-templates-media-video` 0.3.63 → 0.3.67
+- Updated `comfyui-workflow-templates-media-image` 0.3.107 → 0.3.113
+- Updated `comfyui-workflow-templates-media-other` 0.3.148 → 0.3.158
+- Regenerated template input files (497 files)
+
+### Upstream Highlights (v0.18.1 – v0.18.2)
+- Fix canny node not working with fp16
+- Fix sampling issue with fp16 intermediates
+- Fix fp16 intermediates giving different results
+- Fix Wan VAE light/color issue
+- Updated xAI Grok API nodes
+
 ## [0.18.0] - 2026-03-21
 
 ### Changed
@@ -277,7 +296,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apple Silicon (M-series) support
 - Basic persistence for user data
 
-[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.17.2...HEAD
+[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.18.2...HEAD
+[0.18.2]: https://github.com/utensils/comfyui-nix/compare/v0.18.0...v0.18.2
+[0.18.0]: https://github.com/utensils/comfyui-nix/compare/v0.17.2...v0.18.0
 [0.17.2]: https://github.com/utensils/comfyui-nix/compare/v0.16.4...v0.17.2
 [0.16.4]: https://github.com/utensils/comfyui-nix/compare/v0.14.2...v0.16.4
 [0.14.2]: https://github.com/utensils/comfyui-nix/compare/v0.12.2...v0.14.2

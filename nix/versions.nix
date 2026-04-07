@@ -1,9 +1,9 @@
 {
   comfyui = {
-    version = "0.18.0";
-    releaseDate = "2026-03-21T01:16:27Z";
-    rev = "dc719cde9c448c65242ae2d4ba400ba18c36846f";
-    hash = "sha256-Q0MxWPnlU2gL9NQIglVIAgdDG/shhBH4j4jzdFNNfLI=";
+    version = "0.18.2";
+    releaseDate = "2026-03-25T04:22:37Z";
+    rev = "a0ae3f3bd46b9e58f43fccfe17077873bf16f905";
+    hash = "sha256-tv1IclHucV42JSVpxO/IdsOm+j6a5UcmZ+wBThZEhkY=";
   };
 
   vendored = {
@@ -20,39 +20,39 @@
     };
 
     workflowTemplates = {
-      version = "0.9.26";
-      url = "https://files.pythonhosted.org/packages/54/b2/41f554a6231aba47d97c7fe080be903b38a6fff6fbbbea4cb27901d0b68c/comfyui_workflow_templates-0.9.26-py3-none-any.whl";
-      hash = "sha256-4nTGiah1wHx9X/8U/G7I6Snh1YPTGXb3ASvL9igTT7E=";
+      version = "0.9.36";
+      url = "https://files.pythonhosted.org/packages/31/7d/05c771de107ae4f37d89403dd4341b95497ef29ee638acf6b9cb0121ca66/comfyui_workflow_templates-0.9.36-py3-none-any.whl";
+      hash = "sha256-PhBEMBdlko7eY94PzxPL2Aqfht4C9nEhSU13jFcEjP0=";
     };
 
     workflowTemplatesCore = {
-      version = "0.3.175";
-      url = "https://files.pythonhosted.org/packages/e0/57/ba3e1567274224935ceed04f7dfdfe3d5ede7f35f0c7c75da7cc4c4ca25f/comfyui_workflow_templates_core-0.3.175-py3-none-any.whl";
-      hash = "sha256-3E6DudaoE7PGiJsigJYLThWcBBXSrdghfOiqNAN5LMw=";
+      version = "0.3.185";
+      url = "https://files.pythonhosted.org/packages/9d/2d/74372caf211aa28e9d850881ac5721d1a7a0fc08d3fe8a364df5f1fcfe24/comfyui_workflow_templates_core-0.3.185-py3-none-any.whl";
+      hash = "sha256-ZRUdPzHrO95lg27QjPntnee1yEmqUx82C6ahmDlydgA=";
     };
 
     workflowTemplatesMediaApi = {
-      version = "0.3.64";
-      url = "https://files.pythonhosted.org/packages/d5/f6/47c7e4413bb5e30e3a2788b742ce7f6f6bc162a0ab805b8a7f7962ca8860/comfyui_workflow_templates_media_api-0.3.64-py3-none-any.whl";
-      hash = "sha256-6p4Or4rbuct5B3SDQhoyCGoHGYMvyA7czoTiPxoc9Hc=";
+      version = "0.3.67";
+      url = "https://files.pythonhosted.org/packages/7e/a7/a803706719309db99a50b0b766b97fa086fd82db74fe9572778a579d4876/comfyui_workflow_templates_media_api-0.3.67-py3-none-any.whl";
+      hash = "sha256-b9qs2lT+Z2EoDAyGbzpauiJeNQoEwqtg86ZobVMryJA=";
     };
 
     workflowTemplatesMediaVideo = {
-      version = "0.3.63";
-      url = "https://files.pythonhosted.org/packages/e3/ef/5f1c45cccb9ad90b4e8986928701031853a05c95b997482bed3d6ce09a33/comfyui_workflow_templates_media_video-0.3.63-py3-none-any.whl";
-      hash = "sha256-tFr48Zyev44pWwwQhtnyi4j0zewA91x2eFFYhiAudhA=";
+      version = "0.3.67";
+      url = "https://files.pythonhosted.org/packages/2e/30/0d849bca3fa01fef7083ac2df60730a6d77e1f399b546b0aaedcc10ac0bb/comfyui_workflow_templates_media_video-0.3.67-py3-none-any.whl";
+      hash = "sha256-zbJZ+WT6GFtScJ2/nYSzyLi9XOBnt5/htLcfF7IhTG8=";
     };
 
     workflowTemplatesMediaImage = {
-      version = "0.3.107";
-      url = "https://files.pythonhosted.org/packages/2e/3e/89bbc131ae1f178761f900f7f0663901653464e986802df0b37782a27847/comfyui_workflow_templates_media_image-0.3.107-py3-none-any.whl";
-      hash = "sha256-qiqDq2jLhKrOLLxV8fpTkgiPqNVhhvQZYDQ1E9a5NAQ=";
+      version = "0.3.113";
+      url = "https://files.pythonhosted.org/packages/cc/7e/cfa2dc8d9e9aa282e89e9e5b8652a608f85ca7ff8b4afcc3877122984d73/comfyui_workflow_templates_media_image-0.3.113-py3-none-any.whl";
+      hash = "sha256-1ZoaYvyArOGus6pWbqNEpWvIDAPL729/cyqNETbNJ88=";
     };
 
     workflowTemplatesMediaOther = {
-      version = "0.3.148";
-      url = "https://files.pythonhosted.org/packages/1b/cb/92b99e459918373041270628272a5bdf8d57d774d5dc5e21e02457b97b7a/comfyui_workflow_templates_media_other-0.3.148-py3-none-any.whl";
-      hash = "sha256-6PQenf18MFwccWkXP2u+B4dkWvBNO/jS5o6/OT2udSs=";
+      version = "0.3.158";
+      url = "https://files.pythonhosted.org/packages/1c/ec/226da6ef8b0d4bb3eb56a6d1573a58b4c61f36bc9e7d349f3e0dd83f0907/comfyui_workflow_templates_media_other-0.3.158-py3-none-any.whl";
+      hash = "sha256-7M2Qe27r6okIMTqE9OvhkcGclOq3Ax4nQqSS0z3YTZQ=";
     };
 
     embeddedDocs = {
