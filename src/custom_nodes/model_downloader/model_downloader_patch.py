@@ -342,9 +342,7 @@ async def download_file(download_id: str, url: str, full_path: str) -> None:
             await send_download_update(download_id)
 
 
-async def _prepare_download_path(
-    download_id: str, full_path: str, remote_size: int
-) -> str | None:
+async def _prepare_download_path(download_id: str, full_path: str, remote_size: int) -> str | None:
     """Prepare the download path, creating directories and handling conflicts.
 
     If the file already exists and its size matches *remote_size*, the download
