@@ -387,7 +387,9 @@ lib.optionalAttrs useCuda {
     nativeBuildInputs = [ pkgs.autoPatchelfHook ];
     buildInputs = wheelBuildInputs ++ rocmLibs ++ [ final.torch ];
 
-    # Ignore torch libs (loaded via Python import)
+    # Torch libs live in a non-standard path (site-packages/torch/lib/) so
+    # autoPatchelf can't find them. We ignore them during patching and add
+    # the RPATH manually in postFixup so _C.so can find libc10.so at runtime.
     autoPatchelfIgnoreMissingDeps = [
       "libc10.so"
       "libc10_hip.so"
@@ -403,12 +405,18 @@ lib.optionalAttrs useCuda {
       "libMIOpen.so.1"
       "librocrand.so.1"
     ];
+    postFixup = ''
+      local torchLib="${final.torch}/${final.torch.pythonModule.sitePackages}/torch/lib"
+      for so in $out/${final.torch.pythonModule.sitePackages}/torchvision/*.so; do
+        ${pkgs.patchelf}/bin/patchelf --add-rpath "$torchLib" "$so"
+      done
+    '';
     propagatedBuildInputs = with final; [
       torch
       numpy
       pillow
     ];
-    pythonImportsCheck = [ ];
+    pythonImportsCheck = [ "torchvision" ];
     doCheck = false;
     meta = {
       description = "TorchVision with ROCm (pre-built wheel)";
