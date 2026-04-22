@@ -49,7 +49,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Version Management
 
-- Current ComfyUI version: v0.18.2 (pinned in `nix/versions.nix`; released 2026-03-25)
+- Current ComfyUI version: v0.19.3 (pinned in `nix/versions.nix`; released 2026-04-17)
 - To update ComfyUI: modify `version`, `rev`, and `hash` in `nix/versions.nix`
 - Vendored wheels (spandrel, frontend, docs, etc.) also pinned in `nix/versions.nix`
 - Template input files: auto-generated in `nix/template-inputs.nix`
@@ -62,16 +62,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Directory Structure
 
 - **src/custom_nodes/**: Bundled custom node extensions (model_downloader, etc.)
-- **src/patches/**: Patches applied to dependencies
+- **src/patches/**: Runtime Python monkey-patches applied to ComfyUI internals (imported by the launcher's `sitecustomize.py`)
 - **nix/**: Flake modules and helpers
   - **versions.nix**: All version pins (ComfyUI, vendored wheels, custom nodes, PyTorch wheels)
   - **packages.nix**: Package definitions and the inline launcher script (`writeShellApplication`)
   - **python-overrides.nix**: Python package overrides (platform-specific PyTorch, dependency fixes)
+  - **vendored-packages.nix**: Wheel-based packages (spandrel, frontend, docs, etc.) built from pins in `versions.nix`
   - **template-inputs.nix**: Pre-fetched template input files (auto-generated, do not edit manually)
   - **apps.nix**: Flake app definitions (run, update, Docker build commands)
   - **docker.nix**: Docker image builders
   - **checks.nix**: CI check definitions (ruff, pyright, nixfmt, shellcheck)
   - **custom-nodes.nix**: Bundled custom node package definitions
+  - **patches/**: Build-time `.patch` files applied to upstream ComfyUI source (distinct from `src/patches/`, which are runtime Python patches)
   - **modules/comfyui.nix**: NixOS service module with declarative custom nodes
   - **lib/custom-nodes.nix**: Helper functions for custom node management
 - **scripts/**: Maintenance scripts (update-template-inputs.sh, push-to-cachix.sh, download-pulid-models.sh)

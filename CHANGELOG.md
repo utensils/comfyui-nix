@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.3] - 2026-04-22
+
+### Changed
+- Upgraded ComfyUI from v0.18.2 to v0.19.3
+- Updated `comfyui-frontend-package` 1.41.21 → 1.42.11
+- Updated `comfyui-workflow-templates` 0.9.36 → 0.9.57
+- Updated `comfyui-workflow-templates-core` 0.3.185 → 0.3.209
+- Updated `comfyui-workflow-templates-media-api` 0.3.67 → 0.3.69
+- Updated `comfyui-workflow-templates-media-video` 0.3.67 → 0.3.78
+- Updated `comfyui-workflow-templates-media-image` 0.3.113 → 0.3.127
+- Updated `comfyui-workflow-templates-media-other` 0.3.158 → 0.3.176
+- Updated `comfyui-manager` 4.1b6 → 4.1 (GA release per upstream PR #13156)
+- Regenerated template input files (510 files)
+
+### Upstream Highlights (v0.19.0 – v0.19.3)
+- New models: LongCat-Image edit, Qwen3.5 text generation, Ace Step 1.5 XL, small flux.2 decoder, RT-DETRv4 detection, LTX2 reference audio (ID-LoRA)
+- New nodes: CURVE, Number Convert, Image Histogram, JsonExtractString; Text-prefixed string/util nodes with search aliases
+- API nodes: xAI Grok updates, Topaz, WAN2.7, Sonilo Audio, arrow-1.1/-max SVG, Tencent3D update, 1080p for SeeDance 2.0
+- RAM cache integrated with model RAM management; fp8-scaled checkpoint fix; OOM regression fix for quantized models
+- Intel XPU portable release and standalone package
+- Output files registered as assets after prompt execution; image/svg+xml MIME registered
+- Fixes: blur/sharpen fp16 intermediates, ernie image and fp64-less devices, LTX text-gen regression, canny fp16, crash paths for Train LoRA
+
 ## [0.18.2] - 2026-04-06
 
 ### Changed
