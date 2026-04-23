@@ -9,6 +9,7 @@ let
 
   useCuda = cfg.gpuSupport == "cuda";
   useRocm = cfg.gpuSupport == "rocm";
+  useXpu = cfg.gpuSupport == "xpu";
   useCpu = cfg.gpuSupport == "none";
 
   # Determine which package to use based on configuration
@@ -18,6 +19,8 @@ let
       pkgs.comfy-ui-cuda
     else if useRocm then
       pkgs.comfy-ui-rocm
+    else if useXpu then
+      pkgs.comfy-ui-xpu
     else
       pkgs.comfy-ui;
   args = [
@@ -82,6 +85,7 @@ in
       type = lib.types.enum [
         "cuda"
         "rocm"
+        "xpu"
         "none"
       ];
       default = "none";
@@ -103,9 +107,28 @@ in
         Select ROCm support for AMD GPUs. This is recommended for most users
         with AMD graphics cards as it provides significant performance improvements.
 
-        When selected, uses pre-built PyTorch ROCm wheels based on 7.1. Using 
+        When selected, uses pre-built PyTorch ROCm wheels based on 7.1. Using
         this configuration, `gfx1100` has been tested as working, but others
         may also work. Requires AMD drivers to be installed on the system.
+
+        ---
+
+        Select `xpu` for Intel GPUs (oneAPI / SYCL, no IPEX required). Targets
+        Intel Arc A/B series discrete GPUs and Core Ultra iGPUs (Meteor Lake+).
+        Older Xe-LP iGPUs (UHD 770) are not officially supported.
+
+        When selected, you must also configure Intel driver stack on the host,
+        typically via `hardware.graphics`:
+
+        ```
+        hardware.graphics = {
+          enable = true;
+          extraPackages = [ pkgs.intel-compute-runtime pkgs.level-zero ];
+        };
+        ```
+
+        Not yet validated on real Intel hardware by the project maintainers —
+        feedback welcome.
       '';
     };
 
@@ -154,12 +177,16 @@ in
       type = lib.types.package;
       default = resolvePackage;
       defaultText = lib.literalExpression ''
-        if useCuda then pkgs.comfy-ui-cuda else if useRocm then pkgs.comfy-ui-rocm else pkgs.comfy-ui
+        if useCuda then pkgs.comfy-ui-cuda
+        else if useRocm then pkgs.comfy-ui-rocm
+        else if useXpu then pkgs.comfy-ui-xpu
+        else pkgs.comfy-ui
       '';
       description = ''
-        ComfyUI package to run. Automatically set based on CUDA/ROCm configuration:
+        ComfyUI package to run. Automatically set based on `gpuSupport`:
         - `gpuSupport = "cuda"`: CUDA package (supports all GPU architectures)
         - `gpuSupport = "rocm"`: ROCm package (`gfx1100` tested)
+        - `gpuSupport = "xpu"`: Intel XPU package (oneAPI / SYCL; Arc + Core Ultra iGPU)
         - Otherwise: CPU-only build
 
         Can be overridden for fully custom builds.
@@ -300,10 +327,15 @@ in
       wants = [ "network-online.target" ];
       requires = cfg.requiresMounts;
       wantedBy = [ "multi-user.target" ];
-      path = lib.optionals useRocm [
-        # rocminfo suppresses a ComfyUI startup warning about missing AMD GPU info
-        pkgs.rocmPackages.rocminfo
-      ];
+      path =
+        lib.optionals useRocm [
+          # rocminfo suppresses a ComfyUI startup warning about missing AMD GPU info
+          pkgs.rocmPackages.rocminfo
+        ]
+        ++ lib.optionals useXpu [
+          # clinfo helps users diagnose Intel GPU visibility from the service env
+          pkgs.clinfo
+        ];
 
       # Symlink declarative custom nodes before starting
       preStart = customNodesPreStart;

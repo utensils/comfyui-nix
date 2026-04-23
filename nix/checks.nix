@@ -6,6 +6,16 @@
 }:
 {
   package = packages.default;
+}
+# XPU build-only check (Linux x86_64 only).
+# The project maintainer has no Intel GPU, so runtime testing relies on external
+# contributors. This check at least verifies the wheel patching and closure build
+# succeed, catching the most common regression class (missing runtime libs,
+# broken overlay, upstream wheel metadata changes).
+// pkgs.lib.optionalAttrs (packages ? xpu) {
+  package-xpu = packages.xpu;
+}
+// {
 
   pytest =
     let

@@ -3,11 +3,23 @@
   lib,
   versions,
   pythonOverrides,
-  gpuSupport ? "none", # "none", "cuda", "rocm"
+  gpuSupport ? "none", # "none", "cuda", "rocm", "xpu"
 }:
 let
   useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
   useRocm = gpuSupport == "rocm" && pkgs.stdenv.isLinux;
+  useXpu = gpuSupport == "xpu" && pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isx86_64;
+
+  # Intel XPU runtime libraries (Level Zero loader, Intel compute-runtime, OpenCL ICD)
+  # Bundled as a fallback when /run/opengl-driver/lib isn't available (non-NixOS Linux,
+  # Docker images without host driver pass-through). On NixOS, the launcher prefers
+  # system-provided libs via /run/opengl-driver/lib (populated by hardware.graphics.extraPackages)
+  # to keep the userland ICD in sync with the kernel DRM driver.
+  xpuRuntimeLibs = lib.optionals useXpu [
+    pkgs.level-zero
+    pkgs.intel-compute-runtime
+    pkgs.ocl-icd
+  ];
 
   python = pkgs.python312.override { packageOverrides = pythonOverrides; };
 
@@ -234,27 +246,32 @@ let
 
   # NOTE: Some custom nodes (and some Python wheels) dlopen GUI-related libs at runtime
   # (e.g. OpenCV highgui / Qt platform plugins). Ensure common X11 libs are discoverable.
-  libPath = lib.makeLibraryPath [
-    pkgs.stdenv.cc.cc.lib
-    pkgs.glib
-    pkgs.libGL
-    # X11 / XCB runtime libs (fixes: libxcb.so.1 not found)
-    pkgs.xorg.libxcb
-    pkgs.xorg.libX11
-    pkgs.xorg.libXext
-    pkgs.xorg.libXrender
-    pkgs.xorg.libXfixes
-    pkgs.xorg.libXi
-    pkgs.xorg.libXrandr
-    pkgs.xorg.libXcursor
-    pkgs.xorg.libXcomposite
-    pkgs.xorg.libXdamage
-    pkgs.xorg.libXau
-    pkgs.xorg.libXdmcp
-    pkgs.xorg.libSM
-    pkgs.xorg.libICE
-    pkgs.libxkbcommon
-  ];
+  libPath = lib.makeLibraryPath (
+    [
+      pkgs.stdenv.cc.cc.lib
+      pkgs.glib
+      pkgs.libGL
+      # X11 / XCB runtime libs (fixes: libxcb.so.1 not found)
+      pkgs.xorg.libxcb
+      pkgs.xorg.libX11
+      pkgs.xorg.libXext
+      pkgs.xorg.libXrender
+      pkgs.xorg.libXfixes
+      pkgs.xorg.libXi
+      pkgs.xorg.libXrandr
+      pkgs.xorg.libXcursor
+      pkgs.xorg.libXcomposite
+      pkgs.xorg.libXdamage
+      pkgs.xorg.libXau
+      pkgs.xorg.libXdmcp
+      pkgs.xorg.libSM
+      pkgs.xorg.libICE
+      pkgs.libxkbcommon
+    ]
+    # XPU runtime libs (Level Zero, Intel compute-runtime, OpenCL ICD) — fallback
+    # when /run/opengl-driver/lib isn't available. Launcher prefers system libs.
+    ++ xpuRuntimeLibs
+  );
 
   # Platform-specific default data directory
   # macOS: ~/Library/Application Support/comfy-ui (Apple convention)
@@ -275,9 +292,11 @@ let
     else
       ''
         # Linux: Set LD_LIBRARY_PATH for dynamic libraries
+        # Order matters: system driver libs (/run/opengl-driver/lib on NixOS) take
+        # precedence over Nix-bundled libs so userland ICDs stay in sync with the
+        # kernel DRM driver. This covers NVIDIA (CUDA), AMD (ROCm), and Intel (XPU).
         export LD_LIBRARY_PATH="${libPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
-        # Add NVIDIA driver libraries if available (NixOS)
         if [[ -d "/run/opengl-driver/lib" ]]; then
           export LD_LIBRARY_PATH="/run/opengl-driver/lib:$LD_LIBRARY_PATH"
         fi
@@ -552,6 +571,26 @@ let
             export FACEXLIB_MODELPATH="$BASE_DIR/.cache/facexlib"
             mkdir -p "$FACEXLIB_MODELPATH/facexlib/weights"
 
+      ${lib.optionalString useXpu ''
+        # =====================================================================
+        # Intel XPU (oneAPI / SYCL) runtime setup
+        # =====================================================================
+        # Cache SYCL JIT kernels across runs (big startup win — default is off).
+        # Redirected into the data directory to keep it under user control.
+        export SYCL_CACHE_PERSISTENT=1
+        export SYCL_CACHE_DIR="$BASE_DIR/.cache/libsycl_cache"
+        mkdir -p "$SYCL_CACHE_DIR"
+
+        # Opt-in FP64 emulation for iGPUs without native double-precision hardware
+        # (UHD 770, older Xe-LP). Off by default so discrete Arc surfaces real
+        # errors instead of silently emulating. Users hitting "double precision
+        # not supported" can export COMFY_ENABLE_XPU_FP64_EMULATION=1 before launch.
+        if [[ "''${COMFY_ENABLE_XPU_FP64_EMULATION:-0}" == "1" ]]; then
+          export OverrideDefaultFP64Settings=1
+          export IGC_EnableDPEmulation=1
+        fi
+      ''}
+
             # Open browser if requested (background, after short delay)
             if [[ "$OPEN_BROWSER" == "true" ]]; then
               (sleep 3 && ${browserCommand} "http://127.0.0.1:$PORT" 2>/dev/null) &
@@ -664,6 +703,16 @@ let
       "org.opencontainers.image.version" = versions.comfyui.version;
     };
   };
+
+  dockerImageXpu = dockerLib.mkDockerImage {
+    inherit gpuSupport;
+    name = "comfy-ui";
+    tag = "xpu";
+    comfyUiPackage = comfyUiPackage;
+    extraLabels = {
+      "org.opencontainers.image.version" = versions.comfyui.version;
+    };
+  };
 in
 {
   default = comfyUiPackage;
@@ -671,6 +720,7 @@ in
     dockerImage
     dockerImageCuda
     dockerImageRocm
+    dockerImageXpu
     pythonRuntime
     comfyuiSrc
     modelDownloaderDir

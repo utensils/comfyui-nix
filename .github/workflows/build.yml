@@ -144,6 +144,13 @@ jobs:
             platform: linux/amd64
             tag_suffix: '-rocm'
             runner: ubuntu-latest
+          - variant: xpu
+            arch: x86_64-linux
+            nix_target: dockerImageXpu
+            package_target: xpu
+            platform: linux/amd64
+            tag_suffix: '-xpu'
+            runner: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -200,7 +207,7 @@ jobs:
           sudo apt-get clean
           docker system prune -af || true
           # Extra cleanup for CUDA/ROCm builds (needs maximum disk space)
-          if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$ ]]; then
+          if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$|^xpu$ ]]; then
             sudo rm -rf /usr/local/share/powershell
             sudo rm -rf /usr/local/share/chromium
             sudo rm -rf /usr/local/share/vcpkg
@@ -256,7 +263,7 @@ jobs:
         run: |
           echo "Building ${{ matrix.variant }} variant for ${{ matrix.arch }}..."
           # For CUDA/ROCm builds, limit parallelism to reduce memory pressure
-          if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$ ]]; then
+          if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$|^xpu$ ]]; then
             nix build .#packages.${{ matrix.arch }}.${{ matrix.nix_target }} --print-build-logs --max-jobs 1 --cores 2
           else
             nix build .#packages.${{ matrix.arch }}.${{ matrix.nix_target }} --print-build-logs
@@ -302,7 +309,7 @@ jobs:
           nix build .#packages.${{ matrix.arch }}.${{ matrix.package_target }} -o result-pkg --print-build-logs
 
           # For CUDA/ROCm builds, include build-time dependencies (magma, triton, etc.)
-          if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$ ]]; then
+          if [[ "${{ matrix.variant }}" =~ ^cuda$|^rocm$|^xpu$ ]]; then
             ./scripts/push-to-cachix.sh --build-deps ./result-pkg
           else
             ./scripts/push-to-cachix.sh ./result-pkg
@@ -428,6 +435,31 @@ jobs:
           docker buildx imagetools create --tag "$ROCM_TAG" "$ROCM_AMD64_TAG"
           docker buildx imagetools create --tag "$VERSION_ROCM_TAG" "$ROCM_AMD64_TAG"
 
+      - name: Create and push XPU manifest (x86_64 only)
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            XPU_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-xpu"
+            VERSION_XPU_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}-xpu"
+            XPU_AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-xpu-amd64"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_VERSION=${GITHUB_REF#refs/tags/v}
+            XPU_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-xpu"
+            VERSION_XPU_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-xpu"
+            XPU_AMD64_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}-xpu-amd64"
+          fi
+
+          echo "Verifying XPU image exists..."
+          if ! docker manifest inspect "$XPU_AMD64_TAG" &>/dev/null; then
+            echo "ERROR: Required XPU image not found: $XPU_AMD64_TAG"
+            exit 1
+          fi
+          echo "Found: $XPU_AMD64_TAG"
+
+          # Use buildx imagetools to create tags without pulling the full image
+          echo "Creating XPU tags via registry (no local pull required)..."
+          docker buildx imagetools create --tag "$XPU_TAG" "$XPU_AMD64_TAG"
+          docker buildx imagetools create --tag "$VERSION_XPU_TAG" "$XPU_AMD64_TAG"
+
       - name: Generate manifest summary
         run: |
           echo "## Multi-Architecture Docker Images Published" >> $GITHUB_STEP_SUMMARY
@@ -446,6 +478,10 @@ jobs:
           echo "### ROCM (amd64 only)" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
           echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-rocm" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "### Intel XPU (amd64 only)" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-xpu" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   update-description:
