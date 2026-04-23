@@ -1,12 +1,14 @@
 {
   pkgs,
   versions,
-  gpuSupport ? "none", # "none", "cuda", "rocm"
+  gpuSupport ? "none", # "none", "cuda", "rocm", "xpu"
 }:
 let
   lib = pkgs.lib;
   useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
   useRocm = gpuSupport == "rocm" && pkgs.stdenv.isLinux;
+  # Intel XPU wheels are Linux x86_64 only (no aarch64 upstream)
+  useXpu = gpuSupport == "xpu" && pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isx86_64;
   useDarwinArm64 = pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isAarch64;
   sentencepieceNoGperf = pkgs.sentencepiece.override { withGPerfTools = false; };
 
@@ -18,6 +20,41 @@ let
   # Pre-built PyTorch ROCm wheels from pytorch.org
   # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time)
   rocmWheels = versions.pytorchWheels.rocm71;
+
+  # Pre-built PyTorch XPU wheels from pytorch.org (Intel oneAPI / SYCL)
+  # Unlike CUDA/ROCm, the XPU torch wheel does NOT bundle its SYCL / MKL /
+  # Intel compiler runtimes — they ship as ~20 separate PyPI wheels declared
+  # in Requires-Dist. All pinned in versions.xpuRuntime and packaged below.
+  # Host still provides Level Zero loader + Intel compute-runtime at runtime.
+  xpuWheels = versions.pytorchWheels.xpu;
+
+  # Ignore-list for deps neither the wheels nor nixpkgs provide.
+  # Intel wheel-to-wheel SONAME refs are resolved via cross-wheel buildInputs
+  # in the mkIntelRuntime helper below — NOT via this ignore list.
+  xpuIgnoreMissingLibs = [
+    # Host-provided (Level Zero loader + Intel compute-runtime, on NixOS via
+    # hardware.graphics.extraPackages, on other distros via system packaging)
+    "libze_loader.so.1"
+    "libze_intel_gpu.so.1"
+    "libOpenCL.so.1"
+    "libigdrcl.so"
+    "libigc.so.2"
+    # impi-rt fabric plugins (RDMA / InfiniBand / PSM / EFA / UCX) — loaded
+    # only when MPI distributed mode is requested. ComfyUI is single-node, so
+    # these fabric adapters are never opened and can safely be absent.
+    "librdmacm.so.1"
+    "libibverbs.so.1"
+    "libucp.so.0"
+    "libucs.so.0"
+    "libuct.so.0"
+    "libnuma.so.1"
+    "libpsm2.so.2"
+    "libefa.so.1"
+    "libfabric.so.1"
+    "libnl-3.so.200"
+    "libnl-route-3.so.200"
+    "libze_loader.so" # versionless alias
+  ];
 
   # Pre-built PyTorch wheels for macOS Apple Silicon
   # PyTorch 2.5.1 is used instead of 2.9.x due to MPS bugs on macOS 26 (Tahoe)
@@ -480,6 +517,217 @@ lib.optionalAttrs useCuda {
     };
   };
 }
+# Intel XPU torch + runtime wheels
+# The XPU torch wheel only contains torch-proper binaries (~240 MB). Its Intel
+# runtime dependencies (SYCL, MKL, oneCCL, Intel compiler RT, TBB, PTI, triton)
+# ship as ~20 separate wheels pinned in versions.xpuRuntime. Each is built as
+# its own Python package below via mkIntelRuntime, then all are propagated as
+# torch's deps so auto-patchelf can resolve libtorch_xpu.so's sibling SONAMEs.
+// lib.optionalAttrs useXpu (
+  let
+    # The Intel runtime wheels contain no Python code — just .so files under
+    # the wheel's `.data/data/lib/` convention. Rather than 22 individual
+    # buildPythonPackage derivations (which cross-reference each other and
+    # trigger infinite recursion through requiredPythonModules), fetch and
+    # unpack each wheel into a single combined derivation. All cross-wheel
+    # SONAMEs resolve against this unified lib/ dir, and it's one buildInput
+    # for torch instead of 22.
+    intelOneapiRuntime = pkgs.stdenv.mkDerivation {
+      pname = "intel-oneapi-runtime";
+      version = "2025.3";
+      srcs = lib.mapAttrsToList (_: spec: pkgs.fetchurl { inherit (spec) url hash; }) versions.xpuRuntime;
+      dontConfigure = true;
+      dontBuild = true;
+      sourceRoot = ".";
+      nativeBuildInputs = [
+        pkgs.unzip
+        pkgs.autoPatchelfHook
+      ];
+      buildInputs = wheelBuildInputs;
+      autoPatchelfIgnoreMissingDeps = xpuIgnoreMissingLibs;
+      unpackPhase = ''
+        runHook preUnpack
+        for whl in $srcs; do
+          mkdir -p "wheel_$(basename "$whl" .whl)"
+          unzip -q "$whl" -d "wheel_$(basename "$whl" .whl)"
+        done
+        runHook postUnpack
+      '';
+      installPhase = ''
+        runHook preInstall
+        mkdir -p $out/lib $out/share/intel-oneapi
+        # Collect .so files from each wheel's .data/data/lib into $out/lib.
+        # Later wheels' files overwrite earlier only on exact filename match;
+        # Intel wheels use distinct filenames so this is safe.
+        for wheel_dir in wheel_*; do
+          if [ -d "$wheel_dir" ]; then
+            for data_lib in "$wheel_dir"/*.data/data/lib; do
+              if [ -d "$data_lib" ]; then
+                cp -rn "$data_lib"/. $out/lib/ 2>/dev/null || \
+                  cp -r "$data_lib"/. $out/lib/
+              fi
+            done
+            # Also copy any top-level lib dirs (some wheels use that layout)
+            if [ -d "$wheel_dir/lib" ]; then
+              cp -rn "$wheel_dir/lib"/. $out/lib/ 2>/dev/null || true
+            fi
+            # Preserve license / manifest files under share/ for compliance
+            for meta in "$wheel_dir"/*.dist-info/METADATA; do
+              if [ -f "$meta" ]; then
+                pname=$(basename "$(dirname "$meta")" .dist-info)
+                mkdir -p "$out/share/intel-oneapi/$pname"
+                cp "$meta" "$out/share/intel-oneapi/$pname/"
+              fi
+            done
+          fi
+        done
+        runHook postInstall
+      '';
+      # Runtime library stuff — no binaries, no Python, just .so files.
+      dontStrip = true;
+      meta = {
+        description = "Combined Intel oneAPI runtime libraries (from PyPI wheels)";
+        homepage = "https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html";
+        license = lib.licenses.unfreeRedistributable;
+        platforms = [ "x86_64-linux" ];
+      };
+    };
+  in
+  {
+    torch = final.buildPythonPackage {
+      pname = "torch";
+      version = xpuWheels.torch.version;
+      format = "wheel";
+      src = pkgs.fetchurl {
+        url = xpuWheels.torch.url;
+        hash = xpuWheels.torch.hash;
+      };
+      dontBuild = true;
+      dontConfigure = true;
+      nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+      # Combined Intel oneAPI runtime derivation provides all SYCL/MKL/oneCCL/
+      # Intel compiler RT / TBB / PTI .so files. Listed in buildInputs so
+      # auto-patchelf adds its lib/ to torch's RPATH and resolves sibling
+      # SONAMEs (libsycl.so.8, libmkl_sycl_*.so.5, libccl.so.1, etc).
+      buildInputs = wheelBuildInputs ++ [ intelOneapiRuntime ];
+      autoPatchelfIgnoreMissingDeps = xpuIgnoreMissingLibs;
+      # Intel oneAPI runtime is propagated so its lib/ is on LD_LIBRARY_PATH
+      # at ComfyUI runtime (the launcher also sets this explicitly).
+      propagatedBuildInputs = with final; [
+        filelock
+        typing-extensions
+        sympy
+        networkx
+        jinja2
+        fsspec
+      ];
+      propagatedNativeBuildInputs = [ intelOneapiRuntime ];
+      pythonImportsCheck = [ ];
+      doCheck = false;
+      dontCheckRuntimeDeps = true; # Intel wheel pip names use hyphens/underscores inconsistently
+
+      passthru = {
+        cudaSupport = false;
+        rocmSupport = false;
+        xpuSupport = true;
+        cudaPackages = { };
+      };
+
+      meta = {
+        description = "PyTorch with Intel XPU ${xpuWheels.torch.version} (pre-built wheel, oneAPI/SYCL)";
+        homepage = "https://pytorch.org";
+        license = lib.licenses.bsd3;
+        platforms = [ "x86_64-linux" ];
+      };
+    };
+
+    torchvision = final.buildPythonPackage {
+      pname = "torchvision";
+      version = xpuWheels.torchvision.version;
+      format = "wheel";
+      src = pkgs.fetchurl {
+        url = xpuWheels.torchvision.url;
+        hash = xpuWheels.torchvision.hash;
+      };
+      dontBuild = true;
+      dontConfigure = true;
+      nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+      buildInputs = wheelBuildInputs ++ [ final.torch ];
+      # torch libs are loaded via Python import, not dlopen
+      autoPatchelfIgnoreMissingDeps = [
+        "libc10.so"
+        "libc10_xpu.so"
+        "libtorch.so"
+        "libtorch_cpu.so"
+        "libtorch_xpu.so"
+        "libtorch_python.so"
+      ];
+      propagatedBuildInputs = with final; [
+        torch
+        numpy
+        pillow
+      ];
+      pythonImportsCheck = [ ];
+      doCheck = false;
+      meta = {
+        description = "TorchVision with Intel XPU (pre-built wheel)";
+        homepage = "https://pytorch.org/vision";
+        license = lib.licenses.bsd3;
+        platforms = [ "x86_64-linux" ];
+      };
+    };
+
+    torchaudio = final.buildPythonPackage {
+      pname = "torchaudio";
+      version = xpuWheels.torchaudio.version;
+      format = "wheel";
+      src = pkgs.fetchurl {
+        url = xpuWheels.torchaudio.url;
+        hash = xpuWheels.torchaudio.hash;
+      };
+      dontBuild = true;
+      dontConfigure = true;
+      nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+      buildInputs = wheelBuildInputs ++ [ final.torch ];
+      autoPatchelfIgnoreMissingDeps = [
+        "libc10.so"
+        "libc10_xpu.so"
+        "libtorch.so"
+        "libtorch_cpu.so"
+        "libtorch_xpu.so"
+        "libtorch_python.so"
+        "libsox.so"
+        # FFmpeg 4.x/5.x/6.x — same as ROCm torchaudio (wheel bundles multiple backends)
+        "libavutil.so.56"
+        "libavcodec.so.58"
+        "libavformat.so.58"
+        "libavfilter.so.7"
+        "libavdevice.so.58"
+        "libavutil.so.57"
+        "libavcodec.so.59"
+        "libavformat.so.59"
+        "libavfilter.so.8"
+        "libavdevice.so.59"
+        "libavutil.so.58"
+        "libavcodec.so.60"
+        "libavformat.so.60"
+        "libavfilter.so.9"
+        "libavdevice.so.60"
+      ];
+      propagatedBuildInputs = with final; [
+        torch
+      ];
+      pythonImportsCheck = [ ];
+      doCheck = false;
+      meta = {
+        description = "TorchAudio with Intel XPU (pre-built wheel)";
+        homepage = "https://pytorch.org/audio";
+        license = lib.licenses.bsd2;
+        platforms = [ "x86_64-linux" ];
+      };
+    };
+  }
+)
 # Spandrel and other packages that need explicit torch handling
 // lib.optionalAttrs (prev ? torch) {
   spandrel = final.buildPythonPackage rec {
@@ -604,7 +852,7 @@ lib.optionalAttrs useCuda {
 }
 
 # Disable accelerate test that fails with torch 2.10.0 inductor in Nix sandbox
-// lib.optionalAttrs ((useCuda || useRocm) && (prev ? accelerate)) {
+// lib.optionalAttrs ((useCuda || useRocm || useXpu) && (prev ? accelerate)) {
   accelerate = prev.accelerate.overridePythonAttrs (old: {
     disabledTests = (old.disabledTests or [ ]) ++ [ "test_convert_to_fp32" ];
   });

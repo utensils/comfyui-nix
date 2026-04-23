@@ -34,6 +34,14 @@ nix run github:utensils/comfyui-nix#rocm
 
 ROCm builds use pre-built PyTorch wheels from pytorch.org, so builds are fast (~2GB download); so far, GPU support has only been validated on `gfx1100`.
 
+For Intel XPU (Linux/Intel GPU):
+
+```bash
+nix run github:utensils/comfyui-nix#xpu
+```
+
+XPU builds use pre-built PyTorch wheels from pytorch.org's XPU channel (oneAPI / SYCL, no IPEX required). Officially supports Intel Arc A/B series and Core Ultra iGPUs (Meteor Lake+). Older Xe-LP iGPUs (UHD 770) are not officially supported.
+
 ## Options
 
 All [ComfyUI CLI options] are supported. Common examples:
@@ -84,6 +92,67 @@ nix run github:utensils/comfyui-nix#rocm
 ```
 
 > ROCm support contributed by [@pyqlsa](https://github.com/pyqlsa) — thank you!
+
+## Intel XPU (oneAPI / SYCL) Support
+
+Intel XPU builds are available for Linux x86_64 with Intel GPUs. The `#xpu` package uses pre-built PyTorch wheels from pytorch.org's XPU channel which:
+
+- **Fast builds**: Downloads ~2.5GB of pre-built wheels instead of compiling for hours
+- **No IPEX required**: In-tree `torch.xpu` backend is sufficient; ComfyUI auto-detects XPU
+- **Bundled runtime**: SYCL / oneAPI / MKL / TBB included in wheels
+
+### Officially supported hardware
+
+- Intel Arc A-series (Alchemist) and B-series (Battlemage) discrete GPUs
+- Core Ultra iGPUs: Meteor Lake, Arrow Lake, Lunar Lake, Panther Lake (Xe-LPG / Xe2)
+- Data Center GPU Max (Ponte Vecchio)
+
+Older Xe-LP iGPUs (UHD 770 on Alder/Raptor Lake) are **not officially supported** by Intel/PyTorch and may not work even if detected.
+
+### Host driver setup
+
+The XPU wheels bundle the SYCL runtime, but the host must provide:
+
+- Kernel driver: `i915` (Arc Alchemist) or `xe` (Battlemage, newer iGPUs)
+- Userland: Level Zero loader + Intel compute-runtime + OpenCL ICD
+
+**On NixOS** (recommended — keeps userland ICD in sync with the kernel DRM driver):
+
+```nix
+hardware.graphics = {
+  enable = true;
+  extraPackages = [
+    pkgs.intel-compute-runtime
+    pkgs.level-zero
+  ];
+};
+```
+
+The launcher prefers `/run/opengl-driver/lib` when present. On non-NixOS Linux (Ubuntu, Arch, etc.), the package bundles `level-zero` and `intel-compute-runtime` as a fallback, so `nix run .#xpu` works without additional system setup — but keep kernel drivers up to date for your GPU generation.
+
+### Running
+
+```bash
+nix run github:utensils/comfyui-nix#xpu
+```
+
+### iGPU FP64 emulation
+
+iGPUs (UHD 770, older Xe-LP) lack native FP64 hardware. If you hit `"double precision not supported"` errors, enable emulation:
+
+```bash
+COMFY_ENABLE_XPU_FP64_EMULATION=1 nix run github:utensils/comfyui-nix#xpu
+```
+
+This sets `OverrideDefaultFP64Settings=1` + `IGC_EnableDPEmulation=1`. Off by default so discrete Arc users surface real errors rather than silently emulating.
+
+### SYCL kernel cache
+
+JIT-compiled SYCL kernels are cached under `<data-directory>/.cache/libsycl_cache/` via `SYCL_CACHE_PERSISTENT=1`. First generation is slower while kernels compile; subsequent runs reuse the cache.
+
+### Status
+
+XPU support has not been tested on real Intel hardware by the project maintainers. Feedback, bug reports, and benchmarks from Intel GPU users are very welcome — please open an issue describing your hardware, kernel version, and what works / doesn't work.
 
 ## Why a Nix Flake?
 
@@ -265,6 +334,7 @@ Add ComfyUI as a package in your system configuration:
         environment.systemPackages = [ pkgs.comfy-ui ];
         # Or for CUDA: pkgs.comfy-ui-cuda
         # Or for ROCm: pkgs.comfy-ui-rocm
+        # Or for Intel XPU: pkgs.comfy-ui-xpu
       }];
     };
 
@@ -288,6 +358,7 @@ Add ComfyUI as a package in your system configuration:
     inputs.comfyui-nix.packages.${pkgs.stdenv.hostPlatform.system}.default  # CPU
     # inputs.comfyui-nix.packages.${pkgs.stdenv.hostPlatform.system}.cuda   # CUDA (Linux)
     # inputs.comfyui-nix.packages.${pkgs.stdenv.hostPlatform.system}.rocm   # ROCm (Linux)
+    # inputs.comfyui-nix.packages.${pkgs.stdenv.hostPlatform.system}.xpu    # Intel XPU (Linux)
   ];
 }
 ```
@@ -296,11 +367,12 @@ Add ComfyUI as a package in your system configuration:
 
 The overlay provides these packages:
 
-| Package              | Description                                      |
-| -------------------- | ------------------------------------------------ |
-| `pkgs.comfy-ui`      | CPU + Apple Silicon (Metal) - use this for macOS |
-| `pkgs.comfy-ui-cuda` | NVIDIA GPUs (Linux only, all architectures)      |
-| `pkgs.comfy-ui-rocm` | AMD GPUs (Linux only, `gfx1100`)      |
+| Package              | Description                                          |
+| -------------------- | ---------------------------------------------------- |
+| `pkgs.comfy-ui`      | CPU + Apple Silicon (Metal) - use this for macOS     |
+| `pkgs.comfy-ui-cuda` | NVIDIA GPUs (Linux x86_64 only, all architectures)   |
+| `pkgs.comfy-ui-rocm` | AMD GPUs (Linux x86_64 only, `gfx1100`)              |
+| `pkgs.comfy-ui-xpu`  | Intel GPUs (Linux x86_64 only, Arc + Core Ultra iGPU) |
 
 > **Note:** On macOS with Apple Silicon, the base `comfy-ui` package automatically uses Metal for GPU acceleration. No separate CUDA package is needed.
 
@@ -317,6 +389,9 @@ nix profile add github:utensils/comfyui-nix#cuda
 
 # ROCm (Linux/AMD only)
 nix profile add github:utensils/comfyui-nix#rocm
+
+# Intel XPU (Linux, Intel Arc / Core Ultra iGPU only)
+nix profile add github:utensils/comfyui-nix#xpu
 ```
 
 > **Note:** Profile installation is convenient for trying ComfyUI but isn't declarative. For reproducible setups, add the package to your NixOS/nix-darwin configuration instead.
@@ -427,6 +502,10 @@ docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui
 # ROCm (x86_64 only)
 # Supports `gfx1100` (and possibly others)
 docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest-rocm
+
+# Intel XPU (x86_64 only)
+# Arc A/B + Core Ultra iGPUs (Meteor Lake+). Host needs i915 or xe kernel driver.
+docker run --device /dev/dri -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest-xpu
 ```
 
 **Podman:**
@@ -440,6 +519,9 @@ podman run --device nvidia.com/gpu=all -p 8188:8188 -v "$PWD/data:/data:Z" ghcr.
 
 # ROCm
 podman run --device /dev/kfd --device /dev/dri -p 8188:8188 -v "$PWD/data:/data:rw" -v "/etc/passwd:/etc/passwd:ro" ghcr.io/utensils/comfyui-nix:latest-rocm
+
+# Intel XPU (host must have i915 or xe kernel driver + firmware)
+podman run --device /dev/dri -p 8188:8188 -v "$PWD/data:/data:Z" ghcr.io/utensils/comfyui-nix:latest-xpu
 
 ```
 
@@ -476,6 +558,7 @@ podman run \
 nix build .#dockerImage      # CPU
 nix build .#dockerImageCuda  # CUDA
 nix build .#dockerImageRocm  # ROCm
+nix build .#dockerImageXpu   # Intel XPU
 
 # Load into Docker/Podman
 docker load < result
@@ -489,6 +572,7 @@ podman load < result
 nix run .#buildDocker      # CPU
 nix run .#buildDockerCuda  # CUDA
 nix run .#buildDockerRocm  # ROCm
+nix run .#buildDockerXpu   # Intel XPU
 ```
 
 **Note:** Docker/Podman on macOS runs CPU-only. For GPU acceleration on Apple Silicon, use `nix run` directly.

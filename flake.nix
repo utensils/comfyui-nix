@@ -131,12 +131,15 @@
           # Docker CUDA images use pre-built wheels (all architectures supported)
           linuxX86PackagesCuda = mkComfyPackages pkgsLinuxX86 { gpuSupport = "cuda"; };
           linuxX86PackagesRocm = mkComfyPackages pkgsLinuxX86 { gpuSupport = "rocm"; };
+          # Intel XPU (oneAPI / SYCL) — Linux x86_64 only
+          linuxX86PackagesXpu = mkComfyPackages pkgsLinuxX86 { gpuSupport = "xpu"; };
           linuxArm64Packages = mkComfyPackages pkgsLinuxArm64 { };
 
           nativePackages = mkComfyPackages pkgs { };
           # CUDA uses pre-built wheels (supports all GPU architectures)
           nativePackagesCuda = mkComfyPackages pkgs { gpuSupport = "cuda"; };
           nativePackagesRocm = mkComfyPackages pkgs { gpuSupport = "rocm"; };
+          nativePackagesXpu = mkComfyPackages pkgs { gpuSupport = "xpu"; };
 
           pythonEnv = mkPythonEnv pkgs;
 
@@ -189,6 +192,7 @@
             dockerImageLinux = linuxX86Packages.dockerImage;
             dockerImageLinuxCuda = linuxX86PackagesCuda.dockerImageCuda;
             dockerImageLinuxRocm = linuxX86PackagesRocm.dockerImageRocm;
+            dockerImageLinuxXpu = linuxX86PackagesXpu.dockerImageXpu;
             dockerImageLinuxArm64 = linuxArm64Packages.dockerImage;
           }
           // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
@@ -200,6 +204,10 @@
             dockerImageCuda = nativePackagesCuda.dockerImageCuda;
             rocm = nativePackagesRocm.default;
             dockerImageRocm = nativePackagesRocm.dockerImageRocm;
+            # Intel XPU (oneAPI / SYCL) — pre-built wheels, Linux x86_64 only.
+            # Targets Arc A/B series and Core Ultra iGPUs (Meteor Lake+).
+            xpu = nativePackagesXpu.default;
+            dockerImageXpu = nativePackagesXpu.dockerImageXpu;
           };
 
           # Expose custom nodes for direct use
@@ -289,6 +297,12 @@
               self.packages.${final.stdenv.hostPlatform.system}.rocm
             else
               throw "comfy-ui-rocm is only available on x86_64 Linux";
+          # Intel XPU variant (x86_64 Linux only) - pre-built wheels from pytorch.org/whl/xpu
+          comfy-ui-xpu =
+            if final.stdenv.isLinux && final.stdenv.isx86_64 then
+              self.packages.${final.stdenv.hostPlatform.system}.xpu
+            else
+              throw "comfy-ui-xpu is only available on x86_64 Linux";
           # Add custom nodes to overlay
           comfyui-custom-nodes = self.legacyPackages.${final.stdenv.hostPlatform.system}.customNodes;
         };

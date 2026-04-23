@@ -13,6 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Run with browser**: `nix run -- --open` (automatically opens browser)
 - **Run with CUDA**: `nix run .#cuda` (Linux/NVIDIA only, uses pre-built PyTorch CUDA wheels)
 - **Run with ROCm**: `nix run .#rocm` (Linux/AMD only, uses pre-built PyTorch ROCm 7.1 wheels)
+- **Run with Intel XPU**: `nix run .#xpu` (Linux/Intel only, uses pre-built PyTorch XPU wheels — oneAPI/SYCL, no IPEX)
 - **Run with custom port**: `nix run -- --port=8080`
 - **Run with network access**: `nix run -- --listen 0.0.0.0`
 - **Run with debug logging**: `nix run -- --debug` or `nix run -- --verbose`
@@ -25,11 +26,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build Docker image**: `nix run .#buildDocker` (creates `comfy-ui:latest`)
 - **Build CUDA Docker**: `nix run .#buildDockerCuda` (creates `comfy-ui:cuda`)
 - **Build ROCm Docker**: `nix run .#buildDockerRocm` (creates `comfy-ui:rocm`)
-- **Cross-build Linux images from macOS**: `nix run .#buildDockerLinux`, `nix run .#buildDockerLinuxCuda`, `nix run .#buildDockerLinuxRocm`, `nix run .#buildDockerLinuxArm64`
-- **Pull pre-built**: `docker pull ghcr.io/utensils/comfyui-nix:latest` (or `:latest-cuda`, `:latest-rocm`)
+- **Build XPU Docker**: `nix run .#buildDockerXpu` (creates `comfy-ui:xpu`)
+- **Cross-build Linux images from macOS**: `nix run .#buildDockerLinux`, `nix run .#buildDockerLinuxCuda`, `nix run .#buildDockerLinuxRocm`, `nix run .#buildDockerLinuxXpu`, `nix run .#buildDockerLinuxArm64`
+- **Pull pre-built**: `docker pull ghcr.io/utensils/comfyui-nix:latest` (or `:latest-cuda`, `:latest-rocm`, `:latest-xpu`)
 - **Run container**: `docker run -p 8188:8188 -v $PWD/data:/data comfy-ui:latest`
 - **Run CUDA container**: `docker run --gpus all -p 8188:8188 -v $PWD/data:/data comfy-ui:cuda`
 - **Run ROCm container**: `docker run --device /dev/kfd --device /dev/dri -p 8188:8188 -v $PWD/data:/data comfy-ui:rocm`
+- **Run XPU container**: `docker run --device /dev/dri -p 8188:8188 -v $PWD/data:/data comfy-ui:xpu`
 
 ## Linting and Code Quality
 
@@ -55,7 +58,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Template input files: auto-generated in `nix/template-inputs.nix`
   - Update with: `./scripts/update-template-inputs.sh && git add nix/template-inputs.nix`
 - Python version: 3.12
-- PyTorch: macOS uses pre-built wheels (2.5.1, pinned to work around MPS bugs on macOS 26); CUDA uses pre-built wheels from pytorch.org (cu128); ROCm uses pre-built wheels from pytorch.org (rocm7.1); Linux CPU uses nixpkgs
+- PyTorch: macOS uses pre-built wheels (2.5.1, pinned to work around MPS bugs on macOS 26); CUDA uses pre-built wheels from pytorch.org (cu128); ROCm uses pre-built wheels from pytorch.org (rocm7.1); Intel XPU uses pre-built wheels from pytorch.org (xpu, oneAPI/SYCL — no IPEX); Linux CPU uses nixpkgs
 
 ## Project Architecture
 
@@ -80,11 +83,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### GPU Support Architecture
 
-The `gpuSupport` parameter is a string enum (`"none"`, `"cuda"`, `"rocm"`) that flows through the entire build:
+The `gpuSupport` parameter is a string enum (`"none"`, `"cuda"`, `"rocm"`, `"xpu"`) that flows through the entire build:
 
 `flake.nix` → `packages.nix` / `python-overrides.nix` / `docker.nix` / `apps.nix` / `modules/comfyui.nix`
 
 Each module branches on this value to select platform-specific PyTorch wheels, runtime libraries, environment variables, and launcher behavior. When adding a new GPU backend, every file in this chain needs updates.
+
+**XPU-specific notes** (Intel oneAPI / SYCL):
+
+- Wheel channel: `https://download.pytorch.org/whl/xpu` — `torch 2.10.0+xpu`, `torchvision 0.25.0+xpu`, `torchaudio 2.10.0+xpu` (cp312, Linux x86_64 only)
+- No IPEX required — ComfyUI uses `torch.xpu.is_available()` auto-detection
+- Host must provide Level Zero loader + Intel compute-runtime at runtime. The launcher prefers `/run/opengl-driver/lib` (NixOS `hardware.graphics.extraPackages`) and falls back to Nix-bundled `pkgs.level-zero` + `pkgs.intel-compute-runtime` + `pkgs.ocl-icd` for non-NixOS Linux
+- Runtime env vars set by launcher: `SYCL_CACHE_PERSISTENT=1`, `SYCL_CACHE_DIR=<data-dir>/.cache/libsycl_cache`. Opt-in: `COMFY_ENABLE_XPU_FP64_EMULATION=1` enables `OverrideDefaultFP64Settings` + `IGC_EnableDPEmulation` for iGPUs without native FP64
+- Gated on `stdenv.isLinux && stdenv.hostPlatform.isx86_64` in every module (aarch64 support does not exist upstream)
+- XPU support is untested on real hardware by maintainers — issue triage requires the reporter's hardware details (GPU model, kernel version, `clinfo`/`sycl-ls` output)
 
 ### Key Components
 
@@ -109,6 +121,8 @@ The launcher does significant work beyond just starting ComfyUI:
 - `VIRTUAL_ENV`, `PIP_TARGET` — for Manager package installs into `.venv`
 - `COMFY_VENV_PRECEDENCE` — set to `prefer-venv` to let venv packages override Nix packages (default: Nix takes precedence)
 - `LD_LIBRARY_PATH` (Linux) / `DYLD_LIBRARY_PATH` (macOS) — set automatically for system libraries
+- `SYCL_CACHE_PERSISTENT`, `SYCL_CACHE_DIR` — set on XPU builds to cache JIT kernels under `<data-dir>/.cache/libsycl_cache`
+- `COMFY_ENABLE_XPU_FP64_EMULATION` — opt-in env var (user-provided); when `=1`, launcher sets `OverrideDefaultFP64Settings=1` + `IGC_EnableDPEmulation=1` for iGPUs without native FP64
 
 **Model Downloader** (`src/custom_nodes/model_downloader/`):
 Non-blocking async download system using aiohttp with WebSocket progress updates.
@@ -142,6 +156,7 @@ fonts/         - Bundled fonts for nodes requiring system fonts
 - macOS: PyTorch pinned to 2.5.1 to work around MPS bugs on macOS 26 (Tahoe); browser opens via `/usr/bin/open`
 - CUDA: Pre-built wheels from pytorch.org with CUDA 12.8 runtime bundled (no separate toolkit needed); supports Pascal through Blackwell
 - ROCm: Pre-built wheels from pytorch.org with ROCm 7.1 runtime bundled; tested on gfx1100 (7900 XTX); `/run/opengl-driver/lib` provides AMD drivers on NixOS
+- Intel XPU: Pre-built wheels from pytorch.org (oneAPI / SYCL, no IPEX); supports Arc A/B series + Core Ultra iGPUs (Meteor Lake+); untested on maintainer hardware — treat external user reports as authoritative; `/run/opengl-driver/lib` preferred, Nix-bundled `level-zero`/`intel-compute-runtime` as non-NixOS fallback
 - Linux CPU: Uses nixpkgs PyTorch; browser opens via `xdg-open`
 - Cross-platform Docker builds work from any system via `nix run .#buildDockerLinux` etc.
 

@@ -127,6 +127,15 @@ in
     };
   };
 }
+// pkgs.lib.optionalAttrs (packages ? xpu) {
+  xpu = {
+    type = "app";
+    program = "${packages.xpu}/bin/comfy-ui";
+    meta = {
+      description = "Run ComfyUI with Intel XPU (oneAPI / SYCL)";
+    };
+  };
+}
 // pkgs.lib.optionalAttrs (packages ? dockerImage) {
   buildDocker = mkApp "build-docker" "Build ComfyUI Docker image (CPU)" ''
     echo "Building Docker image for ComfyUI..."
@@ -151,6 +160,16 @@ in
     docker load < ${packages.dockerImageRocm}
     echo "ROCm-enabled Docker image built successfully! You can now run it with:"
     echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:rocm"
+  '' [ pkgs.docker ];
+}
+// pkgs.lib.optionalAttrs (packages ? dockerImageXpu) {
+  buildDockerXpu = mkApp "build-docker-xpu" "Build ComfyUI Docker image with Intel XPU support" ''
+    echo "Building Docker image for ComfyUI with Intel XPU (oneAPI) support..."
+    docker load < ${packages.dockerImageXpu}
+    echo "XPU-enabled Docker image built successfully! You can now run it with:"
+    echo "docker run --device /dev/dri -p 8188:8188 -v \$PWD/data:/data comfy-ui:xpu"
+    echo ""
+    echo "Note: Host kernel must have i915 or xe driver + matching firmware for the GPU."
   '' [ pkgs.docker ];
 }
 # Cross-platform Docker build apps (always available, use remote builder on non-Linux)
@@ -186,6 +205,20 @@ in
         docker load < ${packages.dockerImageLinuxRocm}
         echo "ROCm-enabled Docker image built successfully! You can now run it with:"
         echo "docker run --gpus all -p 8188:8188 -v \$PWD/data:/data comfy-ui:rocm"
+      ''
+      [ pkgs.docker ];
+}
+// pkgs.lib.optionalAttrs (packages ? dockerImageLinuxXpu) {
+  buildDockerLinuxXpu =
+    mkApp "build-docker-linux-xpu" "Build ComfyUI Docker image for Linux x86_64 with Intel XPU"
+      ''
+        echo "Building Linux x86_64 Docker image for ComfyUI with Intel XPU support..."
+        echo "Note: Uses remote builder if running on non-Linux system"
+        docker load < ${packages.dockerImageLinuxXpu}
+        echo "XPU-enabled Docker image built successfully! You can now run it with:"
+        echo "docker run --device /dev/dri -p 8188:8188 -v \$PWD/data:/data comfy-ui:xpu"
+        echo ""
+        echo "Note: Host kernel must have i915 or xe driver + matching firmware."
       ''
       [ pkgs.docker ];
 }
