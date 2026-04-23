@@ -672,6 +672,10 @@ lib.optionalAttrs useCuda {
       scipy
     ];
     doCheck = false;
+    # Upstream wheel's Requires-Dist lists ddt/docutils/matplotlib (docs/tests)
+    # and imageio (try/except-optional in io_handler.py) as mandatory runtime deps.
+    # Only numpy + pillow are actually required at import time.
+    dontCheckRuntimeDeps = true;
     pythonImportsCheck = [ "color_matcher" ];
   };
 }
