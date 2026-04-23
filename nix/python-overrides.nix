@@ -525,17 +525,48 @@ lib.optionalAttrs useCuda {
 # torch's deps so auto-patchelf can resolve libtorch_xpu.so's sibling SONAMEs.
 // lib.optionalAttrs useXpu (
   let
-    # The Intel runtime wheels contain no Python code — just .so files under
-    # the wheel's `.data/data/lib/` convention. Rather than 22 individual
+    # triton-xpu ships a real Python `triton/` top-level module (not just .so
+    # files under .data/data/lib), so it needs its own buildPythonPackage for
+    # Python to import it. Without this, torch.compile / Inductor falls back
+    # to nixpkgs' non-XPU triton or fails at dynamo compile time.
+    tritonXpu = final.buildPythonPackage {
+      pname = "triton";
+      version = versions.xpuRuntime.triton-xpu.version;
+      format = "wheel";
+      src = pkgs.fetchurl {
+        url = versions.xpuRuntime.triton-xpu.url;
+        hash = versions.xpuRuntime.triton-xpu.hash;
+      };
+      dontBuild = true;
+      dontConfigure = true;
+      nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+      buildInputs = wheelBuildInputs;
+      autoPatchelfIgnoreMissingDeps = xpuIgnoreMissingLibs;
+      propagatedBuildInputs = with final; [ filelock ];
+      pythonImportsCheck = [ ]; # needs XPU runtime; can't import in build sandbox
+      doCheck = false;
+      dontCheckRuntimeDeps = true;
+      meta = {
+        description = "Triton compiler with Intel XPU backend";
+        homepage = "https://github.com/intel/intel-xpu-backend-for-triton";
+        license = lib.licenses.mit;
+        platforms = [ "x86_64-linux" ];
+      };
+    };
+
+    # The other Intel runtime wheels contain no Python code — just .so files
+    # under the wheel's `.data/data/lib/` convention. Rather than 21 individual
     # buildPythonPackage derivations (which cross-reference each other and
     # trigger infinite recursion through requiredPythonModules), fetch and
     # unpack each wheel into a single combined derivation. All cross-wheel
     # SONAMEs resolve against this unified lib/ dir, and it's one buildInput
-    # for torch instead of 22.
+    # for torch instead of 21. triton-xpu is excluded — see tritonXpu above.
     intelOneapiRuntime = pkgs.stdenv.mkDerivation {
       pname = "intel-oneapi-runtime";
       version = "2025.3";
-      srcs = lib.mapAttrsToList (_: spec: pkgs.fetchurl { inherit (spec) url hash; }) versions.xpuRuntime;
+      srcs = lib.mapAttrsToList (_: spec: pkgs.fetchurl { inherit (spec) url hash; }) (
+        lib.filterAttrs (n: _: n != "triton-xpu") versions.xpuRuntime
+      );
       dontConfigure = true;
       dontBuild = true;
       sourceRoot = ".";
@@ -594,6 +625,9 @@ lib.optionalAttrs useCuda {
     };
   in
   {
+    # Expose triton as a named attr so python.withPackages can pick it up.
+    triton = tritonXpu;
+
     torch = final.buildPythonPackage {
       pname = "torch";
       version = xpuWheels.torch.version;
@@ -612,15 +646,18 @@ lib.optionalAttrs useCuda {
       buildInputs = wheelBuildInputs ++ [ intelOneapiRuntime ];
       autoPatchelfIgnoreMissingDeps = xpuIgnoreMissingLibs;
       # Intel oneAPI runtime is propagated so its lib/ is on LD_LIBRARY_PATH
-      # at ComfyUI runtime (the launcher also sets this explicitly).
-      propagatedBuildInputs = with final; [
-        filelock
-        typing-extensions
-        sympy
-        networkx
-        jinja2
-        fsspec
-      ];
+      # at ComfyUI runtime (the launcher also sets this explicitly). triton
+      # is propagated so torch.compile / Inductor can import the XPU backend.
+      propagatedBuildInputs =
+        (with final; [
+          filelock
+          typing-extensions
+          sympy
+          networkx
+          jinja2
+          fsspec
+        ])
+        ++ [ tritonXpu ];
       propagatedNativeBuildInputs = [ intelOneapiRuntime ];
       pythonImportsCheck = [ ];
       doCheck = false;
