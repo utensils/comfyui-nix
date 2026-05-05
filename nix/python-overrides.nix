@@ -999,6 +999,10 @@ lib.optionalAttrs useCuda {
     '';
 
     doCheck = false;
+    # Wheel's Requires-Dist asks for opencv-python and tqdm; we provide
+    # opencv4 (the same library under nixpkgs's name) plus tqdm transitively
+    # via the surrounding env. pythonImportsCheck guards real import surface.
+    dontCheckRuntimeDeps = true;
     pythonImportsCheck = [ "facexlib" ];
   };
 }
