@@ -38,6 +38,8 @@ let
       runHook postInstall
     '';
 
+    passthru.installDirName = "ComfyUI-Impact-Pack";
+
     # Python dependencies required by Impact Pack
     passthru.pythonDeps =
       ps: with ps; [
@@ -50,6 +52,7 @@ let
         dill
         segment-anything
         sam2
+        ultralytics # Impact Subpack: YOLO object detection
       ];
 
     meta = with lib; {
@@ -101,6 +104,8 @@ let
       runHook postInstall
     '';
 
+    passthru.installDirName = "rgthree-comfy";
+
     # No additional Python dependencies needed
     passthru.pythonDeps = ps: [ ];
 
@@ -133,12 +138,15 @@ let
       runHook postInstall
     '';
 
+    passthru.installDirName = "ComfyUI-KJNodes";
+
     # Python dependencies required by KJNodes
     passthru.pythonDeps =
-      ps: with ps; [
-        color-matcher
-        mss
-      ];
+      ps:
+      [
+        ps."color-matcher" # hyphenated name needs quoting
+      ]
+      ++ (with ps; [ mss ]);
 
     meta = with lib; {
       description = "ComfyUI KJNodes - Various utility nodes";
@@ -168,6 +176,8 @@ let
       cp -r . $out/
       runHook postInstall
     '';
+
+    passthru.installDirName = "ComfyUI-GGUF";
 
     # Python dependencies required by ComfyUI-GGUF
     passthru.pythonDeps =
@@ -206,6 +216,8 @@ let
       runHook postInstall
     '';
 
+    passthru.installDirName = "ComfyUI-LTXVideo";
+
     passthru.pythonDeps =
       ps: with ps; [
         diffusers
@@ -243,6 +255,8 @@ let
       cp -r . $out/
       runHook postInstall
     '';
+
+    passthru.installDirName = "ComfyUI-Florence2";
 
     passthru.pythonDeps =
       ps: with ps; [
@@ -283,6 +297,12 @@ let
       runHook postInstall
     '';
 
+    passthru.installDirName = "ComfyUI_bitsandbytes_NF4";
+
+    # Linux-only at the symlink level (bitsandbytes requires CUDA); the
+    # python deps are still safe to evaluate cross-platform.
+    passthru.linuxOnly = true;
+
     passthru.pythonDeps =
       ps: with ps; [
         bitsandbytes
@@ -316,6 +336,8 @@ let
       cp -r . $out/
       runHook postInstall
     '';
+
+    passthru.installDirName = "x-flux-comfyui";
 
     passthru.pythonDeps =
       ps: with ps; [
@@ -355,6 +377,8 @@ let
       cp -r . $out/
       runHook postInstall
     '';
+
+    passthru.installDirName = "ComfyUI-MMAudio";
 
     passthru.pythonDeps =
       ps: with ps; [
@@ -397,6 +421,8 @@ let
       runHook postInstall
     '';
 
+    passthru.installDirName = "PuLID_ComfyUI";
+
     # Face analysis dependencies - insightface works on all platforms via onnxruntime
     # (mxnet dependency is removed in python-overrides.nix for cross-platform support)
     passthru.pythonDeps =
@@ -436,6 +462,8 @@ let
       cp -r . $out/
       runHook postInstall
     '';
+
+    passthru.installDirName = "ComfyUI-WanVideoWrapper";
 
     passthru.pythonDeps =
       ps: with ps; [
