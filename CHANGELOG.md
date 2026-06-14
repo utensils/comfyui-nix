@@ -5,7 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.24.0] - 2026-06-14
+
+### Changed
+- Upgraded ComfyUI from v0.19.3 to v0.24.0
+- Updated `comfyui-frontend-package` 1.42.11 → 1.44.19
+- Updated `comfyui-workflow-templates` 0.9.57 → 0.9.94
+- Updated `comfyui-workflow-templates-core` 0.3.209 → 0.3.248
+- Updated `comfyui-workflow-templates-media-api` 0.3.69 → 0.3.79
+- Updated `comfyui-workflow-templates-media-video` 0.3.78 → 0.3.91
+- Updated `comfyui-workflow-templates-media-image` 0.3.127 → 0.3.147
+- Updated `comfyui-workflow-templates-media-other` 0.3.176 → 0.3.214
+- Updated `comfyui-embedded-docs` 0.4.3 → 0.5.2
+- Updated `comfyui-manager` 4.1 → 4.2.1
+- Updated `comfy-kitchen` 0.2.8 → 0.2.10
+- Updated `comfy-aimdo` 0.2.12 → 0.4.8
+- Updated PyAV wheel override 14.2.0 → 16.0.1 for upstream `av>=16.0.0` requirement
+
+### Upstream Highlights (v0.20.0 – v0.24.0)
+- New models: SUPIR, SAM 3.1, RIFE/FILM interpolation, LTXV Audio VAE, BiRefNet, Gemma4, Void, Stable Audio 3.0, MoGe, HiDream-O1, Microsoft Lens, NVIDIA PixelDiT/PiD, TripoSplat, MediaPipe Face Detection, and Ideogram 4
+- New nodes: StringFormat, Save Image Advanced, Gaussian splat nodes, Logic nodes, Preview3DAdvanced, Ideogram V4 API, OpenRouter, Rodin2.5, Krea2, Beeble SwitchX, Tripo3D P1, and Flux virtual try-on/erase
+- Major media loading updates: unified audio/video loader, PyAV-backed image loading, higher bit-depth video, alpha channel video loading, and automatic metadata rotation
+- Performance improvements: multi-threaded model loading, MultiGPU CFG/work units, stochastic rounding through comfy-kitchen, block prefetch, async LoRA loading, and dynamic VRAM/RAM cache tuning
+- API and developer updates: OpenAPI 3.1 spec, feature-flag registry, experiment endpoints, blueprint subgraph descriptions, and deterministic ControlNet load order
+- Fixes: Math Expression large integer overflow, DINOv3 fp32 inference, BiRefNet/DINO dtype casts, TripoSplat preview, Quiver nodes, fp8 safetensors saving, VAEDecodeAudio/LTX compatibility, and workflow compatibility regressions
 
 ## [0.19.3] - 2026-04-22
 
