@@ -37,7 +37,7 @@ in
         echo "  comfyui.version = \"''${LATEST#v}\";"
         echo ""
         echo "Then run: nix flake update"
-        echo "And update the hash with: nix build 2>&1 | grep 'got:' | awk '{print $2}'"
+        echo "And update the hash with: nix build 2>&1 | grep 'got:' | awk '{print \$2}'"
       ''
       [
         pkgs.curl

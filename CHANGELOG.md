@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-06-18
+
+### Changed
+- Upgraded ComfyUI from v0.19.3 to v0.25.0
+- Updated `comfyui-frontend-package` 1.42.11 -> 1.45.15
+- Updated `comfyui-workflow-templates` 0.9.57 -> 0.10.0
+- Updated `comfyui-workflow-templates-core` 0.3.209 -> 0.3.255
+- Updated `comfyui-workflow-templates-media-api` 0.3.69 -> 0.3.80
+- Updated `comfyui-workflow-templates-media-video` 0.3.78 -> 0.3.92
+- Updated `comfyui-workflow-templates-media-image` 0.3.127 -> 0.3.152
+- Updated `comfyui-workflow-templates-media-other` 0.3.176 -> 0.3.220
+- Updated `comfyui-embedded-docs` 0.4.3 -> 0.5.4
+- Updated `comfyui-manager` 4.1 -> 4.2.2
+- Updated `comfy-kitchen` 0.2.8 -> 0.2.10
+- Updated `comfy-aimdo` 0.2.12 -> 0.4.10
+- Updated PyAV wheel override 14.2.0 -> 16.0.1 to satisfy ComfyUI's `av>=16.0.0` requirement
+- Regenerated template input files (589 files)
+- Aligned runtime package constraints with upstream ComfyUI v0.25.0 requirements
+- Removed obsolete unused LTXVideo rotary embedding compatibility patch
+
+### Upstream Highlights (v0.20.1 - v0.25.0)
+- New and updated 3D, video, audio, asset-management, and API node features
+- Cursor-based asset pagination, image dimension metadata, asset IDs in execution messages, and `/system_stats` deploy environment reporting
+- New flags including `--debug-hang`, `--high-ram`, dynamic `--reserve-vram`, and `--vram-headroom`
+- SCAIL-2, Bernini-R, Depth Anything 3, LTX/Wan/Qwen/Ideogram improvements, and 10-bit video support
+- Multiple fixes for video decode edge cases, pinned-memory pressure, quantized weights, dtype handling, and manager enablement behavior
+
+### Fixed
+- Escaped the `awk` snippet printed by `nix run .#update` so it no longer fails under `set -u`
+
 ## [0.19.3] - 2026-04-22
 
 ### Changed
@@ -319,7 +349,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apple Silicon (M-series) support
 - Basic persistence for user data
 
-[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.18.2...HEAD
+[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.25.0...HEAD
+[0.25.0]: https://github.com/utensils/comfyui-nix/compare/v0.19.3...v0.25.0
+[0.19.3]: https://github.com/utensils/comfyui-nix/compare/v0.18.2...v0.19.3
 [0.18.2]: https://github.com/utensils/comfyui-nix/compare/v0.18.0...v0.18.2
 [0.18.0]: https://github.com/utensils/comfyui-nix/compare/v0.17.2...v0.18.0
 [0.17.2]: https://github.com/utensils/comfyui-nix/compare/v0.16.4...v0.17.2

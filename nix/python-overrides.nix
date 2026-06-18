@@ -813,27 +813,27 @@ lib.optionalAttrs useCuda {
 // lib.optionalAttrs (prev ? av) {
   av =
     let
-      # Use platform-specific wheels from PyPI (av 14.2.0, Python 3.12)
+      # Use platform-specific wheels from PyPI (av 16.0.1, Python 3.12)
       wheelSrc =
         if pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isx86_64 then
           pkgs.fetchurl {
-            url = "https://files.pythonhosted.org/packages/ed/e8/cf60f3fcde3d0eedee3e9ff66b674a9b85bffc907dccebbc56fb5ac4a954/av-14.2.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl";
-            hash = "sha256-FMXwCwtg0SesDN5Gpbzptn6QW6kwM/3UiuVQwMBdUbg=";
+            url = "https://files.pythonhosted.org/packages/b2/7a/1305243ab47f724fdd99ddef7309a594e669af7f0e655e11bdd2c325dfae/av-16.0.1-cp312-cp312-manylinux_2_28_x86_64.whl";
+            hash = "sha256-2uzCByuCtqlCrL2qmi4AwFI0xh/vl2sicTmDwCCweZI=";
           }
         else if pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isAarch64 then
           pkgs.fetchurl {
-            url = "https://files.pythonhosted.org/packages/d3/c3/a174388d393f1564ad4c1b8300eb4f3e972851a4d392c1eba66a6848749e/av-14.2.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl";
-            hash = "sha256-iXvppmXDZd/PDBCiV/4iNSHtTTtHjmslj1X3zRP97dM=";
+            url = "https://files.pythonhosted.org/packages/cb/6e/f7abefba6e008e2f69bebb9a17ba38ce1df240c79b36a5b5fcacf8c8fcfd/av-16.0.1-cp312-cp312-manylinux_2_28_aarch64.whl";
+            hash = "sha256-UgH3tLXtISgRjLkMKm1k/u2wWGynx4MXaJbHj/tLvVw=";
           }
         else if pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isx86_64 then
           pkgs.fetchurl {
-            url = "https://files.pythonhosted.org/packages/89/36/787af232db9b3d5bbd5eb4d1d46c51b9669cba5b2273bb68a445cb281db8/av-14.2.0-cp312-cp312-macosx_12_0_x86_64.whl";
-            hash = "sha256-amqunheq5PKpczWCXApwG3Y7cqr4lCjypwu9yDtkrSM=";
+            url = "https://files.pythonhosted.org/packages/44/78/12a11d7a44fdd8b26a65e2efa1d8a5826733c8887a989a78306ec4785956/av-16.0.1-cp312-cp312-macosx_11_0_x86_64.whl";
+            hash = "sha256-5BqP74XfsscXNJ+f90+S+VYBIqnxqUscbJqKnJRiunE=";
           }
         else if pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isAarch64 then
           pkgs.fetchurl {
-            url = "https://files.pythonhosted.org/packages/5b/88/b56f5e5fa2486ee51413b043e08c7f5ed119c1e10b72725593da30adc28f/av-14.2.0-cp312-cp312-macosx_12_0_arm64.whl";
-            hash = "sha256-o9o+lRFIKR1w9ss/s3v4FYCwGZLpFe8QMBCOQHb2LTg=";
+            url = "https://files.pythonhosted.org/packages/27/19/3a4d3882852a0ee136121979ce46f6d2867b974eb217a2c9a070939f55ad/av-16.0.1-cp312-cp312-macosx_14_0_arm64.whl";
+            hash = "sha256-Y1KmSyXJ+YXU8nnCkC25qSQk5vLJchYeZxGWFvB5bLk=";
           }
         else
           # Fallback to source build for unsupported platforms
@@ -842,7 +842,7 @@ lib.optionalAttrs useCuda {
     if wheelSrc != null then
       final.buildPythonPackage {
         pname = "av";
-        version = "14.2.0";
+        version = "16.0.1";
         format = "wheel";
         src = wheelSrc;
         # Wheel contains bundled FFmpeg libraries
