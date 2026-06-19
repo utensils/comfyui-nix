@@ -577,6 +577,44 @@ let
             export FACEXLIB_MODELPATH="$BASE_DIR/.cache/facexlib"
             mkdir -p "$FACEXLIB_MODELPATH/facexlib/weights"
 
+      ${lib.optionalString useCuda ''
+        # =====================================================================
+        # NVIDIA Blackwell / CUDA 12.x compatibility
+        # =====================================================================
+        # ComfyUI enables cudaMallocAsync automatically for CUDA builds unless a
+        # device is explicitly blacklisted. On Blackwell cards with the current
+        # cu128 PyTorch wheels, users have reported generation-time crashes and
+        # ComfyUI's own warning recommends --disable-cuda-malloc for allocator
+        # errors. Disable it automatically for RTX 50/Blackwell unless the user
+        # already selected an allocator mode in extraArgs.
+        case " ''${COMFY_ARGS[*]} " in
+          *" --disable-cuda-malloc "*|*" --cuda-malloc "*)
+            ;;
+          *)
+            detect_nvidia_gpus() {
+              if command -v nvidia-smi >/dev/null 2>&1; then
+                nvidia-smi -L 2>/dev/null && return 0
+              fi
+              for nvidia_smi in /run/current-system/sw/bin/nvidia-smi /run/opengl-driver/bin/nvidia-smi; do
+                if [[ -x "$nvidia_smi" ]]; then
+                  "$nvidia_smi" -L 2>/dev/null && return 0
+                fi
+              done
+              for gpu_info in /proc/driver/nvidia/gpus/*/information; do
+                if [[ -r "$gpu_info" ]]; then
+                  grep -E '^Model:' "$gpu_info" 2>/dev/null || true
+                fi
+              done
+            }
+
+            if detect_nvidia_gpus | grep -Eiq 'GeForce RTX 50[0-9]{2}|RTX PRO .*Blackwell|Blackwell|NVIDIA B[0-9]{3}'; then
+              echo "Detected NVIDIA Blackwell GPU with CUDA 12.x PyTorch; adding --disable-cuda-malloc for stability."
+              COMFY_ARGS+=("--disable-cuda-malloc")
+            fi
+            ;;
+        esac
+      ''}
+
       ${lib.optionalString useXpu ''
         # =====================================================================
         # Intel XPU (oneAPI / SYCL) runtime setup
