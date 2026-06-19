@@ -4,6 +4,23 @@
   versions,
   pythonOverrides,
   gpuSupport ? "none", # "none", "cuda", "rocm", "xpu"
+  # Bundled custom nodes to include. Each name must be an attribute key of
+  # ./custom-nodes.nix. Override with a subset (or `[]`) to skip nodes you
+  # don't need — their Python deps and symlinks are then dropped from the
+  # build. Default keeps full upstream behaviour for backwards compatibility.
+  bundledNodes ? [
+    "impact-pack"
+    "rgthree-comfy"
+    "kjnodes"
+    "gguf"
+    "ltxvideo"
+    "florence2"
+    "bitsandbytes-nf4"
+    "x-flux"
+    "mmaudio"
+    "pulid"
+    "wanvideo"
+  ],
 }:
 let
   useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
@@ -56,6 +73,27 @@ let
       versions
       ;
   };
+
+  # Validate that every entry in bundledNodes points at a real custom node.
+  # A typo otherwise silently disables the node, which is a footgun.
+  unknownBundled = lib.subtractLists (lib.attrNames customNodes) bundledNodes;
+  _ = lib.throwIf (unknownBundled != [ ]) ''
+    services.comfyui (or packages.nix bundledNodes): unknown node name(s):
+      ${lib.concatStringsSep ", " unknownBundled}
+    Known nodes: ${lib.concatStringsSep ", " (lib.attrNames customNodes)}
+  '' null;
+
+  # Selected nodes after applying platform constraints (e.g. the bitsandbytes
+  # NF4 wheel only builds on Linux). passthru.linuxOnly opt-out drops them on
+  # Darwin without forcing the user to maintain a per-platform list.
+  effectiveBundledNodes = lib.filter (
+    name:
+    let
+      node = customNodes.${name};
+      linuxOnly = node.passthru.linuxOnly or false;
+    in
+    !(linuxOnly && pkgs.stdenv.isDarwin)
+  ) bundledNodes;
 
   comfyuiSrcRaw = pkgs.fetchFromGitHub {
     owner = "Comfy-Org";
@@ -150,51 +188,26 @@ let
         pydantic-settings
         simpleeval
       ];
-      # ComfyUI Manager and common custom node dependencies
+      # ComfyUI Manager runtime + always-on helpers (independent of which
+      # custom nodes are bundled — the manager is part of ComfyUI core, and
+      # opencv4 / imageio-ffmpeg are pulled in by enough runtime-installed
+      # nodes that having them ready avoids surprise pip failures).
       extras =
         with ps;
         [
-          pip # Required for comfyui-manager security check
-          uv # Required for comfyui-manager package management
-          chardet # Required for comfyui-manager to read requirements.txt files
-          pygithub # Required for comfyui-manager GitHub integration
-          typer # Required for comfyui-manager CLI
-          matrix-nio # Optional: enables ComfyUI-Manager matrix sharing feature
-          opencv4 # Required by many custom nodes for image processing (cv2)
-          imageio-ffmpeg # Required by VideoHelperSuite and other video nodes
-          # Impact Pack dependencies
-          scikit-image # Image processing (skimage)
-          piexif # EXIF metadata handling
-          matplotlib # Plotting and visualization
-          dill # Extended pickling
-          segment-anything # Meta AI SAM model
-          sam2 # Meta AI SAM 2 model
-          # Impact Subpack dependencies
-          ultralytics # YOLO object detection (for UltralyticsDetectorProvider)
-          # KJNodes dependencies
-          mss # Screen capture
-          # General ML utilities
-          accelerate # HuggingFace Accelerate for distributed training/inference
-          # ComfyUI-GGUF dependencies
-          gguf # GGUF file format support
-          protobuf # Required for GGUF tokenizer support
-          # LTXVideo dependencies
-          diffusers # Diffusion models
-          huggingface-hub # HuggingFace Hub
-          timm # PyTorch Image Models
-          # Florence2 dependencies
-          peft # Parameter-efficient fine-tuning
-          # MMAudio dependencies
-          librosa # Audio processing
-          torchdiffeq # Differential equations solver
-          omegaconf # Configuration management
-          open-clip-torch # OpenCLIP
-          ftfy # Text encoding fixes
-          # PuLID dependencies
-          onnxruntime # ONNX runtime
+          # ComfyUI Manager runtime
+          pip # security check
+          uv # package management
+          chardet # requirements.txt reading
+          pygithub # GitHub integration
+          typer # CLI
+          matrix-nio # matrix sharing feature (optional)
+          # Widely-needed across ComfyUI core + many runtime-installed nodes
+          opencv4 # cv2
+          imageio-ffmpeg # video helpers
+          accelerate # general HuggingFace utility
         ]
-        ++ [ ps."color-matcher" ] # Color matching (hyphenated name needs quoting)
-        # Common custom-node deps ("it just works" set)
+        # Common runtime-node deps ("it just works" set)
         ++ lib.optionals (ps ? ollama && available ps.ollama) [ ps.ollama ]
         ++ lib.optionals (ps ? "pytorch-lightning" && available ps."pytorch-lightning") [
           ps."pytorch-lightning"
@@ -205,6 +218,13 @@ let
         ++ lib.optionals (ps ? "google-generativeai" && available ps."google-generativeai") [
           ps."google-generativeai"
         ];
+
+      # Per-plugin Python deps, gated on the user's bundledNodes selection.
+      # Each custom node declares its own deps via passthru.pythonDeps in
+      # custom-nodes.nix; this avoids duplicating the dep list in two places.
+      selectedNodeDeps = lib.concatMap (
+        name: customNodes.${name}.passthru.pythonDeps ps
+      ) effectiveBundledNodes;
       # torch is overridden at the base level in python-overrides.nix when when gpuSupport="cuda|rocm"
       # so ps.torch is already CUDA/ROCm-enabled when building with CUDA/ROCm support
       torchPackages = lib.optionals (ps ? torch && available ps.torch) [ ps.torch ];
@@ -226,13 +246,11 @@ let
         ++ lib.optionals (ps ? toml && available ps.toml) [ ps.toml ]
         ++ lib.optionals (ps ? rich && available ps.rich) [ ps.rich ]
         ++ lib.optionals (ps ? "comfy-cli" && available ps."comfy-cli") [ ps."comfy-cli" ]
-        # Linux-only packages (CUDA dependencies)
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? bitsandbytes) [ ps.bitsandbytes ]
+        # Linux-only attention/quantisation runtimes that aren't tied to a
+        # specific bundled node. (bitsandbytes itself is now a per-plugin dep
+        # of bitsandbytes-nf4 — see custom-nodes.nix.)
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? xformers) [ ps.xformers ]
         ++ lib.optionals (pkgs.stdenv.isLinux && ps ? triton && available ps.triton) [ ps.triton ]
-        # Face analysis packages - work on all platforms (insightface override removes mxnet)
-        ++ lib.optionals (ps ? insightface) [ ps.insightface ]
-        ++ lib.optionals (ps ? facexlib) [ ps.facexlib ]
         ++ [
           vendored.comfyuiFrontendPackage
           vendored.comfyuiWorkflowTemplates
@@ -245,7 +263,7 @@ let
           vendored.sageattention
         ];
     in
-    base ++ extras ++ optionals
+    base ++ extras ++ selectedNodeDeps ++ optionals
   );
 
   frontendRoot = "${pythonRuntime}/${python.sitePackages}/comfyui_frontend_package/static";
@@ -429,19 +447,29 @@ let
               fi
             fi
 
-            # Link our bundled custom nodes
-            # Remove stale directories if they exist but aren't symlinks
-            for node_dir in "model_downloader" "ComfyUI-Impact-Pack" "rgthree-comfy" "ComfyUI-KJNodes" "ComfyUI-GGUF" "ComfyUI-LTXVideo" "ComfyUI-Florence2" "ComfyUI_bitsandbytes_NF4" "x-flux-comfyui" "ComfyUI-MMAudio" "PuLID_ComfyUI" "ComfyUI-WanVideoWrapper"; do
+            # Link our bundled custom nodes.
+            # Cleanup pass covers every known node dir (regardless of the
+            # current bundledNodes selection) so dropping a plugin removes
+            # its stale store symlink on the next launch.
+            for node_dir in "model_downloader" ${
+              lib.concatMapStringsSep " " (
+                node: "\"${node.passthru.installDirName}\""
+              ) (lib.attrValues customNodes)
+            }; do
               if [[ -e "$BASE_DIR/custom_nodes/$node_dir" && ! -L "$BASE_DIR/custom_nodes/$node_dir" ]]; then
                 rm -rf "$BASE_DIR/custom_nodes/$node_dir"
               fi
+              # Also drop stale symlinks for nodes that were previously
+              # bundled but are no longer in bundledNodes.
+              if [[ -L "$BASE_DIR/custom_nodes/$node_dir" ]] && \
+                 ! [[ "$node_dir" =~ ^(model_downloader${
+                   lib.concatMapStringsSep "" (
+                     name: "|${customNodes.${name}.passthru.installDirName}"
+                   ) effectiveBundledNodes
+                 })$ ]]; then
+                rm -f "$BASE_DIR/custom_nodes/$node_dir"
+              fi
             done
-
-            # On macOS, remove Linux-only nodes if they were linked previously
-            # Note: PuLID now works on macOS via CoreML (insightface override removes mxnet dependency)
-            if [[ "$(uname)" == "Darwin" ]]; then
-              rm -f "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" 2>/dev/null || true
-            fi
 
             # Clean up stale read-only web extension directories (from Nix store)
             if [[ -d "$BASE_DIR/web/extensions" ]]; then
@@ -450,22 +478,13 @@ let
 
             # Link bundled nodes (always update symlinks to pick up new Nix store paths)
             ln -sfn "${modelDownloaderDir}" "$BASE_DIR/custom_nodes/model_downloader"
-            ln -sfn "${customNodes.impact-pack}" "$BASE_DIR/custom_nodes/ComfyUI-Impact-Pack"
-            ln -sfn "${customNodes.rgthree-comfy}" "$BASE_DIR/custom_nodes/rgthree-comfy"
-            ln -sfn "${customNodes.kjnodes}" "$BASE_DIR/custom_nodes/ComfyUI-KJNodes"
-            ln -sfn "${customNodes.gguf}" "$BASE_DIR/custom_nodes/ComfyUI-GGUF"
-            ln -sfn "${customNodes.ltxvideo}" "$BASE_DIR/custom_nodes/ComfyUI-LTXVideo"
-            ln -sfn "${customNodes.florence2}" "$BASE_DIR/custom_nodes/ComfyUI-Florence2"
-            # bitsandbytes requires CUDA (Linux-only)
-            if [[ "$(uname)" != "Darwin" ]]; then
-              ln -sfn "${customNodes.bitsandbytes-nf4}" "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4"
-            fi
-            ln -sfn "${customNodes.x-flux}" "$BASE_DIR/custom_nodes/x-flux-comfyui"
-            ln -sfn "${customNodes.mmaudio}" "$BASE_DIR/custom_nodes/ComfyUI-MMAudio"
-            # PuLID - face ID for consistent face generation
-            # Works on all platforms: Linux uses CUDA, macOS uses CoreML via onnxruntime
-            ln -sfn "${customNodes.pulid}" "$BASE_DIR/custom_nodes/PuLID_ComfyUI"
-            ln -sfn "${customNodes.wanvideo}" "$BASE_DIR/custom_nodes/ComfyUI-WanVideoWrapper"
+            ${lib.concatMapStringsSep "\n            " (
+              name:
+              let
+                node = customNodes.${name};
+              in
+              ''ln -sfn "${node}" "$BASE_DIR/custom_nodes/${node.passthru.installDirName}"''
+            ) effectiveBundledNodes}
 
             # Create default ComfyUI-Manager config if it doesn't exist
             # Note: Manager moved config from user/default/ComfyUI-Manager to user/__manager

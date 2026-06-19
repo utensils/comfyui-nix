@@ -11,9 +11,15 @@ let
       url,
       hash,
       propagatedBuildInputs ? [ ],
+      dontCheckRuntimeDeps ? false,
     }:
     python.pkgs.buildPythonPackage {
-      inherit pname version propagatedBuildInputs;
+      inherit
+        pname
+        version
+        propagatedBuildInputs
+        dontCheckRuntimeDeps
+        ;
       format = "wheel";
       src = pkgs.fetchurl { inherit url hash; };
       doCheck = false;
@@ -88,6 +94,13 @@ rec {
     version = versions.vendored.manager.version;
     url = versions.vendored.manager.url;
     hash = versions.vendored.manager.hash;
+    # Wheel's Requires-Dist lists gitpython, pygithub, transformers,
+    # huggingface-hub, typer, rich, typing-extensions, toml, uv, and chardet
+    # as mandatory runtime deps. They are provided by the surrounding ComfyUI
+    # pythonRuntime (see `extras` in nix/packages.nix), not propagated by this
+    # wheel itself, so the per-package pythonRuntimeDepsCheckHook fails the
+    # standalone build under newer nixpkgs that enable the hook by default.
+    dontCheckRuntimeDeps = true;
   };
 
   comfyKitchen = mkWheel {
@@ -117,6 +130,10 @@ rec {
       typing-extensions
       websockets
     ];
+    # Wheel pins websockets<16.0; newer nixpkgs ships websockets 16.x. The
+    # gradio-client API surface used by ComfyUI custom nodes is unaffected
+    # by the major bump, so skip the standalone runtime version check.
+    dontCheckRuntimeDeps = true;
   };
 
   gradio = mkWheel {
@@ -154,6 +171,11 @@ rec {
       typing-extensions
       uvicorn
     ];
+    # Same as gradio-client: wheel constrains several deps to versions that
+    # have moved on in newer nixpkgs. The propagatedBuildInputs above pull
+    # in the current versions, which work in practice for the surfaces
+    # ComfyUI uses.
+    dontCheckRuntimeDeps = true;
   };
 
   sageattention = mkWheel {

@@ -115,16 +115,20 @@
             pkgs:
             {
               gpuSupport ? "none",
+              bundledNodes ? null,
             }:
-            import ./nix/packages.nix {
-              inherit
-                pkgs
-                versions
-                gpuSupport
-                ;
-              lib = pkgs.lib;
-              pythonOverrides = pythonOverridesFor pkgs gpuSupport;
-            };
+            import ./nix/packages.nix (
+              {
+                inherit
+                  pkgs
+                  versions
+                  gpuSupport
+                  ;
+                lib = pkgs.lib;
+                pythonOverrides = pythonOverridesFor pkgs gpuSupport;
+              }
+              // (if bundledNodes != null then { inherit bundledNodes; } else { })
+            );
 
           # Linux packages for Docker image cross-builds
           linuxX86Packages = mkComfyPackages pkgsLinuxX86 { };
@@ -210,9 +214,20 @@
             dockerImageXpu = nativePackagesXpu.dockerImageXpu;
           };
 
-          # Expose custom nodes for direct use
+          # Expose custom nodes for direct use, plus mkComfyPackages so
+          # downstreams can build a comfy-ui derivation with their own
+          # bundledNodes selection (or other overrides).
+          #
+          # Example consumer usage (NixOS):
+          #
+          #   services.comfyui.package = (
+          #     inputs.comfyui-nix.legacyPackages.x86_64-linux.mkComfyPackages
+          #       pkgs
+          #       { gpuSupport = "rocm"; bundledNodes = [ "impact-pack" "rgthree-comfy" ]; }
+          #   ).default;
           legacyPackages = {
             customNodes = customNodes;
+            mkComfyPackages = mkComfyPackages;
           };
 
           apps = import ./nix/apps.nix {

@@ -144,6 +144,12 @@ lib.optionalAttrs useCuda {
     # Don't check for CUDA at import time (requires GPU)
     pythonImportsCheck = [ ];
     doCheck = false;
+    # Wheel's Requires-Dist lists `nvidia-*` and `triton` runtime deps that
+    # are provided by nixpkgs cudaPackages or bundled in the wheel, not
+    # available as PyPI packages. The postInstall sed strips them from the
+    # *installed* METADATA, but pythonRuntimeDepsCheckHook runs before
+    # postInstall, so we need to disable it explicitly here.
+    dontCheckRuntimeDeps = true;
 
     # Passthru attributes expected by downstream packages (xformers, bitsandbytes, etc.)
     # The wheel bundles CUDA 12.8 and supports all GPU architectures
@@ -392,6 +398,14 @@ lib.optionalAttrs useCuda {
     # Don't check for ROCm at import time (requires GPU)
     pythonImportsCheck = [ ];
     doCheck = false;
+    # Wheel's Requires-Dist lists `setuptools` and `triton-rocm` as runtime
+    # deps. setuptools is build-time only at the Python level (the wheel
+    # doesn't import it eagerly), and triton-rocm isn't a separate package
+    # in nixpkgs — it's bundled in the upstream rocm torch wheel itself.
+    # The postInstall sed above strips triton-rocm from the *installed*
+    # METADATA, but pythonRuntimeDepsCheckHook runs before postInstall, so
+    # we need to disable it explicitly here.
+    dontCheckRuntimeDeps = true;
 
     # Passthru attributes expected by downstream packages (xformers, bitsandbytes, etc.)
     # The wheel bundles ROCm 7.1 and supports all GPU architectures
@@ -999,6 +1013,10 @@ lib.optionalAttrs useCuda {
     '';
 
     doCheck = false;
+    # Wheel's Requires-Dist asks for opencv-python and tqdm; we provide
+    # opencv4 (the same library under nixpkgs's name) plus tqdm transitively
+    # via the surrounding env. pythonImportsCheck guards real import surface.
+    dontCheckRuntimeDeps = true;
     pythonImportsCheck = [ "facexlib" ];
   };
 }
