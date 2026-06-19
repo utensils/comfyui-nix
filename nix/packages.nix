@@ -605,10 +605,11 @@ let
                   grep -E '^Model:' "$gpu_info" 2>/dev/null || true
                 fi
               done
+              return 0
             }
 
             if detect_nvidia_gpus | grep -Eiq 'GeForce RTX 50[0-9]{2}|RTX PRO .*Blackwell|Blackwell|NVIDIA B[0-9]{3}'; then
-              echo "Detected NVIDIA Blackwell GPU with CUDA 12.x PyTorch; adding --disable-cuda-malloc for stability."
+              echo "Detected NVIDIA Blackwell GPU; adding --disable-cuda-malloc for stability."
               COMFY_ARGS+=("--disable-cuda-malloc")
             fi
             ;;
