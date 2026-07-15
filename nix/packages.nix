@@ -258,21 +258,21 @@ let
       pkgs.glib
       pkgs.libGL
       # X11 / XCB runtime libs (fixes: libxcb.so.1 not found)
-      pkgs.xorg.libxcb
-      pkgs.xorg.libX11
-      pkgs.xorg.libXext
-      pkgs.xorg.libXrender
-      pkgs.xorg.libXfixes
-      pkgs.xorg.libXi
-      pkgs.xorg.libXrandr
-      pkgs.xorg.libXcursor
-      pkgs.xorg.libXcomposite
-      pkgs.xorg.libXdamage
-      pkgs.xorg.libXau
-      pkgs.xorg.libXdmcp
-      pkgs.xorg.libSM
-      pkgs.xorg.libICE
+      pkgs.libice
+      pkgs.libsm
+      pkgs.libx11
+      pkgs.libxau
+      pkgs.libxcb
+      pkgs.libxcomposite
+      pkgs.libxcursor
+      pkgs.libxdamage
+      pkgs.libxdmcp
+      pkgs.libxext
+      pkgs.libxfixes
+      pkgs.libxi
       pkgs.libxkbcommon
+      pkgs.libxrandr
+      pkgs.libxrender
     ]
     # XPU runtime libs (Level Zero, Intel compute-runtime, OpenCL ICD) — fallback
     # when /run/opengl-driver/lib isn't available. Launcher prefers system libs.
