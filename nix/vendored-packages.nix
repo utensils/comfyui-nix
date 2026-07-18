@@ -26,6 +26,13 @@ let
     hash = versions.vendored.workflowTemplatesCore.hash;
   };
 
+  workflowTemplatesJson = mkWheel {
+    pname = "comfyui-workflow-templates-json";
+    version = versions.vendored.workflowTemplatesJson.version;
+    url = versions.vendored.workflowTemplatesJson.url;
+    hash = versions.vendored.workflowTemplatesJson.hash;
+  };
+
   workflowTemplatesMediaApi = mkWheel {
     pname = "comfyui-workflow-templates-media-api";
     version = versions.vendored.workflowTemplatesMediaApi.version;
@@ -53,6 +60,28 @@ let
     url = versions.vendored.workflowTemplatesMediaOther.url;
     hash = versions.vendored.workflowTemplatesMediaOther.hash;
   };
+
+  workflowTemplatesMediaAssets01 = mkWheel {
+    pname = "comfyui-workflow-templates-media-assets-01";
+    version = versions.vendored.workflowTemplatesMediaAssets01.version;
+    url = versions.vendored.workflowTemplatesMediaAssets01.url;
+    hash = versions.vendored.workflowTemplatesMediaAssets01.hash;
+  };
+
+  # comfy-angle ships platform-specific wheels (native libEGL/libGLESv2).
+  # No wheel exists for x86_64-darwin; consumers must handle null.
+  angleWheel =
+    let
+      p = pkgs.stdenv.hostPlatform;
+    in
+    if p.isLinux && p.isx86_64 then
+      versions.vendored.comfyAngle.linuxX86_64
+    else if p.isLinux && p.isAarch64 then
+      versions.vendored.comfyAngle.linuxAarch64
+    else if p.isDarwin && p.isAarch64 then
+      versions.vendored.comfyAngle.darwinArm64
+    else
+      null;
 in
 rec {
   comfyuiFrontendPackage = mkWheel {
@@ -69,10 +98,12 @@ rec {
     hash = versions.vendored.workflowTemplates.hash;
     propagatedBuildInputs = [
       workflowTemplatesCore
+      workflowTemplatesJson
       workflowTemplatesMediaApi
       workflowTemplatesMediaVideo
       workflowTemplatesMediaImage
       workflowTemplatesMediaOther
+      workflowTemplatesMediaAssets01
     ];
   };
 
@@ -103,6 +134,28 @@ rec {
     url = versions.vendored.comfyAimdo.url;
     hash = versions.vendored.comfyAimdo.hash;
   };
+
+  # null on platforms without an upstream wheel (e.g. x86_64-darwin)
+  comfyAngle =
+    if angleWheel == null then
+      null
+    else
+      python.pkgs.buildPythonPackage {
+        pname = "comfy-angle";
+        version = versions.vendored.comfyAngle.version;
+        format = "wheel";
+        src = pkgs.fetchurl { inherit (angleWheel) url hash; };
+        doCheck = false;
+        # The wheel bundles native ANGLE libs (libEGL.so/libGLESv2.so) that need
+        # their DT_NEEDED entries resolved against Nix store paths on Linux.
+        nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.autoPatchelfHook ];
+        buildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [
+          pkgs.stdenv.cc.cc.lib
+          pkgs.libx11
+          pkgs.libxcb
+          pkgs.libxext
+        ];
+      };
 
   gradioClient = mkWheel {
     pname = "gradio-client";

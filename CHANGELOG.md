@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.1] - 2026-07-17
+
+### Changed
+- Upgraded ComfyUI from v0.25.0 to v0.28.1
+- Updated `comfyui-frontend-package` 1.45.15 -> 1.45.21
+- Updated `comfyui-workflow-templates` 0.10.0 -> 0.11.11
+- Updated `comfyui-workflow-templates-core` 0.3.255 -> 0.3.274
+- Updated `comfyui-workflow-templates-media-api` 0.3.80 -> 0.3.84
+- Updated `comfyui-workflow-templates-media-video` 0.3.92 -> 0.3.101
+- Updated `comfyui-workflow-templates-media-image` 0.3.152 -> 0.3.160
+- Updated `comfyui-workflow-templates-media-other` 0.3.220 -> 0.3.229
+- Updated `comfyui-embedded-docs` 0.5.4 -> 0.5.8
+- Updated `comfy-kitchen` 0.2.10 -> 0.2.20
+- Regenerated template input files (618 files)
+
+### Added
+- Vendored new workflow template subpackages: `comfyui-workflow-templates-json` 0.1.8 and `comfyui-workflow-templates-media-assets-01` 0.1.5
+- Vendored `comfy-angle` 0.1.0 (ANGLE libEGL/libGLESv2 for the new GLSL shader nodes) with platform-specific wheels for x86_64-linux, aarch64-linux, and aarch64-darwin; autoPatchelf'd against Nix-provided X11 libs on Linux
+
+### Removed
+- Dropped `glfw` from the Python runtime (replaced upstream by `comfy-angle` in v0.28)
+
+### Upstream Highlights (v0.25.1 - v0.28.1)
+- Security fixes for four vulnerabilities (GHSA-779p-m5rp-r4h4)
+- int8 convrot model support (v0.27)
+- New GLSL shader nodes backed by ANGLE
+- Qwen3-VL text generation support and flux2 klein text encoder integration
+- SCAIL-2 multireference, Boogu-Image, Seed Audio 1.0, SeeDance 2.0 Mini/4K, Kling V3-Turbo, Krea 2 model merging
+- Removal of deprecated IdeogramV1/V2 and StabilityAI partner nodes
+
 ## [0.25.0] - 2026-06-18
 
 ### Changed

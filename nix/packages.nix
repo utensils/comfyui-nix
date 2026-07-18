@@ -101,6 +101,7 @@ let
     comfyui-manager==${versions.vendored.manager.version}
     comfy-kitchen==${versions.vendored.comfyKitchen.version}
     comfy-aimdo==${versions.vendored.comfyAimdo.version}
+    comfy-angle==${versions.vendored.comfyAngle.version}
     gradio-client==${versions.vendored.gradioClient.version}
     gradio==${versions.vendored.gradio.version}
     sageattention==${versions.vendored.sageattention.version}
@@ -221,7 +222,6 @@ let
         ++ lib.optionals (ps ? pydantic && available ps.pydantic) [ ps.pydantic ]
         ++ lib.optionals (ps ? spandrel && available ps.spandrel) [ ps.spandrel ]
         ++ lib.optionals (ps ? pyopengl && available ps.pyopengl) [ ps.pyopengl ]
-        ++ lib.optionals (ps ? glfw && available ps.glfw) [ ps.glfw ]
         ++ lib.optionals (ps ? gitpython && available ps.gitpython) [ ps.gitpython ]
         ++ lib.optionals (ps ? toml && available ps.toml) [ ps.toml ]
         ++ lib.optionals (ps ? rich && available ps.rich) [ ps.rich ]
@@ -243,7 +243,9 @@ let
           vendored.gradioClient
           vendored.gradio
           vendored.sageattention
-        ];
+        ]
+        # comfy-angle (GLSL shader nodes): no wheel on x86_64-darwin
+        ++ lib.optionals (vendored.comfyAngle != null) [ vendored.comfyAngle ];
     in
     base ++ extras ++ optionals
   );
