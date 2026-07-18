@@ -651,6 +651,23 @@ async def resolve_folder(request: web.Request) -> web.Response:
     return web.json_response({"success": False, "error": f"File not found: {filename}"})
 
 
+async def list_folders(request: web.Request) -> web.Response:
+    """Return the model folder names registered with ComfyUI.
+
+    Lets the frontend build its directory list dynamically instead of relying
+    on a hardcoded set that goes stale as ComfyUI adds new folder types
+    (e.g. latent_upscale_models in v0.25+). custom_nodes is excluded since it
+    is not a model destination.
+    """
+    try:
+        folders = sorted(
+            name for name in folder_paths.folder_names_and_paths if name != "custom_nodes"
+        )
+        return web.json_response({"success": True, "folders": folders})
+    except (TypeError, ValueError) as e:
+        return web.json_response({"success": False, "error": str(e)})
+
+
 def setup_js_api(app: Any, *args: Any, **kwargs: Any) -> Any:
     """
     Compatibility function for ComfyUI extension system.

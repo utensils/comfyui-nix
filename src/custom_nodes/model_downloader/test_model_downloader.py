@@ -464,3 +464,22 @@ class TestSendDownloadUpdate:
     def test_ignores_missing_download(self):
         # Should not raise
         asyncio.run(mdp.send_download_update("nonexistent"))
+
+
+# ---------------------------------------------------------------------------
+# Tests: list_folders
+# ---------------------------------------------------------------------------
+
+
+class TestListFolders:
+    def test_returns_sorted_folders_excluding_custom_nodes(self):
+        mdp.folder_paths.folder_names_and_paths = {
+            "loras": ([], set()),
+            "custom_nodes": ([], set()),
+            "checkpoints": ([], set()),
+            "latent_upscale_models": ([], set()),
+        }
+        response = asyncio.run(mdp.list_folders(MagicMock()))
+        data = json.loads(response.body)
+        assert data["success"] is True
+        assert data["folders"] == ["checkpoints", "latent_upscale_models", "loras"]
