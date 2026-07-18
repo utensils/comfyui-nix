@@ -82,6 +82,40 @@ let
       versions.vendored.comfyAngle.darwinArm64
     else
       null;
+
+  # Select a platform wheel (with native libs) when one exists, otherwise the
+  # pure-Python any-wheel. Used for comfy-kitchen and comfy-aimdo (issue #66).
+  selectPlatformWheel =
+    wheels:
+    let
+      p = pkgs.stdenv.hostPlatform;
+    in
+    if p.isLinux && p.isx86_64 && wheels ? linuxX86_64 then
+      wheels.linuxX86_64
+    else if p.isLinux && p.isAarch64 && wheels ? linuxAarch64 then
+      wheels.linuxAarch64
+    else
+      wheels.any;
+
+  # Wheel with bundled native .so files: run autoPatchelf on Linux so their
+  # glibc/libstdc++ DT_NEEDED entries resolve against the Nix store. CUDA/ROCm
+  # driver libraries are dlopen'ed at runtime, not linked, so nothing further
+  # is needed here.
+  mkNativeWheel =
+    {
+      pname,
+      version,
+      url,
+      hash,
+    }:
+    python.pkgs.buildPythonPackage {
+      inherit pname version;
+      format = "wheel";
+      src = pkgs.fetchurl { inherit url hash; };
+      doCheck = false;
+      nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.autoPatchelfHook ];
+      buildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.stdenv.cc.cc.lib ];
+    };
 in
 rec {
   comfyuiFrontendPackage = mkWheel {
@@ -121,18 +155,16 @@ rec {
     hash = versions.vendored.manager.hash;
   };
 
-  comfyKitchen = mkWheel {
+  comfyKitchen = mkNativeWheel {
     pname = "comfy-kitchen";
     version = versions.vendored.comfyKitchen.version;
-    url = versions.vendored.comfyKitchen.url;
-    hash = versions.vendored.comfyKitchen.hash;
+    inherit (selectPlatformWheel versions.vendored.comfyKitchen) url hash;
   };
 
-  comfyAimdo = mkWheel {
+  comfyAimdo = mkNativeWheel {
     pname = "comfy-aimdo";
     version = versions.vendored.comfyAimdo.version;
-    url = versions.vendored.comfyAimdo.url;
-    hash = versions.vendored.comfyAimdo.hash;
+    inherit (selectPlatformWheel versions.vendored.comfyAimdo) url hash;
   };
 
   # null on platforms without an upstream wheel (e.g. x86_64-darwin)

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `comfy-aimdo` and `comfy-kitchen` now use platform wheels with their native
+  libraries (`aimdo.so`, `_C.abi3.so`) on Linux instead of the pure-Python
+  `py3-none-any` wheels, enabling DynamicVRAM support and the comfy-kitchen
+  CUDA backend (#66)
+
 ## [0.28.1] - 2026-07-17
 
 ### Changed
