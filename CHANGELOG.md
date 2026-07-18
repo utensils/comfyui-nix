@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   libraries (`aimdo.so`, `_C.abi3.so`) on Linux instead of the pure-Python
   `py3-none-any` wheels, enabling DynamicVRAM support and the comfy-kitchen
   CUDA backend (#66)
+- model_downloader now resolves model directories dynamically from ComfyUI's
+  `folder_paths` via a new `/model-downloader/folders` endpoint instead of a
+  stale hardcoded list, so models for newer folder types (e.g.
+  `latent_upscale_models`) no longer land in `checkpoints/` (#65)
 
 ## [0.28.1] - 2026-07-17
 

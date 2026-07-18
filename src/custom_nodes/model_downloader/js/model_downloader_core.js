@@ -170,14 +170,37 @@
   }
 
   // ── Directory detection ───────────────────────────────────────────────
-  // ComfyUI folder_paths directory names that map to model types
+  // ComfyUI folder_paths directory names that map to model types.
+  // Static fallback only — refreshKnownDirs() replaces this knowledge with the
+  // server's live folder_paths list so new folder types are picked up
+  // automatically (see /model-downloader/folders).
   const KNOWN_DIRS = new Set([
-    'checkpoints', 'classifiers', 'clip', 'clip_vision', 'configs',
-    'controlnet', 'diffusers', 'diffusion_models', 'embeddings', 'gligen',
-    'hypernetworks', 'loras', 'mmdets', 'photomaker', 'style_models',
-    't2i_adapter', 'text_encoders', 'unet', 'upscale_models', 'vae',
-    'vae_approx'
+    'audio_encoders', 'background_removal', 'checkpoints', 'classifiers',
+    'clip', 'clip_vision', 'configs', 'controlnet', 'detection', 'diffusers',
+    'diffusion_models', 'embeddings', 'frame_interpolation',
+    'geometry_estimation', 'gligen', 'hypernetworks', 'latent_upscale_models',
+    'loras', 'mmdets', 'model_patches', 'optical_flow', 'photomaker',
+    'style_models', 't2i_adapter', 'text_encoders', 'unet', 'upscale_models',
+    'vae', 'vae_approx'
   ]);
+
+  // Merge the authoritative folder list from the backend into KNOWN_DIRS so
+  // directory detection recognizes folder types added by newer ComfyUI
+  // versions without requiring an update to the hardcoded fallback above.
+  async function refreshKnownDirs() {
+    try {
+      const resp = await fetch('/model-downloader/folders');
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.success && Array.isArray(data.folders)) {
+          for (const name of data.folders) KNOWN_DIRS.add(name);
+          console.log('[MODEL_DOWNLOADER] Loaded', data.folders.length, 'folder names from backend');
+        }
+      }
+    } catch (e) {
+      console.warn('[MODEL_DOWNLOADER] Failed to fetch folder list, using built-in defaults:', e);
+    }
+  }
 
   // Proactive cache: filename → directory, populated by observing the Missing Models panel
   const dirCache = {};
@@ -467,6 +490,7 @@
   function initialize() {
     interceptBrowserDownloads();
     observeMissingModelsPanel();
+    refreshKnownDirs();
     return true;
   }
 
@@ -474,7 +498,8 @@
   window.modelDownloaderCore = {
     isTrustedDomain, downloadModelWithBackend, interceptBrowserDownloads,
     initialize, handleMessageEvent, getOrCreateRow, updateRow,
-    scanMissingModelsPanel, detectDirectory, resolveDirectoryFromBackend, dirCache
+    scanMissingModelsPanel, detectDirectory, resolveDirectoryFromBackend,
+    refreshKnownDirs, dirCache
   };
 
   if (!window.modelDownloader) {
