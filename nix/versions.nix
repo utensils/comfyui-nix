@@ -79,11 +79,26 @@
       hash = "sha256-mwMx5bhEg7QGJgSAuSrZHb2Ec8rm4iYhJ+jBFXfOBHM=";
     };
 
-    # New ComfyUI core deps (not in nixpkgs)
+    # New ComfyUI core deps (not in nixpkgs).
+    # comfy-kitchen and comfy-aimdo ship platform wheels with native libraries
+    # (kitchen: backends/cuda/_C.abi3.so, aimdo: aimdo.so/aimdo_rocm.so). The
+    # py3-none-any wheels are pure-Python and silently disable those features
+    # (issue #66), so prefer the platform wheels where they exist and keep the
+    # any-wheel as the macOS fallback.
     comfyKitchen = {
       version = "0.2.20";
-      url = "https://files.pythonhosted.org/packages/0a/2d/0d7fac23b4284e3fa630accea21e72855f98722c24645c8cf13e3f2ddc92/comfy_kitchen-0.2.20-py3-none-any.whl";
-      hash = "sha256-rjpD97bYO84ADxfICehKVSGxyUH3UMYwI7X6HddogT8=";
+      any = {
+        url = "https://files.pythonhosted.org/packages/0a/2d/0d7fac23b4284e3fa630accea21e72855f98722c24645c8cf13e3f2ddc92/comfy_kitchen-0.2.20-py3-none-any.whl";
+        hash = "sha256-rjpD97bYO84ADxfICehKVSGxyUH3UMYwI7X6HddogT8=";
+      };
+      linuxX86_64 = {
+        url = "https://files.pythonhosted.org/packages/ff/3b/7572c2798037b9a8874e247f439cf5c3a101ee8f508fb069ad2b628ab9ed/comfy_kitchen-0.2.20-cp312-abi3-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl";
+        hash = "sha256-2e5Rd0ly4T9dIKEGejNO4mSOTn3Eqnvv4QUI6yeA9/A=";
+      };
+      linuxAarch64 = {
+        url = "https://files.pythonhosted.org/packages/8d/f5/b120e5595c48a5b8eecaae8da7ee000ee3fb622a099df2907782d9a4ef65/comfy_kitchen-0.2.20-cp312-abi3-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl";
+        hash = "sha256-XbET0N4udLmQNaSjxgIVY7JUZw0CfTwxWAJlrETIQtc=";
+      };
     };
 
     # ANGLE libraries for the GLSL shader nodes (comfy_extras/nodes_glsl.py).
@@ -107,8 +122,18 @@
 
     comfyAimdo = {
       version = "0.4.10";
-      url = "https://files.pythonhosted.org/packages/68/f4/9fc884854191a0d347e3b5bb185d68ea8099228ccb5b3116dd8aa43839e5/comfy_aimdo-0.4.10-py3-none-any.whl";
-      hash = "sha256-oG3rgljMbDPvhHO0v7bFu+EWdviAGbqoQdtiNf88m5A=";
+      any = {
+        url = "https://files.pythonhosted.org/packages/68/f4/9fc884854191a0d347e3b5bb185d68ea8099228ccb5b3116dd8aa43839e5/comfy_aimdo-0.4.10-py3-none-any.whl";
+        hash = "sha256-oG3rgljMbDPvhHO0v7bFu+EWdviAGbqoQdtiNf88m5A=";
+      };
+      linuxX86_64 = {
+        url = "https://files.pythonhosted.org/packages/3e/63/29035f15a32c1e31723585c452c7416d6c3c00f92469e2a923a35500df49/comfy_aimdo-0.4.10-cp39-abi3-manylinux2010_x86_64.manylinux2014_x86_64.manylinux_2_12_x86_64.manylinux_2_17_x86_64.whl";
+        hash = "sha256-/64FGajDd1HhCX6CdaNFCluL7prrF5tdoMAPy1eizF8=";
+      };
+      linuxAarch64 = {
+        url = "https://files.pythonhosted.org/packages/e9/ab/bcda7e71dea484fe0c796df0cb65c4288c167282210597f5de1c54744f45/comfy_aimdo-0.4.10-cp39-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl";
+        hash = "sha256-r7TYXSkebMB2l135DL+oXeKOzDuDATLQcWpnzXiQ3kk=";
+      };
     };
 
     # UI deps some custom nodes expect
