@@ -480,6 +480,6 @@ class TestListFolders:
             "latent_upscale_models": ([], set()),
         }
         response = asyncio.run(mdp.list_folders(MagicMock()))
-        data = json.loads(response.body)
+        data = json.loads(response.body)  # type: ignore[arg-type]
         assert data["success"] is True
         assert data["folders"] == ["checkpoints", "latent_upscale_models", "loras"]
