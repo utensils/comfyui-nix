@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.2] - 2026-07-19
+
+### Changed
+- Upgraded ComfyUI from v0.28.1 to v0.28.2
+- Updated `comfyui-workflow-templates` 0.11.11 -> 0.11.12
+- Updated `comfyui-workflow-templates-core` 0.3.274 -> 0.3.275
+- Updated `comfyui-workflow-templates-json` 0.1.8 -> 0.1.9
+- Regenerated template input files
+
+### Upstream Highlights (v0.28.2)
+- Google partner nodes switched to the Interactions API for the Omni model
+
+## [0.28.1] - 2026-07-17
+
 ### Fixed
 - `comfy-aimdo` and `comfy-kitchen` now use platform wheels with their native
   libraries (`aimdo.so`, `_C.abi3.so`) on Linux instead of the pure-Python
@@ -16,8 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `folder_paths` via a new `/model-downloader/folders` endpoint instead of a
   stale hardcoded list, so models for newer folder types (e.g.
   `latent_upscale_models`) no longer land in `checkpoints/` (#65)
-
-## [0.28.1] - 2026-07-17
 
 ### Changed
 - Upgraded ComfyUI from v0.25.0 to v0.28.1

@@ -1,9 +1,9 @@
 {
   comfyui = {
-    version = "0.28.1";
-    releaseDate = "2026-07-17T23:37:05Z";
-    rev = "87a003e0c975b8f13e2d4067dd0710e56edd7ba5";
-    hash = "sha256-fvF53GzXn1hSoaGF/PNma4zSu8AiSGMncoQvXnPUeyA=";
+    version = "0.28.2";
+    releaseDate = "2026-07-18T17:11:00Z";
+    rev = "306af3a8771a8232d26bd20acbfc6b07f862ad2b";
+    hash = "sha256-yru9KUOwW2sDAi59I8LaKWPJEUktI8i1oWEGtaF+Nko=";
   };
 
   vendored = {
@@ -20,21 +20,21 @@
     };
 
     workflowTemplates = {
-      version = "0.11.11";
-      url = "https://files.pythonhosted.org/packages/33/c2/e213b8242ae4ff7d2da43221bb203508619baa4b62e6fae147c31f2c4ab9/comfyui_workflow_templates-0.11.11-py3-none-any.whl";
-      hash = "sha256-9KFOCmhXUI9mC3VY4S89D4XP3OQJnd1KAyawnv+AEJE=";
+      version = "0.11.12";
+      url = "https://files.pythonhosted.org/packages/6a/cc/9fae465d36f0a8d012b5667e0c0bf38b97b4acdde4e239de991d7ace8f30/comfyui_workflow_templates-0.11.12-py3-none-any.whl";
+      hash = "sha256-ZBwqAJTOeH1iPfcGUDv0CPSy4KEduidFy6pYMQquXfc=";
     };
 
     workflowTemplatesCore = {
-      version = "0.3.274";
-      url = "https://files.pythonhosted.org/packages/92/88/630fdd73cbfb60c5ab422bd7db205f97b681011577207857f6d1fca2dc00/comfyui_workflow_templates_core-0.3.274-py3-none-any.whl";
-      hash = "sha256-qSvAyvzx0wg54OVH7SgC/Uo4n7G8o1BJBl2ZlRCaEmc=";
+      version = "0.3.275";
+      url = "https://files.pythonhosted.org/packages/93/28/1f89a3bf2cdf4a4f6d36411db4853308e0dd0aed4f42b76b20ff5b234936/comfyui_workflow_templates_core-0.3.275-py3-none-any.whl";
+      hash = "sha256-zR6h26g40Z+tp9WTxCk/i0IAEuaRByO5GmklT5n9hz0=";
     };
 
     workflowTemplatesJson = {
-      version = "0.1.8";
-      url = "https://files.pythonhosted.org/packages/fd/a9/003137fd69af518b58f0bcec96207ed09231cd0d4b47194742f5714af81d/comfyui_workflow_templates_json-0.1.8-py3-none-any.whl";
-      hash = "sha256-haFN9LjqcWZmyD8schUWK/kX1HJmYpHseb0cZaXzIqQ=";
+      version = "0.1.9";
+      url = "https://files.pythonhosted.org/packages/83/ff/b5d54844982b0e02a75ffbe979627263764b6166669b5869c694ec82b12a/comfyui_workflow_templates_json-0.1.9-py3-none-any.whl";
+      hash = "sha256-KtkKSl+tDkBNYCWHQvQH7y8+4vu+VulehR1XguhiRkQ=";
     };
 
     workflowTemplatesMediaApi = {
