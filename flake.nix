@@ -1,5 +1,5 @@
 {
-  description = "A Nix flake for ComfyUI v0.28.1 with Python 3.12";
+  description = "A Nix flake for ComfyUI v0.28.2 with Python 3.12";
 
   nixConfig = {
     extra-substituters = [
