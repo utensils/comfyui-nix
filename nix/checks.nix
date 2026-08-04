@@ -1,9 +1,139 @@
 {
+  nixpkgs,
   pkgs,
   source,
   packages,
   pythonRuntime,
+  nixosModule,
 }:
+let
+  emptyExtendedPackage = packages.default.withExtraPythonPackages (_: [ ]);
+  duplicateCorePackage = packages.default.withExtraPythonPackages (ps: [ ps.numpy ]);
+  extendedPackage = packages.default.withExtraPythonPackages (ps: [
+    ps.bcrypt
+    ps.pyjwt
+    ps.bleach
+  ]);
+  chainedPackage =
+    (packages.default.withExtraPythonPackages (ps: [ ps.bcrypt ])).withExtraPythonPackages
+      (ps: [
+        ps.pyjwt
+        ps.bleach
+      ]);
+  backendPackages = [
+    packages.default
+  ]
+  ++ pkgs.lib.optional (packages ? cuda) packages.cuda
+  ++ pkgs.lib.optional (packages ? rocm) packages.rocm
+  ++ pkgs.lib.optional (packages ? xpu) packages.xpu;
+  backendPackagesPreserved = pkgs.lib.all (
+    package:
+    let
+      extended = package.withExtraPythonPackages (ps: [ ps.bcrypt ]);
+    in
+    package.pythonRuntime.pkgs.torch.outPath == extended.pythonRuntime.pkgs.torch.outPath
+    && package.pythonRuntime.pkgs.numpy.outPath == extended.pythonRuntime.pkgs.numpy.outPath
+  ) backendPackages;
+  evalModule =
+    serviceConfig:
+    nixpkgs.lib.nixosSystem {
+      system = pkgs.stdenv.hostPlatform.system;
+      modules = [
+        nixosModule
+        {
+          system.stateVersion = "26.05";
+          services.comfyui = {
+            enable = true;
+          }
+          // serviceConfig;
+        }
+      ];
+    };
+  defaultModuleSystem = evalModule { };
+  moduleSystem = evalModule {
+    extraPythonPackages = ps: [
+      ps.bcrypt
+      ps.pyjwt
+      ps.bleach
+    ];
+  };
+  unsupportedPackageSystem = evalModule {
+    package = packages.default.overrideAttrs (_: {
+      pname = "custom-comfy-ui";
+    });
+    extraPythonPackages = ps: [ ps.bcrypt ];
+  };
+  unsupportedPackageRejected = pkgs.lib.any (
+    assertion:
+    !assertion.assertion && pkgs.lib.hasInfix "cannot be combined with a custom" assertion.message
+  ) unsupportedPackageSystem.config.assertions;
+  backendModuleSpecs = [
+    {
+      gpuSupport = "none";
+      package = packages.default;
+    }
+  ]
+  ++ pkgs.lib.optional (packages ? cuda) {
+    gpuSupport = "cuda";
+    package = packages.cuda;
+  }
+  ++ pkgs.lib.optional (packages ? rocm) {
+    gpuSupport = "rocm";
+    package = packages.rocm;
+  }
+  ++ pkgs.lib.optional (packages ? xpu) {
+    gpuSupport = "xpu";
+    package = packages.xpu;
+  };
+  backendModulesPreserved = pkgs.lib.all (
+    spec:
+    let
+      system = evalModule {
+        inherit (spec) gpuSupport;
+        extraPythonPackages = ps: [ ps.bcrypt ];
+      };
+      expected = spec.package.withExtraPythonPackages (ps: [ ps.bcrypt ]);
+      execStart = system.config.systemd.services.comfyui.serviceConfig.ExecStart;
+    in
+    pkgs.lib.hasPrefix expected.outPath execStart
+  ) backendModuleSpecs;
+  defaultModuleExecStart =
+    defaultModuleSystem.config.systemd.services.comfyui.serviceConfig.ExecStart;
+  moduleExecStart = moduleSystem.config.systemd.services.comfyui.serviceConfig.ExecStart;
+  mkExtraPythonPackagesCheck =
+    name: package:
+    let
+      extended = package.withExtraPythonPackages (ps: [
+        ps.bcrypt
+        ps.pyjwt
+        ps.bleach
+      ]);
+    in
+    assert package.pythonRuntime.pkgs.torch.outPath == extended.pythonRuntime.pkgs.torch.outPath;
+    assert package.pythonRuntime.pkgs.numpy.outPath == extended.pythonRuntime.pkgs.numpy.outPath;
+    pkgs.runCommand name
+      {
+        nativeBuildInputs = [ extended.pythonRuntime ];
+      }
+      ''
+        ${extended.pythonRuntime}/bin/python - <<'PY'
+        import aiohttp
+        import bcrypt
+        import bleach
+        import jwt
+        import numpy
+        import torch
+
+        assert aiohttp.__version__
+        assert bcrypt.__version__
+        assert bleach.__version__
+        assert jwt.__version__
+        assert numpy.__version__
+        assert torch.__version__
+        PY
+        touch $out
+      '';
+in
 {
   package = packages.default;
 }
@@ -15,7 +145,50 @@
 // pkgs.lib.optionalAttrs (packages ? xpu) {
   package-xpu = packages.xpu;
 }
+// pkgs.lib.optionalAttrs (packages ? cuda) {
+  extra-python-packages-cuda = mkExtraPythonPackagesCheck "extra-python-packages-cuda" packages.cuda;
+}
+// pkgs.lib.optionalAttrs (packages ? rocm) {
+  extra-python-packages-rocm = mkExtraPythonPackagesCheck "extra-python-packages-rocm" packages.rocm;
+}
+// pkgs.lib.optionalAttrs (packages ? xpu) {
+  extra-python-packages-xpu = mkExtraPythonPackagesCheck "extra-python-packages-xpu" packages.xpu;
+}
 // {
+
+  extra-python-packages =
+    assert emptyExtendedPackage.outPath == packages.default.outPath;
+    assert emptyExtendedPackage.pythonRuntime.outPath == pythonRuntime.outPath;
+    assert duplicateCorePackage.pythonRuntime.outPath == pythonRuntime.outPath;
+    assert backendPackagesPreserved;
+    assert pkgs.lib.hasPrefix packages.default.outPath defaultModuleExecStart;
+    assert pkgs.lib.hasPrefix extendedPackage.outPath moduleExecStart;
+    assert unsupportedPackageRejected;
+    assert backendModulesPreserved;
+    pkgs.runCommand "extra-python-packages"
+      {
+        nativeBuildInputs = [ chainedPackage.pythonRuntime ];
+      }
+      ''
+        ${chainedPackage.pythonRuntime}/bin/python - <<'PY'
+        import aiohttp
+        import bcrypt
+        import bleach
+        import jwt
+        import numpy
+        import torch
+
+        assert aiohttp.__version__
+        assert bcrypt.__version__
+        assert bleach.__version__
+        assert jwt.__version__
+        assert numpy.__version__
+        assert torch.__version__
+        PY
+        touch $out
+      '';
+
+  extra-python-packages-runtime = mkExtraPythonPackagesCheck "extra-python-packages-runtime" packages.default;
 
   pytest =
     let

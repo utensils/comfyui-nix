@@ -58,6 +58,57 @@ jobs:
           nix build .#checks.x86_64-linux.shellcheck --print-build-logs
           nix build .#checks.x86_64-linux.pytest --print-build-logs
 
+  # Realize the extended runtime for every backend so PRs cannot replace the
+  # backend-specific Torch/NumPy stack or ship dependencies that fail to import.
+  extra-python-packages:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        check:
+          - extra-python-packages
+          - extra-python-packages-cuda
+          - extra-python-packages-rocm
+          - extra-python-packages-xpu
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /var/lib/apt/lists/*
+          sudo apt-get clean
+          docker system prune -af || true
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - uses: cachix/cachix-action@v14
+        with:
+          name: comfyui
+          pushFilter: "-"
+
+      - uses: cachix/cachix-action@v14
+        with:
+          name: nix-community
+          pushFilter: "-"
+
+      - uses: cachix/cachix-action@v14
+        with:
+          name: cuda-maintainers
+          pushFilter: "-"
+
+      - name: Build ${{ matrix.check }}
+        run: |
+          nix build .#checks.x86_64-linux.${{ matrix.check }} \
+            --print-build-logs --max-jobs 1 --cores 2
+
   # Full nix flake check (includes package build) — only on main/tags
   check:
     if: github.event_name != 'pull_request'
