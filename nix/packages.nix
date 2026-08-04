@@ -21,6 +21,62 @@ let
     pkgs.ocl-icd
   ];
 
+  # CUDA runtime libraries that must be resolvable by a plain dlopen().
+  #
+  # These are already passed to autoPatchelfHook when building the PyTorch wheel
+  # (see `cudaLibs` in python-overrides.nix), which stamps an RPATH onto torch's
+  # own .so files. That RPATH only resolves the DT_NEEDED entries of the ELF that
+  # carries it, so it does nothing for code that dlopens by bare soname — e.g.
+  # torch.cuda._utils._get_nvrtc_library() calls ctypes.CDLL("libnvrtc.so.12")
+  # when a node JIT-compiles a kernel (SeedVR2's VAE attention does this). That
+  # lookup goes through LD_LIBRARY_PATH and /etc/ld.so.cache instead, and NixOS
+  # has no ld.so.cache — so it fails unless the directory is on LD_LIBRARY_PATH.
+  #
+  # Kept in sync with `cudaLibs` in python-overrides.nix. libcuda.so.1 is
+  # deliberately absent: it ships with the kernel driver, and the launcher
+  # prepends /run/opengl-driver/lib so the driver's copy always wins.
+  # See: https://github.com/utensils/comfyui-nix/issues/71
+  cudaRuntimeLibs = lib.optionals useCuda (
+    with pkgs.cudaPackages;
+    [
+      cuda_cudart # libcudart.so.12
+      cuda_cupti # libcupti.so.12
+      cuda_nvrtc # libnvrtc.so.12 — the one issue #71 trips over
+      libcublas # libcublas.so.12, libcublasLt.so.12
+      libcufft # libcufft.so.11
+      libcufile # libcufile.so.0
+      libcurand # libcurand.so.10
+      libcusolver # libcusolver.so.11
+      libcusparse # libcusparse.so.12
+      libcusparse_lt # libcusparseLt.so.0
+      libnvshmem # libnvshmem_host.so.3
+      cudnn # libcudnn.so.9
+      nccl # libnccl.so.2
+    ]
+  );
+
+  # A unified CUDA prefix for tools that expect a classic CUDA_HOME layout.
+  #
+  # torch.utils.cpp_extension resolves CUDA_HOME once at import time and needs a
+  # single root containing include/ (and, for some paths, bin/nvcc). nixpkgs
+  # deliberately splits CUDA into per-component packages with no such root, so
+  # torch falls back to /usr/local/cuda, finds nothing, and raises
+  # "CUDA_HOME environment variable is not set" the moment a node JIT-compiles.
+  # NVRTC compilation reaches this via _nvrtc_compile -> include_paths("cuda").
+  #
+  # cuda_nvcc is already in the closure for TRITON_PTXAS_PATH / libdevice below,
+  # so joining it here costs no extra store size.
+  cudaHome = pkgs.symlinkJoin {
+    name = "cuda-home";
+    paths = with pkgs.cudaPackages; [
+      (lib.getDev cuda_cudart) # cuda_runtime.h, driver_types.h, ...
+      (lib.getLib cuda_cudart)
+      (lib.getOutput "include" cuda_nvrtc) # nvrtc.h
+      (lib.getDev cuda_cccl) # cuda/std/*, thrust, cub
+      cuda_nvcc # bin/nvcc, nvvm/
+    ];
+  };
+
   python = pkgs.python312.override { packageOverrides = pythonOverrides; };
 
   vendored = import ./vendored-packages.nix { inherit pkgs python versions; };
@@ -279,6 +335,8 @@ let
     # XPU runtime libs (Level Zero, Intel compute-runtime, OpenCL ICD) — fallback
     # when /run/opengl-driver/lib isn't available. Launcher prefers system libs.
     ++ xpuRuntimeLibs
+    # CUDA runtime libs, for dlopen-by-soname callers that RPATH can't reach.
+    ++ cudaRuntimeLibs
   );
 
   # Platform-specific default data directory
@@ -308,6 +366,12 @@ let
         if [[ -d "/run/opengl-driver/lib" ]]; then
           export LD_LIBRARY_PATH="/run/opengl-driver/lib:$LD_LIBRARY_PATH"
         fi
+
+        # Triton checks $CC before searching PATH. Pin it to the wrapped compiler
+        # so the toolchain used at runtime is the one this build was made with,
+        # rather than whatever a systemd unit or container happens to inherit.
+        export CC="''${CC:-${lib.getExe' pkgs.stdenv.cc "cc"}}"
+        export CXX="''${CXX:-${lib.getExe' pkgs.stdenv.cc "c++"}}"
       '';
 
   # Platform-specific browser command
@@ -324,6 +388,17 @@ let
     ]
     ++ lib.optionals (!pkgs.stdenv.isDarwin) [
       pkgs.xdg-utils # Provides xdg-open for --open flag on Linux
+    ]
+    ++ lib.optionals pkgs.stdenv.isLinux [
+      # Triton builds a small C shim (cuda_utils) on first use and shells out to
+      # a compiler to do it; torch.utils.cpp_extension.load() drives ninja. Under
+      # `nix run` these happen to be inherited from the user's shell, but the
+      # NixOS service and the Docker images start from a minimal PATH and fail
+      # with "Failed to find C compiler". Triton ships on every Linux build here
+      # (CUDA and ROCm alike), so provide the toolchain unconditionally.
+      # See: https://github.com/utensils/comfyui-nix/issues/60
+      pkgs.stdenv.cc # cc / gcc / c++
+      pkgs.ninja
     ];
     text = ''
             # Increase file descriptor limit for aiohttp/grpc DNS resolver
@@ -580,6 +655,49 @@ let
             mkdir -p "$FACEXLIB_MODELPATH/facexlib/weights"
 
       ${lib.optionalString useCuda ''
+        # =====================================================================
+        # Runtime CUDA kernel compilation (NVRTC)
+        # =====================================================================
+        # Nodes that JIT-compile CUDA kernels (SeedVR2's VAE attention, and any
+        # caller of torch.cuda._compile_kernel) go through
+        # torch.utils.cpp_extension, which needs a classic CUDA_HOME prefix.
+        # Without it: "CUDA_HOME environment variable is not set."
+        # Overridable for users with a system CUDA toolkit.
+        # See: https://github.com/utensils/comfyui-nix/issues/71
+        export CUDA_HOME="''${CUDA_HOME:-${cudaHome}}"
+
+        # =====================================================================
+        # Triton runtime toolchain discovery
+        # =====================================================================
+        # Triton (used by sageattention, torch.compile, and several custom nodes)
+        # locates libcuda.so by shelling out to `ldconfig -p`, and finds ptxas /
+        # libdevice by walking paths relative to a CUDA install prefix. Neither
+        # exists on NixOS: there is no /sbin/ldconfig and no unified CUDA prefix,
+        # so Triton fails with "No such file or directory: '/sbin/ldconfig'".
+        # Point it at the exact store paths instead. All are overridable — a user
+        # with a system CUDA toolkit can export these before launch.
+        # See: https://github.com/utensils/comfyui-nix/issues/60
+        export TRITON_PTXAS_PATH="''${TRITON_PTXAS_PATH:-${pkgs.cudaPackages.cuda_nvcc}/bin/ptxas}"
+        export TRITON_LIBDEVICE_PATH="''${TRITON_LIBDEVICE_PATH:-${pkgs.cudaPackages.cuda_nvcc}/nvvm/libdevice/libdevice.10.bc}"
+        export TRITON_CUDACRT_PATH="''${TRITON_CUDACRT_PATH:-${pkgs.cudaPackages.cuda_cudart}/include}"
+        export TRITON_CUDART_PATH="''${TRITON_CUDART_PATH:-${pkgs.cudaPackages.cuda_cudart}/include}"
+
+        # libcuda.so.1 belongs to the kernel driver, not to cudaPackages. Prefer
+        # the NixOS driver directory; fall back to scanning LD_LIBRARY_PATH so
+        # non-NixOS hosts (and containers with driver pass-through) still work.
+        if [[ -z "''${TRITON_LIBCUDA_PATH:-}" ]]; then
+          if [[ -e "/run/opengl-driver/lib/libcuda.so.1" ]]; then
+            export TRITON_LIBCUDA_PATH="/run/opengl-driver/lib"
+          else
+            while IFS= read -r -d ':' candidate; do
+              if [[ -n "$candidate" && -e "$candidate/libcuda.so.1" ]]; then
+                export TRITON_LIBCUDA_PATH="$candidate"
+                break
+              fi
+            done <<< "''${LD_LIBRARY_PATH:-}:"
+          fi
+        fi
+
         # =====================================================================
         # NVIDIA Blackwell / CUDA 12.x compatibility
         # =====================================================================
