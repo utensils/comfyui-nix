@@ -366,6 +366,12 @@ let
         if [[ -d "/run/opengl-driver/lib" ]]; then
           export LD_LIBRARY_PATH="/run/opengl-driver/lib:$LD_LIBRARY_PATH"
         fi
+
+        # Triton checks $CC before searching PATH. Pin it to the wrapped compiler
+        # so the toolchain used at runtime is the one this build was made with,
+        # rather than whatever a systemd unit or container happens to inherit.
+        export CC="''${CC:-${lib.getExe' pkgs.stdenv.cc "cc"}}"
+        export CXX="''${CXX:-${lib.getExe' pkgs.stdenv.cc "c++"}}"
       '';
 
   # Platform-specific browser command
@@ -382,6 +388,17 @@ let
     ]
     ++ lib.optionals (!pkgs.stdenv.isDarwin) [
       pkgs.xdg-utils # Provides xdg-open for --open flag on Linux
+    ]
+    ++ lib.optionals pkgs.stdenv.isLinux [
+      # Triton builds a small C shim (cuda_utils) on first use and shells out to
+      # a compiler to do it; torch.utils.cpp_extension.load() drives ninja. Under
+      # `nix run` these happen to be inherited from the user's shell, but the
+      # NixOS service and the Docker images start from a minimal PATH and fail
+      # with "Failed to find C compiler". Triton ships on every Linux build here
+      # (CUDA and ROCm alike), so provide the toolchain unconditionally.
+      # See: https://github.com/utensils/comfyui-nix/issues/60
+      pkgs.stdenv.cc # cc / gcc / c++
+      pkgs.ninja
     ];
     text = ''
             # Increase file descriptor limit for aiohttp/grpc DNS resolver
