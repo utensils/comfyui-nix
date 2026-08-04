@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-08-04
+
+### Changed
+- Upgraded ComfyUI from v0.28.2 to v0.30.0
+- Updated `comfyui-frontend-package` 1.45.21 -> 1.47.11
+- Updated `comfyui-workflow-templates` 0.11.12 -> 0.11.27
+- Updated `comfyui-workflow-templates-core` 0.3.275 -> 0.3.292
+- Updated `comfyui-workflow-templates-json` 0.1.9 -> 0.1.27
+- Updated `comfyui-workflow-templates-media-assets-01` 0.1.5 -> 0.1.17
+- Updated `comfyui-embedded-docs` 0.5.8 -> 0.5.9
+- Updated `comfy-kitchen` 0.2.20 -> 0.2.26
+- Updated `comfy-aimdo` 0.4.10 -> 0.4.11
+- Regenerated template input files
+
+### Upstream Highlights (v0.29.0 - v0.30.0)
+- Model weights load to process RAM with an MRU pinning policy for faster model switching
+- New model support: MiniMax-H3, MageFlow, Gemma4 12B, JoyImageEdit, PrunaVAED (faster LTX 2.3 decoder), anima lllite control models
+- Native Uni3C ControlNet support for Wan models
+- comfy-kitchen int8/rms-rope optimizations across many models, plus AMD support
+- Fallback to cudnn attention on Linux when flash attention fails
+- Security hardening: dataset folder isolation, SVG preview fix, stricter path containment checks
+- Save video node CRF option, mp4 metadata written at start of file, CSV output for the save text node
+
 ## [0.28.2] - 2026-07-19
 
 ### Changed

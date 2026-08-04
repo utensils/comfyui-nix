@@ -98,9 +98,12 @@ let
       wheels.any;
 
   # Wheel with bundled native .so files: run autoPatchelf on Linux so their
-  # glibc/libstdc++ DT_NEEDED entries resolve against the Nix store. CUDA/ROCm
+  # glibc/libstdc++ DT_NEEDED entries resolve against the Nix store. CUDA
   # driver libraries are dlopen'ed at runtime, not linked, so nothing further
-  # is needed here.
+  # is needed for them. comfy-kitchen >= 0.2.26 ships a HIP backend that links
+  # libamdhip64.so.7 directly; on ROCm builds torch loads that library into
+  # the process before comfy-kitchen imports, and on other builds the HIP
+  # backend is unused, so the unresolved dependency is safe to ignore.
   mkNativeWheel =
     {
       pname,
@@ -115,6 +118,7 @@ let
       doCheck = false;
       nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.autoPatchelfHook ];
       buildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.stdenv.cc.cc.lib ];
+      autoPatchelfIgnoreMissingDeps = [ "libamdhip64.so.7" ];
     };
 in
 rec {
