@@ -437,6 +437,7 @@ nix profile add github:utensils/comfyui-nix#xpu
 | `openFirewall`  | `false`              | Open the port in the firewall                    |
 | `extraArgs`     | `[]`                 | Additional CLI arguments                         |
 | `environment`   | `{}`                 | Environment variables for the service            |
+| `extraPythonPackages` | `null`          | Extra declarative Python dependencies             |
 | `customNodes`   | `{}`                 | Declarative custom nodes (see below)             |
 | `requiresMounts`| `[]`                 | Mount units to wait for before starting          |
 
@@ -484,6 +485,40 @@ services.comfyui = {
 ```
 
 Nodes are symlinked at service start. This is the pure Nix approach - fully reproducible and version-pinned.
+
+Custom nodes with additional Python dependencies can extend the selected
+CPU/CUDA/ROCm/XPU runtime declaratively:
+
+```nix
+services.comfyui = {
+  customNodes.ComfyUI-Usgromana = pkgs.fetchFromGitHub {
+    owner = "DayMan84";
+    repo = "ComfyUI-Usgromana";
+    rev = "2.0.0";
+    hash = "sha256-vzb0GX3hYpER4Xqmc7bkbx5AiMDgWRyIcLapJefD71Q=";
+  };
+
+  extraPythonPackages = ps: with ps; [
+    bcrypt
+    pyjwt
+    bleach
+  ];
+};
+```
+
+`extraPythonPackages` uses the same overridden Python package set as ComfyUI,
+so GPU-specific packages such as Torch are not replaced by dependencies from a
+separate environment. Requirements files are not installed automatically: list
+each required nixpkgs package explicitly so the result remains reproducible.
+The option cannot be combined with a custom `services.comfyui.package`; include
+the dependencies directly when supplying a fully custom package.
+
+Declarative node sources are read-only. Nodes that write databases, logs, or
+configuration beneath their own source directory must support a separate
+writable data directory or be patched accordingly. Usgromana 2.0.0 writes state
+beneath its extension directory, so its Python dependencies can be declared as
+above, but the node still needs writable-state handling before it is suitable
+for a fully declarative deployment.
 
 ## Docker / Podman
 

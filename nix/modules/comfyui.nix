@@ -23,6 +23,13 @@ let
       pkgs.comfy-ui-xpu
     else
       pkgs.comfy-ui;
+  effectivePackage =
+    if cfg.extraPythonPackages == null then
+      cfg.package
+    else if cfg.package.outPath == resolvePackage.outPath then
+      resolvePackage.withExtraPythonPackages cfg.extraPythonPackages
+    else
+      cfg.package;
   args = [
     "--listen"
     cfg.listenAddress
@@ -35,7 +42,7 @@ let
   ++ cfg.extraArgs;
   env = cfg.environment;
   escapedArgs = lib.concatStringsSep " " (map lib.escapeShellArg args);
-  execStart = "${cfg.package}/bin/comfy-ui ${escapedArgs}";
+  execStart = "${effectivePackage}/bin/comfy-ui ${escapedArgs}";
 
   # User/group creation: only create if createUser is true AND the user doesn't
   # already exist in the system (i.e., not a pre-existing user like "nobody")
@@ -251,6 +258,31 @@ in
       description = "Environment variables for the ComfyUI service.";
     };
 
+    extraPythonPackages = lib.mkOption {
+      type = lib.types.nullOr (lib.types.functionTo (lib.types.listOf lib.types.package));
+      default = null;
+      defaultText = lib.literalExpression "null";
+      example = lib.literalExpression ''
+        ps: with ps; [
+          bcrypt
+          pyjwt
+          bleach
+        ]
+      '';
+      description = ''
+        Additional Python packages to include in ComfyUI's packaged runtime.
+        The function receives the same backend-specific Python package set used
+        by the selected CPU, CUDA, ROCm, or XPU package, so pinned core packages
+        such as Torch and NumPy remain consistent.
+
+        Packages are installed declaratively and must be available in nixpkgs.
+        This option does not run custom-node requirements files automatically.
+
+        This option cannot be combined with a custom services.comfyui.package.
+        Package overrides must include their Python dependencies directly.
+      '';
+    };
+
     customNodes = lib.mkOption {
       type = lib.types.attrsOf lib.types.package;
       default = { };
@@ -263,9 +295,9 @@ in
         This is the pure Nix way to manage custom nodes - fully reproducible
         and version-pinned.
 
-        Note: Custom nodes with Python dependencies beyond ComfyUI's base
-        environment may require additional configuration. For complex nodes,
-        consider creating a custom derivation that bundles dependencies.
+        Add Python dependencies beyond ComfyUI's base environment with
+        services.comfyui.extraPythonPackages. Nodes that write files beneath
+        their own source directory still require a separate writable data path.
       '';
       example = lib.literalExpression ''
         {
@@ -301,6 +333,17 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.extraPythonPackages == null || cfg.package.outPath == resolvePackage.outPath;
+        message = ''
+          services.comfyui.extraPythonPackages cannot be combined with a custom
+          services.comfyui.package because rebuilding the Python runtime could
+          silently discard package overrides.
+        '';
+      }
+    ];
+
     nixpkgs.config = lib.mkIf (cfg.cudaCapabilities != null) {
       cudaCapabilities = cfg.cudaCapabilities;
     };

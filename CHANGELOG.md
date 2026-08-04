@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added `services.comfyui.extraPythonPackages` for reproducibly including
+  custom-node dependencies in the selected CPU, CUDA, ROCm, or XPU Python
+  runtime without replacing pinned core packages (#58)
+
 ## [0.30.0] - 2026-08-04
 
 ### Changed

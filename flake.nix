@@ -268,9 +268,14 @@
           formatter = pkgs.nixfmt-rfc-style;
 
           checks = import ./nix/checks.nix {
-            inherit pkgs source;
+            inherit
+              nixpkgs
+              pkgs
+              source
+              ;
             packages = self'.packages;
             pythonRuntime = nativePackages.pythonRuntime;
+            nixosModule = self.nixosModules.default;
           };
         };
 

@@ -4,6 +4,7 @@
   versions,
   pythonOverrides,
   gpuSupport ? "none", # "none", "cuda", "rocm", "xpu"
+  extraPythonPackages ? (_: [ ]),
 }:
 let
   useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
@@ -303,7 +304,7 @@ let
         # comfy-angle (GLSL shader nodes): no wheel on x86_64-darwin
         ++ lib.optionals (vendored.comfyAngle != null) [ vendored.comfyAngle ];
     in
-    base ++ extras ++ optionals
+    base ++ extras ++ optionals ++ extraPythonPackages ps
   );
 
   frontendRoot = "${pythonRuntime}/${python.sitePackages}/comfyui_frontend_package/static";
@@ -795,6 +796,18 @@ let
         frontendRoot
         ;
       version = versions.comfyui.version;
+      withExtraPythonPackages =
+        packages:
+        (import ./packages.nix {
+          inherit
+            pkgs
+            lib
+            versions
+            pythonOverrides
+            gpuSupport
+            ;
+          extraPythonPackages = ps: extraPythonPackages ps ++ packages ps;
+        }).default;
       # Expose heavy packages for Docker layer optimization
       # These are added to contents separately so buildLayeredImage creates distinct layers
       heavyDeps = [
