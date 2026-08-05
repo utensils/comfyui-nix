@@ -176,12 +176,12 @@ async def download_model(request: web.Request) -> web.Response:
         logger.info("Received download request for %s in folder %s", filename, folder)
 
         if not url or not folder or not filename:
-            logger.error(
-                "Missing required parameters: url=%s, folder=%s, filename=%s",
-                url,
-                folder,
-                filename,
-            )
+            missing = [
+                name
+                for name, value in (("url", url), ("folder", folder), ("filename", filename))
+                if not value
+            ]
+            logger.error("Missing required parameters: %s", ", ".join(missing))
             return web.json_response({"success": False, "error": "Missing required parameters"})
 
         # Get the model folder path
@@ -298,7 +298,7 @@ async def download_file(download_id: str, url: str, full_path: str) -> None:
         full_path: Local path to save the file.
     """
     try:
-        logger.info("Starting download task for %s from %s to %s", download_id, url, full_path)
+        logger.info("Starting download task for %s to %s", download_id, full_path)
 
         # Auth headers (needed for gated HuggingFace models)
         headers = _auth_headers_for_url(url)
