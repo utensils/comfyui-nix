@@ -7,10 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.2] - 2026-08-05
+
 ### Fixed
 - Updated the bundled rgthree-comfy extension so its frontend-only nodes load
   with ComfyUI v0.30.0 instead of being replaced by the incompatible 2023
   v1.0.0 bundle (#76)
+- Resolved macOS startup failures: kornia is now included in the macOS Python
+  runtime and the bundled ComfyUI-LTXVideo extension was updated to a revision
+  compatible with current ComfyUI, replacing the local compatibility patch (#75)
+- model_downloader no longer logs download URLs, request headers, or request
+  bodies, so credentials such as HuggingFace tokens stay out of the logs (#75)
+
+### Changed
+- Upgraded ComfyUI from v0.30.0 to v0.30.2
+- Updated `comfyui-frontend-package` 1.47.11 -> 1.47.12
+- Updated `comfyui-workflow-templates` 0.11.27 -> 0.11.31
+- Updated `comfyui-workflow-templates-core` 0.3.292 -> 0.3.295
+- Updated `comfyui-workflow-templates-json` 0.1.27 -> 0.1.30
+- Updated `comfyui-workflow-templates-media-assets-01` 0.1.17 -> 0.1.19
+- Regenerated template input files
+
+### Upstream Highlights (v0.30.1 - v0.30.2)
+- Partner nodes: TopazAI Bloom 2 and Wonder 3.5 model support, BFL Flux 3
+  video model
+- Kling partner nodes: removed retired legacy models and the Virtual Try-On API
 
 ## [0.30.0] - 2026-08-04
 
@@ -434,7 +455,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apple Silicon (M-series) support
 - Basic persistence for user data
 
-[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.25.0...HEAD
+[Unreleased]: https://github.com/utensils/comfyui-nix/compare/v0.30.2...HEAD
+[0.30.2]: https://github.com/utensils/comfyui-nix/compare/v0.30.0...v0.30.2
+[0.30.0]: https://github.com/utensils/comfyui-nix/compare/v0.28.2...v0.30.0
+[0.28.2]: https://github.com/utensils/comfyui-nix/compare/v0.28.1...v0.28.2
+[0.28.1]: https://github.com/utensils/comfyui-nix/compare/v0.25.0...v0.28.1
 [0.25.0]: https://github.com/utensils/comfyui-nix/compare/v0.19.3...v0.25.0
 [0.19.3]: https://github.com/utensils/comfyui-nix/compare/v0.18.2...v0.19.3
 [0.18.2]: https://github.com/utensils/comfyui-nix/compare/v0.18.0...v0.18.2
