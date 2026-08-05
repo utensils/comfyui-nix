@@ -222,7 +222,7 @@ A non-blocking async download node with WebSocket progress updates. Download mod
 
 ### rgthree-comfy
 
-[rgthree-comfy] (v1.0.0) - Quality of life nodes. _License: MIT_
+[rgthree-comfy] (v1.0.2607232129) - Quality of life nodes. _License: MIT_
 
 - **Reroute nodes** - Better workflow organization
 - **Context nodes** - Pass multiple values through a single connection

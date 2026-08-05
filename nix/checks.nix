@@ -144,6 +144,10 @@ in
         nativeBuildInputs = [ pythonRuntime ];
       }
       ''
+        test -f ${packages.default.customNodes.rgthree-comfy}/web/comfyui/label.js
+        grep -q 'name: "rgthree.Label"' \
+          ${packages.default.customNodes.rgthree-comfy}/web/comfyui/label.js
+
         PYTHONPATH=${packages.default.comfyuiSrc} ${pythonRuntime}/bin/python - <<'PY'
         import importlib.util
         import sys
