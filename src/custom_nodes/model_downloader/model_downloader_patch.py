@@ -255,7 +255,6 @@ async def _parse_request_data(request: web.Request) -> dict[str, Any]:
         data = dict(form_data)
     else:
         body = await request.text()
-        logger.info("Request body: %s...", body[:200])
 
         if request.query:
             for key, value in request.query.items():
@@ -269,9 +268,6 @@ async def _parse_request_data(request: web.Request) -> dict[str, Any]:
                     if "=" in param:
                         key, value = param.split("=", 1)
                         data[key] = value
-
-    logger.info("Request headers: %s", request.headers)
-    logger.info("Parsed data: %s", data)
 
     return data
 

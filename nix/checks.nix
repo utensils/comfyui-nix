@@ -137,6 +137,42 @@ in
 {
   package = packages.default;
 }
+// pkgs.lib.optionalAttrs (pkgs.stdenv.isDarwin || (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64)) {
+  comfy-extras-imports =
+    pkgs.runCommand "comfy-extras-imports"
+      {
+        nativeBuildInputs = [ pythonRuntime ];
+      }
+      ''
+        PYTHONPATH=${packages.default.comfyuiSrc} ${pythonRuntime}/bin/python - <<'PY'
+        import importlib.util
+        import sys
+
+        import kornia
+        import kornia_rs
+        import comfy_extras.nodes_post_processing
+        import comfy_extras.nodes_latent
+        import comfy_extras.nodes_canny
+        import comfy_extras.nodes_morphology
+
+        assert kornia.__version__
+        assert kornia_rs.__file__
+
+        ltxvideo_path = "${packages.default.customNodes.ltxvideo}"
+        spec = importlib.util.spec_from_file_location(
+            "comfyui_ltxvideo",
+            f"{ltxvideo_path}/__init__.py",
+            submodule_search_locations=[ltxvideo_path],
+        )
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        assert module.NODE_CLASS_MAPPINGS
+        PY
+        touch $out
+      '';
+}
 # XPU build-only check (Linux x86_64 only).
 # The project maintainer has no Intel GPU, so runtime testing relies on external
 # contributors. This check at least verifies the wheel patching and closure build

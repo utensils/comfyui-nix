@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import sys
 import types
@@ -293,6 +294,44 @@ class TestAuthHeadersForUrl:
 
 
 # ---------------------------------------------------------------------------
+# Tests: _parse_request_data
+# ---------------------------------------------------------------------------
+
+
+class TestParseRequestData:
+    def test_does_not_log_json_headers_or_payload(self, caplog):
+        request = MagicMock()
+        request.headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer secret-header-token",
+            "Cookie": "session=secret-cookie",
+        }
+        request.json = AsyncMock(
+            return_value={"url": "https://example.com/model?token=secret-query-token"}
+        )
+
+        caplog.set_level(logging.DEBUG, logger="model_downloader")
+        data = asyncio.run(mdp._parse_request_data(request))
+
+        assert data["url"].startswith("https://example.com/model")
+        assert "secret-header-token" not in caplog.text
+        assert "secret-cookie" not in caplog.text
+        assert "secret-query-token" not in caplog.text
+
+    def test_does_not_log_text_body(self, caplog):
+        request = MagicMock()
+        request.headers = {"Content-Type": "text/plain"}
+        request.query = {}
+        request.text = AsyncMock(return_value="token=secret-body-token")
+
+        caplog.set_level(logging.DEBUG, logger="model_downloader")
+        data = asyncio.run(mdp._parse_request_data(request))
+
+        assert data == {"token": "secret-body-token"}
+        assert "secret-body-token" not in caplog.text
+
+
+# ---------------------------------------------------------------------------
 # Tests: _update_download_progress
 # ---------------------------------------------------------------------------
 
@@ -421,7 +460,12 @@ class TestDownloadModelHandler:
         with patch.object(
             _folder_paths_mock, "get_folder_paths", return_value=[str(tmp_model_dir)]
         ):
-            _prompt_server_instance.loop.create_task = MagicMock()
+            def close_queued_coroutine(coroutine):
+                coroutine.close()
+
+            _prompt_server_instance.loop.create_task = MagicMock(
+                side_effect=close_queued_coroutine
+            )
             request = self._make_request(
                 {
                     "url": "https://huggingface.co/model/resolve/main/model.safetensors",
