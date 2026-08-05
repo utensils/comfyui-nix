@@ -176,12 +176,12 @@ async def download_model(request: web.Request) -> web.Response:
         logger.info("Received download request for %s in folder %s", filename, folder)
 
         if not url or not folder or not filename:
-            logger.error(
-                "Missing required parameters: url=%s, folder=%s, filename=%s",
-                url,
-                folder,
-                filename,
-            )
+            missing = [
+                name
+                for name, value in (("url", url), ("folder", folder), ("filename", filename))
+                if not value
+            ]
+            logger.error("Missing required parameters: %s", ", ".join(missing))
             return web.json_response({"success": False, "error": "Missing required parameters"})
 
         # Get the model folder path
@@ -255,7 +255,6 @@ async def _parse_request_data(request: web.Request) -> dict[str, Any]:
         data = dict(form_data)
     else:
         body = await request.text()
-        logger.info("Request body: %s...", body[:200])
 
         if request.query:
             for key, value in request.query.items():
@@ -269,9 +268,6 @@ async def _parse_request_data(request: web.Request) -> dict[str, Any]:
                     if "=" in param:
                         key, value = param.split("=", 1)
                         data[key] = value
-
-    logger.info("Request headers: %s", request.headers)
-    logger.info("Parsed data: %s", data)
 
     return data
 
@@ -302,7 +298,7 @@ async def download_file(download_id: str, url: str, full_path: str) -> None:
         full_path: Local path to save the file.
     """
     try:
-        logger.info("Starting download task for %s from %s to %s", download_id, url, full_path)
+        logger.info("Starting download task for %s to %s", download_id, full_path)
 
         # Auth headers (needed for gated HuggingFace models)
         headers = _auth_headers_for_url(url)

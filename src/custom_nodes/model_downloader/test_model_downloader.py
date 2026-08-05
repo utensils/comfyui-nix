@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import sys
 import types
@@ -293,6 +294,44 @@ class TestAuthHeadersForUrl:
 
 
 # ---------------------------------------------------------------------------
+# Tests: _parse_request_data
+# ---------------------------------------------------------------------------
+
+
+class TestParseRequestData:
+    def test_does_not_log_json_headers_or_payload(self, caplog):
+        request = MagicMock()
+        request.headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer secret-header-token",
+            "Cookie": "session=secret-cookie",
+        }
+        request.json = AsyncMock(
+            return_value={"url": "https://example.com/model?token=secret-query-token"}
+        )
+
+        caplog.set_level(logging.DEBUG, logger="model_downloader")
+        data = asyncio.run(mdp._parse_request_data(request))
+
+        assert data["url"].startswith("https://example.com/model")
+        assert "secret-header-token" not in caplog.text
+        assert "secret-cookie" not in caplog.text
+        assert "secret-query-token" not in caplog.text
+
+    def test_does_not_log_text_body(self, caplog):
+        request = MagicMock()
+        request.headers = {"Content-Type": "text/plain"}
+        request.query = {}
+        request.text = AsyncMock(return_value="token=secret-body-token")
+
+        caplog.set_level(logging.DEBUG, logger="model_downloader")
+        data = asyncio.run(mdp._parse_request_data(request))
+
+        assert data == {"token": "secret-body-token"}
+        assert "secret-body-token" not in caplog.text
+
+
+# ---------------------------------------------------------------------------
 # Tests: _update_download_progress
 # ---------------------------------------------------------------------------
 
@@ -378,12 +417,16 @@ class TestDownloadModelHandler:
         request.json = AsyncMock(return_value=data)
         return request
 
-    def test_rejects_missing_params(self):
-        request = self._make_request({"url": "https://example.com/model.st"})
+    def test_rejects_missing_params_without_logging_url_secrets(self, caplog):
+        request = self._make_request(
+            {"url": "https://example.com/model.st?token=secret-query-token"}
+        )
+        caplog.set_level(logging.DEBUG, logger="model_downloader")
         response = asyncio.run(mdp.download_model(request))
         body = json.loads(response.body)  # type: ignore[arg-type]
         assert body["success"] is False
         assert "Missing required parameters" in body["error"]
+        assert "secret-query-token" not in caplog.text
 
     def test_rejects_invalid_folder(self):
         with patch.object(
@@ -417,23 +460,48 @@ class TestDownloadModelHandler:
             assert body["success"] is False
             assert "No writable directory" in body["error"]
 
-    def test_queues_download_successfully(self, tmp_model_dir):
+    def test_queues_download_successfully_without_logging_url_secrets(self, tmp_model_dir, caplog):
         with patch.object(
             _folder_paths_mock, "get_folder_paths", return_value=[str(tmp_model_dir)]
         ):
-            _prompt_server_instance.loop.create_task = MagicMock()
+
+            def close_queued_coroutine(coroutine):
+                coroutine.close()
+
+            _prompt_server_instance.loop.create_task = MagicMock(side_effect=close_queued_coroutine)
             request = self._make_request(
                 {
-                    "url": "https://huggingface.co/model/resolve/main/model.safetensors",
+                    "url": (
+                        "https://huggingface.co/model/resolve/main/model.safetensors"
+                        "?token=secret-query-token"
+                    ),
                     "folder": "checkpoints",
                     "filename": "model.safetensors",
                 }
             )
+            caplog.set_level(logging.DEBUG, logger="model_downloader")
             response = asyncio.run(mdp.download_model(request))
             body = json.loads(response.body)  # type: ignore[arg-type]
             assert body["success"] is True
             assert body["status"] == "queued"
             assert "download_id" in body
+            assert "secret-query-token" not in caplog.text
+
+
+class TestDownloadFile:
+    def test_does_not_log_url_secrets(self, caplog):
+        caplog.set_level(logging.DEBUG, logger="model_downloader")
+
+        with patch.object(mdp, "ClientSession", side_effect=OSError("stop test download")):
+            asyncio.run(
+                mdp.download_file(
+                    "dl_secret",
+                    "https://example.com/model.st?token=secret-query-token",
+                    "/tmp/model.st",
+                )
+            )
+
+        assert "secret-query-token" not in caplog.text
 
 
 # ---------------------------------------------------------------------------

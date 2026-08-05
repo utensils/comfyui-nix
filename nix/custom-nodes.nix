@@ -211,6 +211,7 @@ let
         diffusers
         einops
         huggingface-hub
+        kornia
         transformers
         timm
       ];

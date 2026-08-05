@@ -124,7 +124,6 @@ let
   comfyuiSrc = pkgs.applyPatches {
     src = comfyuiSrcRaw;
     patches = [
-      ../nix/patches/comfyui-ltxvideo-compat.patch
       ../nix/patches/comfyui-cpu-fallback.patch
     ];
   };
@@ -271,10 +270,11 @@ let
         ++ lib.optionals (ps ? torchvision && available ps.torchvision) [ ps.torchvision ]
         ++ lib.optionals (ps ? torchaudio && available ps.torchaudio) [ ps.torchaudio ]
         ++ lib.optionals (ps ? torchsde && available ps.torchsde) [ ps.torchsde ]
-        # kornia excluded on macOS and aarch64-linux: kornia-rs has Cargo/badPlatforms issues
-        # See: https://github.com/NixOS/nixpkgs/issues/458799
+        # kornia-rs is still marked bad on aarch64-linux in pinned nixpkgs.
         ++ lib.optionals (
-          pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64 && ps ? kornia && available ps.kornia
+          (pkgs.stdenv.isDarwin || (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64))
+          && ps ? kornia
+          && available ps.kornia
         ) [ ps.kornia ]
         ++ lib.optionals (ps ? pydantic && available ps.pydantic) [ ps.pydantic ]
         ++ lib.optionals (ps ? spandrel && available ps.spandrel) [ ps.spandrel ]
@@ -791,6 +791,7 @@ let
     passthru = {
       inherit
         comfyuiSrc
+        customNodes
         pythonRuntime
         modelDownloaderDir
         frontendRoot

@@ -88,8 +88,6 @@
             config = {
               allowUnfree = true;
               allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
-              # Work around nixpkgs kornia-rs badPlatforms issue on aarch64-linux
-              allowUnsupportedSystem = true;
             };
           };
 
@@ -179,7 +177,7 @@
             config = {
               allowUnfree = true;
               allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
-              # aarch64-linux needs this workaround for kornia-rs
+              # Keep the x86_64-only ROCm development shell evaluable on aarch64-linux.
               allowUnsupportedSystem = system == "aarch64-linux";
             };
           };
