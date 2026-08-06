@@ -24,7 +24,7 @@ For CUDA (Linux/NVIDIA):
 nix run github:utensils/comfyui-nix#cuda
 ```
 
-CUDA builds use pre-built PyTorch wheels from pytorch.org, so builds are fast (~2GB download) and support all GPU architectures from Pascal (GTX 1080) through Blackwell (RTX 5090) in a single package.
+CUDA builds use pre-built PyTorch wheels from pytorch.org, so builds are fast (~2GB download) and support NVIDIA GPU architectures from Turing (RTX 20 series) through Blackwell (RTX 50 series) in a single package.
 
 For ROCm (Linux/AMD):
 
@@ -69,14 +69,15 @@ CUDA builds are available for Linux with NVIDIA GPUs. The `#cuda` package uses p
 
 - **Fast builds**: Downloads ~2GB of pre-built wheels instead of compiling for hours
 - **Low memory**: No 30-60GB RAM requirement for compilation
-- **All architectures**: Supports Pascal (GTX 1080) through Blackwell (RTX 5090) in one package
-- **Bundled runtime**: CUDA 12.8 libraries included in wheels (no separate toolkit needed)
+- **Current architectures**: Supports Turing (RTX 20 series) through Blackwell (RTX 50 series) in one package
+- **Bundled runtime**: CUDA 13.0 libraries included in the package (no separate toolkit needed)
+- **Driver requirement**: NVIDIA driver 580 or newer
 
 ```bash
 nix run github:utensils/comfyui-nix#cuda
 ```
 
-This single package works on any NVIDIA GPU from the past ~8 years.
+CUDA 13 no longer supports Maxwell, Pascal, or Volta GPUs. Use an older release of comfyui-nix for those architectures.
 
 ## ROCm GPU Support
 
@@ -408,7 +409,7 @@ nix profile add github:utensils/comfyui-nix#xpu
     gpuSupport = "cuda";  # Enable NVIDIA GPU acceleration (recommended for most users)
     # gpuSupport = "rocm";  # Enable AMD GPU acceleration
     # cudaCapabilities = [ "8.9" ];  # Optional: optimize system CUDA packages for RTX 40xx
-    #   Note: Pre-built PyTorch wheels already support all GPU architectures
+    #   Note: Pre-built PyTorch wheels already include every supported GPU architecture
     enableManager = true;  # Enable the built-in ComfyUI Manager
     port = 8188;
     listenAddress = "127.0.0.1";  # Use "0.0.0.0" for network access
@@ -531,7 +532,7 @@ Pre-built images on GitHub Container Registry:
 docker run -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest
 
 # CUDA (x86_64 only, requires nvidia-container-toolkit)
-# Supports ALL GPU architectures: Pascal, Volta, Turing, Ampere, Ada, Hopper, Blackwell
+# Supports Turing, Ampere, Ada, Hopper, and Blackwell
 docker run --gpus all -p 8188:8188 -v "$PWD/data:/data" ghcr.io/utensils/comfyui-nix:latest-cuda
 
 # ROCm (x86_64 only)

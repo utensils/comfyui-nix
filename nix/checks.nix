@@ -101,7 +101,11 @@ let
     defaultModuleSystem.config.systemd.services.comfyui.serviceConfig.ExecStart;
   moduleExecStart = moduleSystem.config.systemd.services.comfyui.serviceConfig.ExecStart;
   mkExtraPythonPackagesCheck =
-    name: package:
+    {
+      name,
+      package,
+      expectedCudaVersion ? null,
+    }:
     let
       extended = package.withExtraPythonPackages (ps: [
         ps.bcrypt
@@ -130,6 +134,10 @@ let
         assert jwt.__version__
         assert numpy.__version__
         assert torch.__version__
+        ${pkgs.lib.optionalString (expectedCudaVersion != null) ''
+          assert torch.__version__.endswith("+cu130")
+          assert torch.version.cuda == "${expectedCudaVersion}"
+        ''}
         PY
         touch $out
       '';
@@ -186,13 +194,23 @@ in
   package-xpu = packages.xpu;
 }
 // pkgs.lib.optionalAttrs (packages ? cuda) {
-  extra-python-packages-cuda = mkExtraPythonPackagesCheck "extra-python-packages-cuda" packages.cuda;
+  extra-python-packages-cuda = mkExtraPythonPackagesCheck {
+    name = "extra-python-packages-cuda";
+    package = packages.cuda;
+    expectedCudaVersion = "13.0";
+  };
 }
 // pkgs.lib.optionalAttrs (packages ? rocm) {
-  extra-python-packages-rocm = mkExtraPythonPackagesCheck "extra-python-packages-rocm" packages.rocm;
+  extra-python-packages-rocm = mkExtraPythonPackagesCheck {
+    name = "extra-python-packages-rocm";
+    package = packages.rocm;
+  };
 }
 // pkgs.lib.optionalAttrs (packages ? xpu) {
-  extra-python-packages-xpu = mkExtraPythonPackagesCheck "extra-python-packages-xpu" packages.xpu;
+  extra-python-packages-xpu = mkExtraPythonPackagesCheck {
+    name = "extra-python-packages-xpu";
+    package = packages.xpu;
+  };
 }
 // {
 
@@ -228,7 +246,10 @@ in
         touch $out
       '';
 
-  extra-python-packages-runtime = mkExtraPythonPackagesCheck "extra-python-packages-runtime" packages.default;
+  extra-python-packages-runtime = mkExtraPythonPackagesCheck {
+    name = "extra-python-packages-runtime";
+    package = packages.default;
+  };
 
   pytest =
     let

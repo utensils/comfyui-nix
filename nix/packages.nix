@@ -10,6 +10,7 @@ let
   useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
   useRocm = gpuSupport == "rocm" && pkgs.stdenv.isLinux;
   useXpu = gpuSupport == "xpu" && pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isx86_64;
+  cudaPackages = pkgs.cudaPackages_13;
 
   # Intel XPU runtime libraries (Level Zero loader, Intel compute-runtime, OpenCL ICD)
   # Bundled as a fallback when /run/opengl-driver/lib isn't available (non-NixOS Linux,
@@ -28,7 +29,7 @@ let
   # (see `cudaLibs` in python-overrides.nix), which stamps an RPATH onto torch's
   # own .so files. That RPATH only resolves the DT_NEEDED entries of the ELF that
   # carries it, so it does nothing for code that dlopens by bare soname — e.g.
-  # torch.cuda._utils._get_nvrtc_library() calls ctypes.CDLL("libnvrtc.so.12")
+  # torch.cuda._utils._get_nvrtc_library() calls ctypes.CDLL("libnvrtc.so.13")
   # when a node JIT-compiles a kernel (SeedVR2's VAE attention does this). That
   # lookup goes through LD_LIBRARY_PATH and /etc/ld.so.cache instead, and NixOS
   # has no ld.so.cache — so it fails unless the directory is on LD_LIBRARY_PATH.
@@ -38,12 +39,12 @@ let
   # prepends /run/opengl-driver/lib so the driver's copy always wins.
   # See: https://github.com/utensils/comfyui-nix/issues/71
   cudaRuntimeLibs = lib.optionals useCuda (
-    with pkgs.cudaPackages;
+    with cudaPackages;
     [
-      cuda_cudart # libcudart.so.12
-      cuda_cupti # libcupti.so.12
-      cuda_nvrtc # libnvrtc.so.12 — the one issue #71 trips over
-      libcublas # libcublas.so.12, libcublasLt.so.12
+      cuda_cudart # libcudart.so.13
+      cuda_cupti # libcupti.so.13
+      cuda_nvrtc # libnvrtc.so.13 — the one issue #71 trips over
+      libcublas # libcublas.so.13, libcublasLt.so.13
       libcufft # libcufft.so.11
       libcufile # libcufile.so.0
       libcurand # libcurand.so.10
@@ -69,7 +70,7 @@ let
   # so joining it here costs no extra store size.
   cudaHome = pkgs.symlinkJoin {
     name = "cuda-home";
-    paths = with pkgs.cudaPackages; [
+    paths = with cudaPackages; [
       (lib.getDev cuda_cudart) # cuda_runtime.h, driver_types.h, ...
       (lib.getLib cuda_cudart)
       (lib.getOutput "include" cuda_nvrtc) # nvrtc.h
@@ -678,10 +679,10 @@ let
         # Point it at the exact store paths instead. All are overridable — a user
         # with a system CUDA toolkit can export these before launch.
         # See: https://github.com/utensils/comfyui-nix/issues/60
-        export TRITON_PTXAS_PATH="''${TRITON_PTXAS_PATH:-${pkgs.cudaPackages.cuda_nvcc}/bin/ptxas}"
-        export TRITON_LIBDEVICE_PATH="''${TRITON_LIBDEVICE_PATH:-${pkgs.cudaPackages.cuda_nvcc}/nvvm/libdevice/libdevice.10.bc}"
-        export TRITON_CUDACRT_PATH="''${TRITON_CUDACRT_PATH:-${pkgs.cudaPackages.cuda_cudart}/include}"
-        export TRITON_CUDART_PATH="''${TRITON_CUDART_PATH:-${pkgs.cudaPackages.cuda_cudart}/include}"
+        export TRITON_PTXAS_PATH="''${TRITON_PTXAS_PATH:-${cudaPackages.cuda_nvcc}/bin/ptxas}"
+        export TRITON_LIBDEVICE_PATH="''${TRITON_LIBDEVICE_PATH:-${cudaPackages.cuda_nvcc}/nvvm/libdevice/libdevice.10.bc}"
+        export TRITON_CUDACRT_PATH="''${TRITON_CUDACRT_PATH:-${cudaPackages.cuda_cudart}/include}"
+        export TRITON_CUDART_PATH="''${TRITON_CUDART_PATH:-${cudaPackages.cuda_cudart}/include}"
 
         # libcuda.so.1 belongs to the kernel driver, not to cudaPackages. Prefer
         # the NixOS driver directory; fall back to scanning LD_LIBRARY_PATH so
@@ -700,11 +701,11 @@ let
         fi
 
         # =====================================================================
-        # NVIDIA Blackwell / CUDA 12.x compatibility
+        # NVIDIA Blackwell allocator compatibility
         # =====================================================================
         # ComfyUI enables cudaMallocAsync automatically for CUDA builds unless a
         # device is explicitly blacklisted. On Blackwell cards with the current
-        # cu128 PyTorch wheels, users have reported generation-time crashes and
+        # PyTorch CUDA wheels, users have reported generation-time crashes and
         # ComfyUI's own warning recommends --disable-cuda-malloc for allocator
         # errors. Disable it automatically for RTX 50/Blackwell unless the user
         # already selected an allocator mode in extraArgs.
@@ -866,7 +867,7 @@ let
     name = "comfy-ui";
     tag = "cuda";
     comfyUiPackage = comfyUiPackage;
-    cudaVersion = "cu128";
+    cudaVersion = "cu130";
     extraLabels = {
       "org.opencontainers.image.version" = versions.comfyui.version;
       "com.nvidia.volumes.needed" = "nvidia_driver";

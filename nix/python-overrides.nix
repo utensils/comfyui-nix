@@ -11,11 +11,12 @@ let
   useXpu = gpuSupport == "xpu" && pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isx86_64;
   useDarwinArm64 = pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isAarch64;
   sentencepieceNoGperf = pkgs.sentencepiece.override { withGPerfTools = false; };
+  cudaPackages = pkgs.cudaPackages_13;
 
   # Pre-built PyTorch CUDA wheels from pytorch.org
   # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time)
-  # The wheels bundle CUDA 12.8 libraries, so no separate CUDA toolkit needed at runtime
-  cudaWheels = versions.pytorchWheels.cu128;
+  # CUDA runtime libraries are supplied by nixpkgs, so no separate toolkit is needed at runtime
+  cudaWheels = versions.pytorchWheels.cu130;
 
   # Pre-built PyTorch ROCm wheels from pytorch.org
   # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time)
@@ -71,21 +72,21 @@ let
 
   # CUDA libraries needed by PyTorch wheels (for auto-patchelf)
   cudaLibs = pkgs.lib.optionals useCuda (
-    with pkgs.cudaPackages;
+    with cudaPackages;
     [
-      cuda_cudart # libcudart.so.12
-      cuda_cupti # libcupti.so.12
-      libcublas # libcublas.so.12, libcublasLt.so.12
+      cuda_cudart # libcudart.so.13
+      cuda_cupti # libcupti.so.13
+      libcublas # libcublas.so.13, libcublasLt.so.13
       libcufft # libcufft.so.11
       libcurand # libcurand.so.10
       libcusolver # libcusolver.so.11
       libcusparse # libcusparse.so.12
-      libcusparse_lt # libcusparseLt.so.0 (structured sparsity, new in cu128)
-      libcufile # libcufile.so.0 (GPU Direct Storage, new in cu128)
-      libnvshmem # libnvshmem_host.so.3 (multi-GPU shared memory, new in cu128)
+      libcusparse_lt # libcusparseLt.so.0 (structured sparsity)
+      libcufile # libcufile.so.0 (GPU Direct Storage)
+      libnvshmem # libnvshmem_host.so.3 (multi-GPU shared memory)
       cudnn # libcudnn.so.9
       nccl # libnccl.so.2
-      cuda_nvrtc # libnvrtc.so.12
+      cuda_nvrtc # libnvrtc.so.13
     ]
   );
 
@@ -146,14 +147,11 @@ lib.optionalAttrs useCuda {
     doCheck = false;
 
     # Passthru attributes expected by downstream packages (xformers, bitsandbytes, etc.)
-    # The wheel bundles CUDA 12.8 and supports all GPU architectures
     passthru = {
       cudaSupport = true;
       rocmSupport = false;
-      # All architectures supported by pre-built wheel (Pascal through Blackwell)
+      # All architectures supported by the pre-built wheel
       cudaCapabilities = [
-        "6.1"
-        "7.0"
         "7.5"
         "8.0"
         "8.6"
@@ -162,8 +160,8 @@ lib.optionalAttrs useCuda {
         "10.0" # Blackwell (B100/B200 data center)
         "12.0" # Blackwell (RTX 50xx consumer)
       ];
-      # Provide cudaPackages for packages that need it (use default version)
-      cudaPackages = pkgs.cudaPackages;
+      # Provide the matching CUDA package set for downstream packages
+      inherit cudaPackages;
       rocmPackages = { };
     };
 
@@ -909,7 +907,7 @@ lib.optionalAttrs useCuda {
 
 # Relax xformers torch version requirement (relaxes torch version constraint)
 # Limit build parallelism to prevent OOM during flash-attention CUDA kernel compilation
-# (sm_90 CUTLASS kernels with CUDA 12.8 consume ~3GB RAM each)
+# (sm_90 CUTLASS kernels consume ~3GB RAM each)
 // lib.optionalAttrs (prev ? xformers) {
   xformers = prev.xformers.overridePythonAttrs (old: {
     nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final.pythonRelaxDepsHook ];

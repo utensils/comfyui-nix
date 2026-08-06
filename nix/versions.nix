@@ -206,22 +206,22 @@
         hash = "sha256-8cv9/Ru9++conUenTzb/bF2HwyBWBiAv71p/tpP2HPA=";
       };
     };
-    # Linux x86_64 CUDA 12.8
-    cu128 = {
+    # Linux x86_64 CUDA 13.0
+    cu130 = {
       torch = {
         version = "2.10.0";
-        url = "https://download.pytorch.org/whl/cu128/torch-2.10.0%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-Yo6JvVEQztfevuKlfGmVlyW3+8ZOq4GjndcORsfii6U=";
+        url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl";
+        hash = "sha256-hY8MvMeNcm/qlJnrNGT6qYOS+gk4RaMmIgm9Imt4RNY=";
       };
       torchvision = {
         version = "0.25.0";
-        url = "https://download.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-ElWgyiv5h6z58QO5bFxM/jQV/Eoe7xf6CK9SegSk9XM=";
+        url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl";
+        hash = "sha256-wvXjjwzVeieW5FA8DxM2XeugHbwWfvgg8L7sfKlvXy4=";
       };
       torchaudio = {
         version = "2.10.0";
-        url = "https://download.pytorch.org/whl/cu128/torchaudio-2.10.0%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-0muRoXPO5tuav/aLSNZCNpUP/FYo0GRI7N16xWhB4Qo=";
+        url = "https://download.pytorch.org/whl/cu130/torchaudio-2.10.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl";
+        hash = "sha256-7Vc+cxm6mm4Te0iV7d9Mn81CS7ThCmKSZ9ZLVazFf7s=";
       };
     };
     # Linux x86_64 ROCm 7.1
