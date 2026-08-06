@@ -57,8 +57,8 @@
           # compiling from source. This provides:
           # - Fast builds (download ~2GB vs compile for hours)
           # - Low memory usage (no 30-60GB RAM requirement)
-          # - All GPU architectures supported (Pascal through Blackwell)
-          # - CUDA 12.8 runtime bundled in wheels
+          # - All supported GPU architectures included in one package
+          # - CUDA runtime included in the package
           # =======================================================================
 
           # =======================================================================
@@ -134,7 +134,7 @@
           linuxArm64Packages = mkComfyPackages pkgsLinuxArm64 { };
 
           nativePackages = mkComfyPackages pkgs { };
-          # CUDA uses pre-built wheels (supports all GPU architectures)
+          # CUDA uses pre-built wheels for all supported GPU architectures
           nativePackagesCuda = mkComfyPackages pkgs { gpuSupport = "cuda"; };
           nativePackagesRocm = mkComfyPackages pkgs { gpuSupport = "rocm"; };
           nativePackagesXpu = mkComfyPackages pkgs { gpuSupport = "xpu"; };
@@ -197,7 +197,7 @@
             dockerImage = nativePackages.dockerImage;
           }
           // pkgs.lib.optionalAttrs (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64) {
-            # CUDA package uses pre-built wheels (supports all GPU architectures)
+            # CUDA package uses pre-built wheels for all supported GPU architectures
             cuda = nativePackagesCuda.default;
             dockerImageCuda = nativePackagesCuda.dockerImageCuda;
             rocm = nativePackagesRocm.default;
@@ -288,7 +288,7 @@
           comfyui-nix = self.legacyPackages.${final.stdenv.hostPlatform.system};
           comfyui = self.packages.${final.stdenv.hostPlatform.system}.default;
           comfy-ui = self.packages.${final.stdenv.hostPlatform.system}.default;
-          # CUDA variant (x86_64 Linux only) - uses pre-built wheels supporting all GPU architectures
+          # CUDA variant (x86_64 Linux only) - uses pre-built wheels for all supported GPU architectures
           comfy-ui-cuda =
             if final.stdenv.isLinux && final.stdenv.isx86_64 then
               self.packages.${final.stdenv.hostPlatform.system}.cuda

@@ -49,7 +49,7 @@ in
     type = "app";
     program = "${packages.cuda}/bin/comfy-ui";
     meta = {
-      description = "Run ComfyUI with CUDA (all GPU architectures)";
+      description = "Run ComfyUI with CUDA";
     };
   };
 }

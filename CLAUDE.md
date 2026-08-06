@@ -58,7 +58,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Template input files: auto-generated in `nix/template-inputs.nix`
   - Update with: `./scripts/update-template-inputs.sh && git add nix/template-inputs.nix`
 - Python version: 3.12
-- PyTorch: macOS uses pre-built wheels (2.5.1, pinned to work around MPS bugs on macOS 26); CUDA uses pre-built wheels from pytorch.org (cu128); ROCm uses pre-built wheels from pytorch.org (rocm7.1); Intel XPU uses pre-built wheels from pytorch.org (xpu, oneAPI/SYCL — no IPEX); Linux CPU uses nixpkgs
+- PyTorch: macOS uses pre-built wheels (2.5.1, pinned to work around MPS bugs on macOS 26); CUDA uses pre-built wheels from pytorch.org (cu130); ROCm uses pre-built wheels from pytorch.org (rocm7.1); Intel XPU uses pre-built wheels from pytorch.org (xpu, oneAPI/SYCL — no IPEX); Linux CPU uses nixpkgs
 
 ## Project Architecture
 
@@ -154,7 +154,7 @@ fonts/         - Bundled fonts for nodes requiring system fonts
 ### Platform-Specific Notes
 
 - macOS: PyTorch pinned to 2.5.1 to work around MPS bugs on macOS 26 (Tahoe); browser opens via `/usr/bin/open`
-- CUDA: Pre-built wheels from pytorch.org with CUDA 12.8 runtime bundled (no separate toolkit needed); supports Pascal through Blackwell
+- CUDA: Pre-built wheels from pytorch.org with CUDA 13.0 runtime supplied by nixpkgs (no separate toolkit needed); supports Turing through Blackwell and requires NVIDIA driver 580 or newer
 - ROCm: Pre-built wheels from pytorch.org with ROCm 7.1 runtime bundled; tested on gfx1100 (7900 XTX); `/run/opengl-driver/lib` provides AMD drivers on NixOS
 - Intel XPU: Pre-built wheels from pytorch.org (oneAPI / SYCL, no IPEX); supports Arc A/B series + Core Ultra iGPUs (Meteor Lake+); untested on maintainer hardware — treat external user reports as authoritative; `/run/opengl-driver/lib` preferred, Nix-bundled `level-zero`/`intel-compute-runtime` as non-NixOS fallback
 - Linux CPU: Uses nixpkgs PyTorch; browser opens via `xdg-open`
