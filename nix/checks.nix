@@ -112,6 +112,11 @@ let
         ps.pyjwt
         ps.bleach
       ]);
+      expectedCudaSuffix =
+        if expectedCudaVersion == null then
+          null
+        else
+          "cu${pkgs.lib.replaceStrings [ "." ] [ "" ] expectedCudaVersion}";
     in
     assert package.pythonRuntime.pkgs.torch.outPath == extended.pythonRuntime.pkgs.torch.outPath;
     assert package.pythonRuntime.pkgs.numpy.outPath == extended.pythonRuntime.pkgs.numpy.outPath;
@@ -135,7 +140,7 @@ let
         assert numpy.__version__
         assert torch.__version__
         ${pkgs.lib.optionalString (expectedCudaVersion != null) ''
-          assert torch.__version__.endswith("+cu130")
+          assert torch.__version__.endswith("+${expectedCudaSuffix}")
           assert torch.version.cuda == "${expectedCudaVersion}"
         ''}
         PY
