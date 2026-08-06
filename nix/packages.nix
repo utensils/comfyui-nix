@@ -45,10 +45,10 @@ let
       cuda_cupti # libcupti.so.13
       cuda_nvrtc # libnvrtc.so.13 — the one issue #71 trips over
       libcublas # libcublas.so.13, libcublasLt.so.13
-      libcufft # libcufft.so.11
+      libcufft # libcufft.so.12
       libcufile # libcufile.so.0
       libcurand # libcurand.so.10
-      libcusolver # libcusolver.so.11
+      libcusolver # libcusolver.so.12
       libcusparse # libcusparse.so.12
       libcusparse_lt # libcusparseLt.so.0
       libnvshmem # libnvshmem_host.so.3
