@@ -70,14 +70,14 @@ CUDA builds are available for Linux with NVIDIA GPUs. The `#cuda` package uses p
 - **Fast builds**: Downloads ~2GB of pre-built wheels instead of compiling for hours
 - **Low memory**: No 30-60GB RAM requirement for compilation
 - **Current architectures**: Supports Turing (RTX 20 series) through Blackwell (RTX 50 series) in one package
-- **Bundled runtime**: CUDA 13.0 libraries included in the package (no separate toolkit needed)
+- **Included runtime**: CUDA 13.0 libraries provided by nixpkgs in the Nix closure (no separate toolkit needed)
 - **Driver requirement**: NVIDIA driver 580 or newer
 
 ```bash
 nix run github:utensils/comfyui-nix#cuda
 ```
 
-CUDA 13 no longer supports Maxwell, Pascal, or Volta GPUs. Use an older release of comfyui-nix for those architectures.
+CUDA 13 no longer supports pre-Turing GPUs. Pascal and Volta users must use an older comfyui-nix release; earlier architectures were already unsupported.
 
 ## ROCm GPU Support
 

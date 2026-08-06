@@ -13,10 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   NVIDIA driver 580 or newer is now required.
 
 ### Removed
-- CUDA support for Pascal and Volta GPUs.
-  CUDA builds now support Turing and newer architectures
-  because CUDA 13 no longer provides compiler or library support for pre-Turing GPUs.
-  Users of older GPUs must remain on an earlier comfyui-nix release.
+- CUDA support for Pascal and Volta GPUs, the pre-Turing architectures supported
+  by previous releases. CUDA 13 no longer provides compiler or library support
+  for pre-Turing GPUs. Pascal and Volta users must remain on an earlier
+  comfyui-nix release; Maxwell and older architectures were already unsupported.
 
 ## [0.30.2] - 2026-08-05
 
