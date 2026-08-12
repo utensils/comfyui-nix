@@ -85,6 +85,12 @@ let
   '';
 in
 {
+  # nixpkgs gained its own `services.comfyui` module (nixos/modules/services/misc/comfyui.nix).
+  # Importing both declares `services.comfyui.enable` twice and evaluation fails, so this
+  # module takes over the namespace. Disabling a module path that does not exist in the
+  # user's nixpkgs is a no-op, so this stays compatible with older releases.
+  disabledModules = [ "services/misc/comfyui.nix" ];
+
   options.services.comfyui = {
     enable = lib.mkEnableOption "ComfyUI service";
 
