@@ -49,6 +49,37 @@ let
         }
       ];
     };
+  # Regression guard for the nixpkgs namespace clash: nixpkgs ships its own
+  # nixos/modules/services/misc/comfyui.nix declaring `services.comfyui.enable`,
+  # which collides with this module unless it is disabled. The stub below claims the
+  # upstream module key so the conflict is reproducible against any nixpkgs revision,
+  # including ones predating the upstream module.
+  upstreamModuleStub =
+    {
+      modulesPath,
+      lib,
+      ...
+    }:
+    {
+      imports = [
+        {
+          key = "${modulesPath}/services/misc/comfyui.nix";
+          options.services.comfyui.enable = lib.mkEnableOption "ComfyUI (nixpkgs)";
+        }
+      ];
+    };
+  namespaceSystem = nixpkgs.lib.nixosSystem {
+    system = pkgs.stdenv.hostPlatform.system;
+    modules = [
+      nixosModule
+      upstreamModuleStub
+      { system.stateVersion = "26.05"; }
+    ];
+  };
+  namespaceDeclarations = namespaceSystem.options.services.comfyui.enable.declarations;
+  upstreamModuleDisabled =
+    pkgs.lib.length namespaceDeclarations == 1
+    && pkgs.lib.hasSuffix "nix/modules/comfyui.nix" (pkgs.lib.head namespaceDeclarations);
   defaultModuleSystem = evalModule { };
   moduleSystem = evalModule {
     extraPythonPackages = ps: [
@@ -229,6 +260,10 @@ in
       '';
 
   extra-python-packages-runtime = mkExtraPythonPackagesCheck "extra-python-packages-runtime" packages.default;
+
+  nixos-module-namespace =
+    assert upstreamModuleDisabled;
+    pkgs.runCommand "nixos-module-namespace" { } "touch $out";
 
   pytest =
     let

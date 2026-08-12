@@ -420,6 +420,13 @@ nix profile add github:utensils/comfyui-nix#xpu
 }
 ```
 
+> **Note:** nixpkgs ships its own `services.comfyui` module
+> (`nixos/modules/services/misc/comfyui.nix`). Importing this module automatically disables
+> the nixpkgs one, so the two no longer collide with
+> `error: The option 'services.comfyui.enable' ... is already declared`. All
+> `services.comfyui.*` options come from this flake. To use the nixpkgs service instead,
+> simply do not import `comfyui-nix.nixosModules.default`.
+
 ### Module Options
 
 | Option          | Default              | Description                                      |
