@@ -232,6 +232,13 @@ rec {
     version = versions.vendored.gradio.version;
     url = versions.vendored.gradio.url;
     hash = versions.vendored.gradio.hash;
+    pythonRelaxDeps = [
+      "aiofiles"
+      "pillow"
+      "pydantic"
+      "starlette"
+      "tomlkit"
+    ];
     propagatedBuildInputs = with python.pkgs; [
       aiofiles
       anyio
