@@ -13,7 +13,7 @@ let
   useCpu = cfg.gpuSupport == "none";
 
   # Determine which package to use based on configuration
-  # CUDA package uses pre-built wheels supporting all GPU architectures (Pascal through Blackwell)
+  # CUDA package uses pre-built wheels for all supported GPU architectures
   resolvePackage =
     if useCuda then
       pkgs.comfy-ui-cuda
@@ -111,9 +111,9 @@ in
         Select CUDA support for NVIDIA GPUs. This is recommended for most users
         with NVIDIA graphics cards as it provides significant performance improvements.
 
-        When selected, uses pre-built PyTorch CUDA wheels that support all GPU
-        architectures from Pascal (GTX 1080) through Blackwell (RTX 5090) in a single package.
-        Requires NVIDIA drivers to be installed on the system.
+        When selected, uses pre-built PyTorch CUDA 13 wheels that support GPU
+        architectures from Turing (RTX 20 series) through Blackwell (RTX 50 series)
+        in a single package. Requires NVIDIA driver 580 or newer.
 
         ---
 
@@ -153,15 +153,13 @@ in
         `nixpkgs.config.cudaCapabilities`. When set, this updates the global
         nixpkgs configuration, so it affects other CUDA packages too.
 
-        Note: ComfyUI's pre-built PyTorch wheels already support all GPU
-        architectures (Pascal through Blackwell). This setting is primarily useful
+        Note: ComfyUI's pre-built PyTorch wheels already support GPU architectures
+        from Turing through Blackwell. This setting is primarily useful
         for optimizing other CUDA-enabled packages in your system configuration.
 
         Example: [ "8.9" ] for Ada Lovelace (RTX 40xx) GPUs.
 
         Common values:
-        - "6.1": Pascal (GTX 1080/1070)
-        - "7.0": Volta (V100)
         - "7.5": Turing (RTX 20xx, GTX 16xx)
         - "8.0": Ampere (A100)
         - "8.6": Ampere (RTX 30xx)
@@ -197,7 +195,7 @@ in
       '';
       description = ''
         ComfyUI package to run. Automatically set based on `gpuSupport`:
-        - `gpuSupport = "cuda"`: CUDA package (supports all GPU architectures)
+        - `gpuSupport = "cuda"`: CUDA package (all supported GPU architectures)
         - `gpuSupport = "rocm"`: ROCm package (`gfx1100` tested)
         - `gpuSupport = "xpu"`: Intel XPU package (oneAPI / SYCL; Arc + Core Ultra iGPU)
         - Otherwise: CPU-only build
