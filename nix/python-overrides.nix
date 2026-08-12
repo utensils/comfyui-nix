@@ -946,6 +946,15 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# mss runs screenshot tests through a virtual X server. They are not relevant
+# to ComfyUI's runtime dependency closure and can fail in a headless Nix build
+# sandbox. Remove this override once nixpkgs' mss checks are sandbox-independent.
+// lib.optionalAttrs (prev ? mss) {
+  mss = prev.mss.overridePythonAttrs (_old: {
+    doCheck = false;
+  });
+}
+
 # Disable filterpy tests on Darwin (test_hinfinity triggers BPT trap in pytest)
 // lib.optionalAttrs (prev ? filterpy) {
   filterpy = prev.filterpy.overridePythonAttrs (old: {
