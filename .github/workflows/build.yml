@@ -58,6 +58,51 @@ jobs:
           nix build .#checks.x86_64-linux.shellcheck --print-build-logs
           nix build .#checks.x86_64-linux.pytest --print-build-logs
 
+  # Exercise package metadata against nixpkgs with the runtime dependency hook
+  # enabled. Remove the override once the flake follows this revision or newer.
+  python-runtime-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /var/lib/apt/lists/*
+          sudo apt-get clean
+          docker system prune -af || true
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - uses: cachix/cachix-action@v14
+        with:
+          name: comfyui
+          pushFilter: "-"
+
+      - uses: cachix/cachix-action@v14
+        with:
+          name: nix-community
+          pushFilter: "-"
+
+      - uses: cachix/cachix-action@v14
+        with:
+          name: cuda-maintainers
+          pushFilter: "-"
+
+      - name: Check Python runtime dependencies
+        run: |
+          nix build .#checks.x86_64-linux.python-runtime-deps \
+            --override-input nixpkgs github:NixOS/nixpkgs/65179426c83bb3f6bc14898b42ea1c6f01d374b0 \
+            --no-write-lock-file \
+            --print-build-logs
+
   # Realize the extended runtime for every backend so PRs cannot replace the
   # backend-specific Torch/NumPy stack or ship dependencies that fail to import.
   extra-python-packages:
