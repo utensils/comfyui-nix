@@ -207,43 +207,27 @@ let
       ''
     else
       null;
+  runtimeDepsPackages = {
+    facexlib = pythonPackages.facexlib;
+    gradio-client = vendoredPackages.gradioClient;
+    gradio = vendoredPackages.gradio;
+    manager = vendoredPackages.comfyuiManager;
+    mss = mssRuntimeDeps;
+  }
+  // pkgs.lib.optionalAttrs (cudaTorchRuntimeDeps != null) {
+    cuda-torch = cudaTorchRuntimeDeps;
+  };
+  runtimeDepsChecks = pkgs.lib.mapAttrs' (
+    name: package: pkgs.lib.nameValuePair "${name}-runtime-deps" package
+  ) runtimeDepsPackages;
 in
 {
   package = packages.default;
-  facexlib-runtime-deps = pythonPackages.facexlib;
-  gradio-client-runtime-deps = vendoredPackages.gradioClient;
-  gradio-runtime-deps = vendoredPackages.gradio;
-  manager-runtime-deps = vendoredPackages.comfyuiManager;
-  mss-runtime-deps = mssRuntimeDeps;
   python-runtime-deps = pkgs.linkFarm "python-runtime-deps" (
-    [
-      {
-        name = "facexlib";
-        path = pythonPackages.facexlib;
-      }
-      {
-        name = "gradio-client";
-        path = vendoredPackages.gradioClient;
-      }
-      {
-        name = "gradio";
-        path = vendoredPackages.gradio;
-      }
-      {
-        name = "manager";
-        path = vendoredPackages.comfyuiManager;
-      }
-      {
-        name = "mss";
-        path = mssRuntimeDeps;
-      }
-    ]
-    ++ pkgs.lib.optional (cudaTorchRuntimeDeps != null) {
-      name = "cuda-torch";
-      path = cudaTorchRuntimeDeps;
-    }
+    pkgs.lib.mapAttrsToList (name: path: { inherit name path; }) runtimeDepsPackages
   );
 }
+// runtimeDepsChecks
 // pkgs.lib.optionalAttrs (pkgs.stdenv.isDarwin || (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64)) {
   comfy-extras-imports =
     pkgs.runCommand "comfy-extras-imports"
@@ -293,7 +277,6 @@ in
   package-xpu = packages.xpu;
 }
 // pkgs.lib.optionalAttrs (packages ? cuda) {
-  cuda-torch-runtime-deps = cudaTorchRuntimeDeps;
   extra-python-packages-cuda = mkExtraPythonPackagesCheck {
     name = "extra-python-packages-cuda";
     package = packages.cuda;
