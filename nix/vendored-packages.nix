@@ -11,9 +11,15 @@ let
       url,
       hash,
       propagatedBuildInputs ? [ ],
+      pythonRelaxDeps ? [ ],
     }:
     python.pkgs.buildPythonPackage {
-      inherit pname version propagatedBuildInputs;
+      inherit
+        pname
+        version
+        propagatedBuildInputs
+        pythonRelaxDeps
+        ;
       format = "wheel";
       src = pkgs.fetchurl { inherit url hash; };
       doCheck = false;
@@ -210,6 +216,7 @@ rec {
     version = versions.vendored.gradioClient.version;
     url = versions.vendored.gradioClient.url;
     hash = versions.vendored.gradioClient.hash;
+    pythonRelaxDeps = [ "websockets" ];
     propagatedBuildInputs = with python.pkgs; [
       fsspec
       httpx

@@ -183,6 +183,7 @@ in
 {
   package = packages.default;
   facexlib-runtime-deps = pythonPackages.facexlib;
+  gradio-client-runtime-deps = vendoredPackages.gradioClient;
   manager-runtime-deps = vendoredPackages.comfyuiManager;
 }
 // pkgs.lib.optionalAttrs (pkgs.stdenv.isDarwin || (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64)) {
