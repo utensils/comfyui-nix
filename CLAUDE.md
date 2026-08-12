@@ -52,7 +52,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Version Management
 
-- Current ComfyUI version: v0.19.3 (pinned in `nix/versions.nix`; released 2026-04-17)
+- Current ComfyUI version: read `comfyui.version` in `nix/versions.nix` — that file is the single source of truth; do not restate the version here (it drifts)
 - To update ComfyUI: modify `version`, `rev`, and `hash` in `nix/versions.nix`
 - Vendored wheels (spandrel, frontend, docs, etc.) also pinned in `nix/versions.nix`
 - Template input files: auto-generated in `nix/template-inputs.nix`
