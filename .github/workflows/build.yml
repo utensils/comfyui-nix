@@ -62,6 +62,8 @@ jobs:
   # backend-specific Torch/NumPy stack or ship dependencies that fail to import.
   extra-python-packages:
     runs-on: ubuntu-latest
+    env:
+      CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
@@ -89,10 +91,14 @@ jobs:
             experimental-features = nix-command flakes
             accept-flake-config = true
 
+      # Push the backend Torch closures so the `check` job below substitutes them
+      # instead of recompiling. Same conditional-pushFilter pattern as the `build`
+      # job: fork PRs get no secret, so they fall back to read-only.
       - uses: cachix/cachix-action@v14
         with:
           name: comfyui
-          pushFilter: "-"
+          authToken: ${{ env.CACHIX_AUTH_TOKEN }}
+          pushFilter: ${{ env.CACHIX_AUTH_TOKEN && '' || '-' }}
 
       - uses: cachix/cachix-action@v14
         with:
@@ -110,9 +116,20 @@ jobs:
             --print-build-logs --max-jobs 1 --cores 2
 
   # Full nix flake check (includes package build) — only on main/tags
+  #
+  # Depends on extra-python-packages so the backend Torch closures are already in
+  # Cachix by the time this runs. Without that dependency both jobs start together
+  # and each compiles the same CUDA closure from source — xformers' CUTLASS kernels
+  # alone are multi-hour on a 4-core hosted runner — so the work is done twice and
+  # this job cannot benefit from the pushes happening beside it. Serializing costs
+  # nothing overall: the 6h ceiling is per job, not per workflow.
   check:
     if: github.event_name != 'pull_request'
+    needs: extra-python-packages
     runs-on: ubuntu-latest
+    # Fail with a clear signal instead of an opaque runner shutdown if the
+    # substitution assumption ever stops holding.
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
 
