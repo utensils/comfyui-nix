@@ -98,8 +98,10 @@ jobs:
 
       - name: Check Python runtime dependencies
         run: |
+          nixpkgs_rev="$(nix eval --raw --file nix/versions.nix ci.runtimeDepsNixpkgs.rev)"
+          nixpkgs_hash="$(nix eval --raw --file nix/versions.nix ci.runtimeDepsNixpkgs.hash)"
           nix build .#checks.x86_64-linux.python-runtime-deps \
-            --override-input nixpkgs github:NixOS/nixpkgs/65179426c83bb3f6bc14898b42ea1c6f01d374b0 \
+            --override-input nixpkgs "github:NixOS/nixpkgs/$nixpkgs_rev?narHash=$nixpkgs_hash" \
             --no-write-lock-file \
             --print-build-logs
 

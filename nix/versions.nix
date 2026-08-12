@@ -1,4 +1,9 @@
 {
+  ci.runtimeDepsNixpkgs = {
+    rev = "65179426c83bb3f6bc14898b42ea1c6f01d374b0";
+    hash = "sha256-xnJJk+ct+D2+wdRxj1wk36w5zV9RVESwRqcklPdt3fM=";
+  };
+
   comfyui = {
     version = "0.32.0";
     releaseDate = "2026-08-11T21:56:20Z";
