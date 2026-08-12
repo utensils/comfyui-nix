@@ -10,7 +10,6 @@
       tag,
       comfyUiPackage,
       gpuSupport ? "none", # "none", "cuda", "rocm", "xpu"
-      cudaVersion ? "cu130",
       extraLabels ? { },
     }:
     let

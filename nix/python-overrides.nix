@@ -70,7 +70,22 @@ let
     pkgs.glib
   ];
 
-  # CUDA libraries needed by PyTorch wheels (for auto-patchelf)
+  # CUDA libraries needed by PyTorch wheels (for auto-patchelf).
+  #
+  # These replace the `nvidia-*` PyPI wheels the torch wheel asks for, which we
+  # strip from its metadata. nixpkgs does not always carry the exact versions
+  # PyTorch pinned, and because the SONAMEs match, auto-patchelf accepts the
+  # substitution silently — any mismatch surfaces only at runtime. Current deltas
+  # against `torch-2.10.0+cu130`:
+  #
+  #   cuDNN         wheel wants 9.15.1.9  nixpkgs has 9.13.0.50  (older — risky direction)
+  #   NCCL          wheel wants 2.28.9    nixpkgs has 2.28.7     (older — risky direction)
+  #   cuSPARSELt    wheel wants 0.8.0     nixpkgs has 0.8.1.1    (newer — safe direction)
+  #
+  # The cuDNN/NCCL deltas are latent, not active: every symbol libtorch_cuda.so
+  # imports from them is still exported by the older builds. They clear once the
+  # nixpkgs input is bumped, which is blocked on the vendored-wheel metadata work
+  # in https://github.com/utensils/comfyui-nix/issues/81
   cudaLibs = pkgs.lib.optionals useCuda (
     with cudaPackages;
     [
@@ -103,7 +118,9 @@ let
 in
 final: prev:
 # CUDA torch from pre-built wheels - avoids 30-60GB RAM compilation
-# The wheels bundle CUDA libraries internally, providing full GPU support
+# Unlike the ROCm wheels, these do NOT bundle their CUDA libraries: the wheel
+# declares them as separate `nvidia-*` PyPI requirements, which we strip from the
+# metadata below and satisfy from nixpkgs via `cudaLibs` instead.
 lib.optionalAttrs useCuda {
   torch = final.buildPythonPackage {
     pname = "torch";
