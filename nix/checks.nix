@@ -4,6 +4,7 @@
   source,
   packages,
   pythonRuntime,
+  pythonPackages,
   nixosModule,
 }:
 let
@@ -180,6 +181,7 @@ let
 in
 {
   package = packages.default;
+  facexlib-runtime-deps = pythonPackages.facexlib;
 }
 // pkgs.lib.optionalAttrs (pkgs.stdenv.isDarwin || (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64)) {
   comfy-extras-imports =

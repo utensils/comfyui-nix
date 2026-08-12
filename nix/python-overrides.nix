@@ -994,6 +994,14 @@ lib.optionalAttrs useCuda {
     dontBuild = true;
     dontConfigure = true;
     nativeBuildInputs = [ pkgs.gnused ];
+    # facexlib's wheel names the PyPI opencv-python distribution, while nixpkgs
+    # opencv4 provides the required cv2 module without matching distribution
+    # metadata. Remove this when facexlib accepts a system OpenCV provider.
+    pythonRemoveDeps = [ "opencv-python" ];
+    # pythonRemoveDeps normally runs in postBuild, which this prebuilt wheel
+    # skips. Remove this phase override when nixpkgs rewrites wheel metadata
+    # before its runtime dependency check.
+    preInstallPhases = [ "pythonRelaxDepsHook" ];
     propagatedBuildInputs = with final; [
       numpy
       opencv4
@@ -1002,6 +1010,7 @@ lib.optionalAttrs useCuda {
       torchvision
       filterpy
       numba
+      tqdm
     ];
 
     # Patch misc.py to respect FACEXLIB_MODELPATH environment variable
