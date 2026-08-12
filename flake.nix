@@ -274,6 +274,7 @@
             packages = self'.packages;
             pythonRuntime = nativePackages.pythonRuntime;
             pythonPackages = (mkPython pkgs "none").pkgs;
+            vendoredPackages = nativePackages.vendoredPackages;
             nixosModule = self.nixosModules.default;
           };
         };

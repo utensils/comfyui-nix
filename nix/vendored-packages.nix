@@ -157,6 +157,18 @@ rec {
     version = versions.vendored.manager.version;
     url = versions.vendored.manager.url;
     hash = versions.vendored.manager.hash;
+    propagatedBuildInputs = with python.pkgs; [
+      chardet
+      gitpython
+      huggingface-hub
+      pygithub
+      rich
+      toml
+      transformers
+      typer
+      typing-extensions
+      uv
+    ];
   };
 
   comfyKitchen = mkNativeWheel {
