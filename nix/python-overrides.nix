@@ -140,11 +140,14 @@ lib.optionalAttrs useCuda {
     # libcuda.so.1 comes from the NVIDIA driver at runtime, not from cudaPackages
     autoPatchelfIgnoreMissingDeps = [ "libcuda.so.1" ];
 
-    # Remove nvidia-* and triton dependencies from wheel metadata
-    # These are provided by nixpkgs cudaPackages, not PyPI packages
+    # The CUDA wheel names PyPI CUDA packages that are provided by nixpkgs
+    # cudaPackages instead. The runtime dependency hook cannot recognize those
+    # system providers, so validate the rewritten installed metadata below.
+    dontCheckRuntimeDeps = true;
     postInstall = ''
       for metadata in "$out/${final.python.sitePackages}"/torch-*.dist-info/METADATA; do
         if [[ -f "$metadata" ]]; then
+          sed -i '/^Requires-Dist: cuda-bindings/d' "$metadata"
           sed -i '/^Requires-Dist: nvidia-/d' "$metadata"
           sed -i '/^Requires-Dist: triton/d' "$metadata"
         fi
@@ -158,6 +161,7 @@ lib.optionalAttrs useCuda {
       networkx
       jinja2
       fsspec
+      setuptools
     ];
     # Don't check for CUDA at import time (requires GPU)
     pythonImportsCheck = [ ];

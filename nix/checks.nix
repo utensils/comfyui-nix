@@ -236,6 +236,29 @@ in
   package-xpu = packages.xpu;
 }
 // pkgs.lib.optionalAttrs (packages ? cuda) {
+  cuda-torch-runtime-deps =
+    pkgs.runCommand "cuda-torch-runtime-deps"
+      {
+        nativeBuildInputs = [ packages.cuda.pythonRuntime ];
+      }
+      ''
+        ${packages.cuda.pythonRuntime}/bin/python - <<'PY'
+        import importlib.metadata
+
+        import setuptools
+        import torch
+
+        requirements = importlib.metadata.requires("torch") or []
+        removed_requirements = ("cuda-bindings", "nvidia-", "triton")
+
+        assert not any(
+            requirement.startswith(removed_requirements) for requirement in requirements
+        )
+        assert setuptools.__version__
+        assert torch.__version__
+        PY
+        touch $out
+      '';
   extra-python-packages-cuda = mkExtraPythonPackagesCheck {
     name = "extra-python-packages-cuda";
     package = packages.cuda;
