@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Updated ComfyUI to upstream `v0.32.0` (from `v0.30.2`), with the vendored
+  wheels it pins: frontend `1.48.7`, workflow templates `0.11.39`,
+  comfy-kitchen `0.2.30`, comfy-aimdo `0.4.13`. Brings LTX 2.5 and Wan-Animate2
+  support, MiniMax-H3 VAE fixes and optimizations, and comfy-kitchen attention.
 - Upgraded Linux CUDA builds from PyTorch cu128 to cu130 and switched the
   runtime toolchain and libraries from CUDA 12.8 to CUDA 13.0.
   NVIDIA driver 580 or newer is now required.
