@@ -62,6 +62,16 @@ jobs:
   # enabled. Remove the override once the flake follows this revision or newer.
   python-runtime-deps:
     runs-on: ubuntu-latest
+    # One backend per job: a single runner cannot hold three GPU torch closures.
+    strategy:
+      fail-fast: false
+      matrix:
+        check:
+          - python-runtime-deps
+          - cuda-torch-runtime-deps
+          - rocm-torch-runtime-deps
+          - xpu-torch-runtime-deps
+    name: python-runtime-deps (${{ matrix.check }})
     steps:
       - uses: actions/checkout@v4
 
@@ -100,10 +110,11 @@ jobs:
         run: |
           nixpkgs_rev="$(nix eval --raw --file nix/versions.nix ci.runtimeDepsNixpkgs.rev)"
           nixpkgs_hash="$(nix eval --raw --file nix/versions.nix ci.runtimeDepsNixpkgs.hash)"
-          nix build .#checks.x86_64-linux.python-runtime-deps \
+          nix build ".#checks.x86_64-linux.${{ matrix.check }}" \
             --override-input nixpkgs "github:NixOS/nixpkgs/$nixpkgs_rev?narHash=$nixpkgs_hash" \
             --no-write-lock-file \
-            --print-build-logs
+            --no-link \
+            --print-build-logs --max-jobs 1 --cores 2
 
   # Realize the extended runtime for every backend so PRs cannot replace the
   # backend-specific Torch/NumPy stack or ship dependencies that fail to import.

@@ -4,11 +4,12 @@
   source,
   packages,
   pythonRuntime,
-  pythonPackages,
+  pythonFor,
   vendoredPackages,
   nixosModule,
 }:
 let
+  pythonPackages = (pythonFor "none").pkgs;
   emptyExtendedPackage = packages.default.withExtraPythonPackages (_: [ ]);
   duplicateCorePackage = packages.default.withExtraPythonPackages (ps: [ ps.numpy ]);
   extendedPackage = packages.default.withExtraPythonPackages (ps: [
@@ -182,40 +183,81 @@ let
   mssRuntimeDeps =
     assert !pythonPackages.mss.doInstallCheck;
     pythonPackages.mss;
-  cudaTorchRuntimeDeps =
-    if packages ? cuda then
-      let
-        cudaTorchPython = packages.cuda.pythonRuntime.pkgs.python.withPackages (ps: [ ps.torch ]);
-      in
-      pkgs.runCommand "cuda-torch-runtime-deps" { nativeBuildInputs = [ cudaTorchPython ]; } ''
-        ${cudaTorchPython}/bin/python - <<'PY'
-        import importlib.metadata
+  # Every backend's torch comes from a pre-built wheel whose metadata names
+  # distributions nixpkgs supplies outside PyPI. Those requirements are dropped
+  # from the installed metadata (or waved through with dontCheckRuntimeDeps),
+  # so assert on the installed result instead of trusting the hook.
+  #
+  # The interpreter must come from `pythonFor <backend>`: `pythonRuntime.pkgs`
+  # is the unoverridden nixpkgs package set and yields the stock CPU torch,
+  # which would make every assertion below pass vacuously.
+  mkTorchRuntimeDeps =
+    {
+      backend,
+      removedRequirements,
+    }:
+    let
+      torchPython = (pythonFor backend).withPackages (ps: [ ps.torch ]);
+      removedTuple = pkgs.lib.concatMapStrings (r: ''"${r}", '') removedRequirements;
+    in
+    pkgs.runCommand "${backend}-torch-runtime-deps" { nativeBuildInputs = [ torchPython ]; } ''
+      ${torchPython}/bin/python - <<'PY'
+      import importlib.metadata
 
-        import setuptools
-        import torch
+      import setuptools
+      import torch
 
-        requirements = importlib.metadata.requires("torch") or []
-        removed_requirements = ("cuda-bindings", "nvidia-", "triton")
+      requirements = importlib.metadata.requires("torch") or []
+      removed_requirements = (${removedTuple})
 
-        assert not any(
-            requirement.startswith(removed_requirements) for requirement in requirements
-        )
-        assert setuptools.__version__
-        assert torch.__version__
-        PY
-        touch $out
-      ''
-    else
-      null;
+      assert not any(
+          requirement.startswith(removed_requirements) for requirement in requirements
+      )
+      assert setuptools.__version__
+      assert torch.__version__
+      assert "${expectedTorchVersions.${backend}}" in torch.__version__, torch.__version__
+      PY
+      touch $out
+    '';
+  # Guards against the check silently falling back to nixpkgs' CPU torch again.
+  expectedTorchVersions = {
+    cuda = "+cu";
+    rocm = "+rocm";
+    xpu = "+xpu";
+  };
+  torchRuntimeDepsChecks =
+    pkgs.lib.optionalAttrs (packages ? cuda) {
+      cuda-torch-runtime-deps = mkTorchRuntimeDeps {
+        backend = "cuda";
+        removedRequirements = [
+          "cuda-bindings"
+          "nvidia-"
+          "triton"
+        ];
+      };
+    }
+    // pkgs.lib.optionalAttrs (packages ? rocm) {
+      rocm-torch-runtime-deps = mkTorchRuntimeDeps {
+        backend = "rocm";
+        removedRequirements = [ "triton-rocm" ];
+      };
+    }
+    // pkgs.lib.optionalAttrs (packages ? xpu) {
+      # The XPU wheel keeps its Intel requirements; dontCheckRuntimeDeps waves
+      # them through because the pip names do not match the Nix providers.
+      xpu-torch-runtime-deps = mkTorchRuntimeDeps {
+        backend = "xpu";
+        removedRequirements = [ ];
+      };
+    };
+  # Wheel packages only. The torch checks stay out of this aggregate so a
+  # single CI job never has to realize three multi-gigabyte GPU closures.
   runtimeDepsPackages = {
     facexlib = pythonPackages.facexlib;
     gradio-client = vendoredPackages.gradioClient;
     gradio = vendoredPackages.gradio;
     manager = vendoredPackages.comfyuiManager;
     mss = mssRuntimeDeps;
-  }
-  // pkgs.lib.optionalAttrs (cudaTorchRuntimeDeps != null) {
-    cuda-torch = cudaTorchRuntimeDeps;
   };
   runtimeDepsChecks = pkgs.lib.mapAttrs' (
     name: package: pkgs.lib.nameValuePair "${name}-runtime-deps" package
@@ -228,6 +270,7 @@ in
   );
 }
 // runtimeDepsChecks
+// torchRuntimeDepsChecks
 // pkgs.lib.optionalAttrs (pkgs.stdenv.isDarwin || (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64)) {
   comfy-extras-imports =
     pkgs.runCommand "comfy-extras-imports"

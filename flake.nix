@@ -273,7 +273,10 @@
               ;
             packages = self'.packages;
             pythonRuntime = nativePackages.pythonRuntime;
-            pythonPackages = (mkPython pkgs "none").pkgs;
+            # A function, not a fixed package set: the torch checks need the
+            # interpreter for a specific backend, and `pythonRuntime.pkgs` is
+            # the *unoverridden* nixpkgs set, so it cannot be used for that.
+            pythonFor = mkPython pkgs;
             vendoredPackages = nativePackages.vendoredPackages;
             nixosModule = self.nixosModules.default;
           };
