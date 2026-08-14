@@ -140,11 +140,14 @@ lib.optionalAttrs useCuda {
     # libcuda.so.1 comes from the NVIDIA driver at runtime, not from cudaPackages
     autoPatchelfIgnoreMissingDeps = [ "libcuda.so.1" ];
 
-    # Remove nvidia-* and triton dependencies from wheel metadata
-    # These are provided by nixpkgs cudaPackages, not PyPI packages
+    # The CUDA wheel names PyPI CUDA packages that are provided by nixpkgs
+    # cudaPackages instead. The runtime dependency hook cannot recognize those
+    # system providers, so validate the rewritten installed metadata below.
+    dontCheckRuntimeDeps = true;
     postInstall = ''
       for metadata in "$out/${final.python.sitePackages}"/torch-*.dist-info/METADATA; do
         if [[ -f "$metadata" ]]; then
+          sed -i '/^Requires-Dist: cuda-bindings/d' "$metadata"
           sed -i '/^Requires-Dist: nvidia-/d' "$metadata"
           sed -i '/^Requires-Dist: triton/d' "$metadata"
         fi
@@ -158,6 +161,7 @@ lib.optionalAttrs useCuda {
       networkx
       jinja2
       fsspec
+      setuptools
     ];
     # Don't check for CUDA at import time (requires GPU)
     pythonImportsCheck = [ ];
@@ -942,6 +946,15 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# mss runs screenshot tests through a virtual X server. They are not relevant
+# to ComfyUI's runtime dependency closure and can fail in a headless Nix build
+# sandbox. Remove this override once nixpkgs' mss checks are sandbox-independent.
+// lib.optionalAttrs (prev ? mss) {
+  mss = prev.mss.overridePythonAttrs (_old: {
+    doCheck = false;
+  });
+}
+
 # Disable filterpy tests on Darwin (test_hinfinity triggers BPT trap in pytest)
 // lib.optionalAttrs (prev ? filterpy) {
   filterpy = prev.filterpy.overridePythonAttrs (old: {
@@ -994,6 +1007,14 @@ lib.optionalAttrs useCuda {
     dontBuild = true;
     dontConfigure = true;
     nativeBuildInputs = [ pkgs.gnused ];
+    # facexlib's wheel names the PyPI opencv-python distribution, while nixpkgs
+    # opencv4 provides the required cv2 module without matching distribution
+    # metadata. Remove this when facexlib accepts a system OpenCV provider.
+    pythonRemoveDeps = [ "opencv-python" ];
+    # pythonRemoveDeps normally runs in postBuild, which this prebuilt wheel
+    # skips. Remove this phase override when nixpkgs rewrites wheel metadata
+    # before its runtime dependency check.
+    preInstallPhases = [ "pythonRelaxDepsHook" ];
     propagatedBuildInputs = with final; [
       numpy
       opencv4
@@ -1002,6 +1023,7 @@ lib.optionalAttrs useCuda {
       torchvision
       filterpy
       numba
+      tqdm
     ];
 
     # Patch misc.py to respect FACEXLIB_MODELPATH environment variable

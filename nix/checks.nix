@@ -4,6 +4,8 @@
   source,
   packages,
   pythonRuntime,
+  pythonPackages,
+  vendoredPackages,
   nixosModule,
 }:
 let
@@ -177,10 +179,55 @@ let
         PY
         touch $out
       '';
+  mssRuntimeDeps =
+    assert !pythonPackages.mss.doInstallCheck;
+    pythonPackages.mss;
+  cudaTorchRuntimeDeps =
+    if packages ? cuda then
+      let
+        cudaTorchPython = packages.cuda.pythonRuntime.pkgs.python.withPackages (ps: [ ps.torch ]);
+      in
+      pkgs.runCommand "cuda-torch-runtime-deps" { nativeBuildInputs = [ cudaTorchPython ]; } ''
+        ${cudaTorchPython}/bin/python - <<'PY'
+        import importlib.metadata
+
+        import setuptools
+        import torch
+
+        requirements = importlib.metadata.requires("torch") or []
+        removed_requirements = ("cuda-bindings", "nvidia-", "triton")
+
+        assert not any(
+            requirement.startswith(removed_requirements) for requirement in requirements
+        )
+        assert setuptools.__version__
+        assert torch.__version__
+        PY
+        touch $out
+      ''
+    else
+      null;
+  runtimeDepsPackages = {
+    facexlib = pythonPackages.facexlib;
+    gradio-client = vendoredPackages.gradioClient;
+    gradio = vendoredPackages.gradio;
+    manager = vendoredPackages.comfyuiManager;
+    mss = mssRuntimeDeps;
+  }
+  // pkgs.lib.optionalAttrs (cudaTorchRuntimeDeps != null) {
+    cuda-torch = cudaTorchRuntimeDeps;
+  };
+  runtimeDepsChecks = pkgs.lib.mapAttrs' (
+    name: package: pkgs.lib.nameValuePair "${name}-runtime-deps" package
+  ) runtimeDepsPackages;
 in
 {
   package = packages.default;
+  python-runtime-deps = pkgs.linkFarm "python-runtime-deps" (
+    pkgs.lib.mapAttrsToList (name: path: { inherit name path; }) runtimeDepsPackages
+  );
 }
+// runtimeDepsChecks
 // pkgs.lib.optionalAttrs (pkgs.stdenv.isDarwin || (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64)) {
   comfy-extras-imports =
     pkgs.runCommand "comfy-extras-imports"

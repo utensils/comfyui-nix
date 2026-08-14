@@ -895,6 +895,7 @@ let
 in
 {
   default = comfyUiPackage;
+  vendoredPackages = vendored;
   inherit
     dockerImage
     dockerImageCuda
