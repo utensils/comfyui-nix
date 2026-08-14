@@ -300,6 +300,14 @@ lib.optionalAttrs useCuda {
     };
     dontBuild = true;
     dontConfigure = true;
+    # The 2.5.1 wheel pins sympy==1.13.1, which nixpkgs no longer ships. The
+    # combination has always been what this flake builds and runs, so relax the
+    # bound rather than pin sympy back. Drop this when the wheel is bumped.
+    pythonRelaxDeps = [ "sympy" ];
+    # pythonRelaxDeps normally runs in postBuild, which this prebuilt wheel
+    # skips via dontBuild. Remove this phase override when nixpkgs rewrites
+    # wheel metadata before its runtime dependency check.
+    preInstallPhases = [ "pythonRelaxDepsHook" ];
     propagatedBuildInputs = with final; [
       filelock
       typing-extensions
@@ -307,6 +315,7 @@ lib.optionalAttrs useCuda {
       networkx
       jinja2
       fsspec
+      setuptools
     ];
     pythonImportsCheck = [ "torch" ];
     doCheck = false;
@@ -391,6 +400,11 @@ lib.optionalAttrs useCuda {
     ];
     buildInputs = wheelBuildInputs ++ rocmLibs;
 
+    # The ROCm wheel names triton-rocm, which is provided by the bundled ROCm
+    # runtime rather than a PyPI package. The runtime dependency hook cannot
+    # recognize that provider, so validate the rewritten installed metadata in
+    # the rocm-torch-runtime-deps check instead.
+    dontCheckRuntimeDeps = true;
     # These are provided by nixpkgs rocmPackages, not PyPI packages
     postInstall = ''
       for metadata in "$out/${final.python.sitePackages}"/torch-*.dist-info/METADATA; do
@@ -407,6 +421,7 @@ lib.optionalAttrs useCuda {
       networkx
       jinja2
       fsspec
+      setuptools
     ];
     # Don't check for ROCm at import time (requires GPU)
     pythonImportsCheck = [ ];
@@ -675,6 +690,7 @@ lib.optionalAttrs useCuda {
           networkx
           jinja2
           fsspec
+          setuptools
         ])
         ++ [ tritonXpu ];
       propagatedNativeBuildInputs = [ intelOneapiRuntime ];
