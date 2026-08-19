@@ -117,7 +117,7 @@ The launcher does significant work beyond just starting ComfyUI:
 **Environment variables set by launcher** (important for debugging):
 
 - `COMFYUI_BASE_DIR`, `COMFYUI_MODEL_PATH` — prevent custom nodes from writing to Nix store
-- `TORCH_HOME`, `HF_HOME`, `FACEXLIB_MODELPATH` — redirect cache/model downloads into data dir
+- `TORCH_HOME`, `HF_HOME`, `FACEXLIB_MODELPATH`, `TORCHINDUCTOR_CACHE_DIR` — redirect cache/model downloads into data dir (`TORCHINDUCTOR_CACHE_DIR` also avoids torch's `getpass.getuser()` fallback, which crashes in containers with no passwd entry)
 - `VIRTUAL_ENV`, `PIP_TARGET` — for Manager package installs into `.venv`
 - `COMFY_VENV_PRECEDENCE` — set to `prefer-venv` to let venv packages override Nix packages (default: Nix takes precedence)
 - `LD_LIBRARY_PATH` (Linux) / `DYLD_LIBRARY_PATH` (macOS) — set automatically for system libraries
