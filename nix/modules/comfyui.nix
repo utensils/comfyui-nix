@@ -40,7 +40,10 @@ let
   ]
   ++ lib.optional cfg.enableManager "--enable-manager"
   ++ cfg.extraArgs;
-  env = cfg.environment;
+  # The launcher reads COMFY_SKIP_BUNDLED_NODES; cfg.environment still wins so a
+  # user can override it explicitly.
+  env =
+    lib.optionalAttrs (!cfg.bundledCustomNodes) { COMFY_SKIP_BUNDLED_NODES = "1"; } // cfg.environment;
   escapedArgs = lib.concatStringsSep " " (map lib.escapeShellArg args);
   execStart = "${effectivePackage}/bin/comfy-ui ${escapedArgs}";
 
@@ -319,6 +322,29 @@ in
           # Or reference a pre-packaged node (future)
           # controlnet-aux = comfyui-nix.customNodes.controlnet-aux;
         }
+      '';
+    };
+
+    bundledCustomNodes = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Whether to symlink the third-party custom nodes bundled with this
+        package (Impact Pack, KJNodes, GGUF, rgthree, PuLID, and friends) into
+        custom_nodes/ at service start. The project's own model_downloader node
+        is linked either way, since it provides API routes nothing else serves.
+
+        Set to false to leave custom_nodes/ entirely under your own control,
+        managed through ComfyUI-Manager, direct git clones, or the
+        services.comfyui.customNodes option. With this enabled the launcher
+        deletes any real directory whose name collides with a bundled node,
+        which destroys a checkout you installed by other means, and its
+        symlinks overwrite a services.comfyui.customNodes entry declared under
+        one of those names.
+
+        Disabling this removes the symlinks pointing at this build's bundled
+        nodes. Directories you own, and customNodes entries you declared, are
+        left alone.
       '';
     };
 

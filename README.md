@@ -202,6 +202,15 @@ Some custom nodes have hardcoded paths that don't exist on NixOS. We automatical
 
 The following custom nodes are bundled and automatically linked on first run:
 
+To manage `custom_nodes/` yourself instead — through ComfyUI-Manager, git
+clones, or `services.comfyui.customNodes` — set `COMFY_SKIP_BUNDLED_NODES=1`
+(`services.comfyui.bundledCustomNodes = false` on NixOS). The third-party nodes
+below are then left unlinked, and links from a previous run are removed.
+Model Downloader stays linked either way: it is this project's own node and
+provides the API endpoints below. Note that with the bundled set enabled the
+launcher deletes any real directory in `custom_nodes/` whose name matches one
+of these nodes.
+
 ### Model Downloader
 
 A non-blocking async download node with WebSocket progress updates. Download models directly within ComfyUI without blocking the UI.
@@ -447,6 +456,7 @@ nix profile add github:utensils/comfyui-nix#xpu
 | `environment`   | `{}`                 | Environment variables for the service            |
 | `extraPythonPackages` | `null`          | Extra declarative Python dependencies             |
 | `customNodes`   | `{}`                 | Declarative custom nodes (see below)             |
+| `bundledCustomNodes` | `true`          | Link the bundled custom nodes into `custom_nodes/` |
 | `requiresMounts`| `[]`                 | Mount units to wait for before starting          |
 
 `cudaCapabilities` maps to `nixpkgs.config.cudaCapabilities`, so setting it will
@@ -480,11 +490,11 @@ services.comfyui = {
   enable = true;
   customNodes = {
     # Fetch from GitHub (pinned version)
-    ComfyUI-Impact-Pack = pkgs.fetchFromGitHub {
-      owner = "ltdrdata";
-      repo = "ComfyUI-Impact-Pack";
+    comfyui_controlnet_aux = pkgs.fetchFromGitHub {
+      owner = "Fannovel16";
+      repo = "comfyui_controlnet_aux";
       rev = "v1.0.0";
-      hash = "sha256-...";  # nix-prefetch-github ltdrdata ComfyUI-Impact-Pack --rev v1.0.0
+      hash = "sha256-...";  # nix-prefetch-github Fannovel16 comfyui_controlnet_aux --rev v1.0.0
     };
     # Local path (for development)
     my-node = /path/to/node;
@@ -493,6 +503,12 @@ services.comfyui = {
 ```
 
 Nodes are symlinked at service start. This is the pure Nix approach - fully reproducible and version-pinned.
+
+Pick names that do not collide with the [bundled nodes](#bundled-custom-nodes).
+The launcher relinks those on every start, so an entry named after one of them
+(`ComfyUI-Impact-Pack`, `ComfyUI-KJNodes`, ...) is overwritten before ComfyUI
+reads it. To override a bundled node with your own pin, also set
+`bundledCustomNodes = false`.
 
 Custom nodes with additional Python dependencies can extend the selected
 CPU/CUDA/ROCm/XPU runtime declaratively:
