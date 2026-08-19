@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `services.comfyui.bundledCustomNodes` (and the `COMFY_SKIP_BUNDLED_NODES=1`
+  environment variable it sets) to leave `custom_nodes/` under your own
+  management. With the bundled set enabled the launcher deletes any real
+  directory sharing a bundled node's name, which destroyed checkouts installed
+  through ComfyUI-Manager or git. The project's own `model_downloader` node is
+  still linked when opted out, since nothing else provides its API routes.
+  ([#92](https://github.com/utensils/comfyui-nix/issues/92))
+
 ### Fixed
 - ComfyUI no longer crashes at startup in containers with
   `KeyError: 'getpwuid(): uid not found: 0'`. The launcher now sets

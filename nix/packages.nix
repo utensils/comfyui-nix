@@ -509,43 +509,114 @@ let
               fi
             fi
 
-            # Link our bundled custom nodes
-            # Remove stale directories if they exist but aren't symlinks
-            for node_dir in "model_downloader" "ComfyUI-Impact-Pack" "rgthree-comfy" "ComfyUI-KJNodes" "ComfyUI-GGUF" "ComfyUI-LTXVideo" "ComfyUI-Florence2" "ComfyUI_bitsandbytes_NF4" "x-flux-comfyui" "ComfyUI-MMAudio" "PuLID_ComfyUI" "ComfyUI-WanVideoWrapper"; do
-              if [[ -e "$BASE_DIR/custom_nodes/$node_dir" && ! -L "$BASE_DIR/custom_nodes/$node_dir" ]]; then
-                rm -rf "$BASE_DIR/custom_nodes/$node_dir"
-              fi
-            done
-
-            # On macOS, remove Linux-only nodes if they were linked previously
-            # Note: PuLID now works on macOS via CoreML (insightface override removes mxnet dependency)
-            if [[ "$(uname)" == "Darwin" ]]; then
-              rm -f "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" 2>/dev/null || true
+            # model_downloader is this project's own node, not a third-party
+            # bundle: it registers the /model-downloader API routes and its web
+            # extension, and nothing else provides them. It stays linked even
+            # when the third-party bundle is opted out, so opting out never
+            # silently removes part of this package's own API surface.
+            if [[ -e "$BASE_DIR/custom_nodes/model_downloader" && ! -L "$BASE_DIR/custom_nodes/model_downloader" ]]; then
+              rm -rf "$BASE_DIR/custom_nodes/model_downloader"
             fi
+            ln -sfn "${modelDownloaderDir}" "$BASE_DIR/custom_nodes/model_downloader"
+
+            # The third-party custom nodes this package bundles, as
+            # name=store-path pairs. The paths let the opt-out path below
+            # recognise its own symlinks instead of every link that happens to
+            # point into the store.
+            BUNDLED_NODES=(
+              "ComfyUI-Impact-Pack=${customNodes.impact-pack}"
+              "rgthree-comfy=${customNodes.rgthree-comfy}"
+              "ComfyUI-KJNodes=${customNodes.kjnodes}"
+              "ComfyUI-GGUF=${customNodes.gguf}"
+              "ComfyUI-LTXVideo=${customNodes.ltxvideo}"
+              "ComfyUI-Florence2=${customNodes.florence2}"
+              "ComfyUI_bitsandbytes_NF4=${customNodes.bitsandbytes-nf4}"
+              "x-flux-comfyui=${customNodes.x-flux}"
+              "ComfyUI-MMAudio=${customNodes.mmaudio}"
+              "PuLID_ComfyUI=${customNodes.pulid}"
+              "ComfyUI-WanVideoWrapper=${customNodes.wanvideo}"
+            )
 
             # Clean up stale read-only web extension directories (from Nix store)
             if [[ -d "$BASE_DIR/web/extensions" ]]; then
               find "$BASE_DIR/web/extensions" -maxdepth 1 -type d ! -writable -exec rm -rf {} \; 2>/dev/null || true
             fi
 
-            # Link bundled nodes (always update symlinks to pick up new Nix store paths)
-            ln -sfn "${modelDownloaderDir}" "$BASE_DIR/custom_nodes/model_downloader"
-            ln -sfn "${customNodes.impact-pack}" "$BASE_DIR/custom_nodes/ComfyUI-Impact-Pack"
-            ln -sfn "${customNodes.rgthree-comfy}" "$BASE_DIR/custom_nodes/rgthree-comfy"
-            ln -sfn "${customNodes.kjnodes}" "$BASE_DIR/custom_nodes/ComfyUI-KJNodes"
-            ln -sfn "${customNodes.gguf}" "$BASE_DIR/custom_nodes/ComfyUI-GGUF"
-            ln -sfn "${customNodes.ltxvideo}" "$BASE_DIR/custom_nodes/ComfyUI-LTXVideo"
-            ln -sfn "${customNodes.florence2}" "$BASE_DIR/custom_nodes/ComfyUI-Florence2"
-            # bitsandbytes requires CUDA (Linux-only)
-            if [[ "$(uname)" != "Darwin" ]]; then
-              ln -sfn "${customNodes.bitsandbytes-nf4}" "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4"
+            # Records the links the last managed start actually created, so the
+            # opt-out path can still recognise them after a version bump has
+            # moved every bundled node to a new store path.
+            BUNDLED_STATE="$BASE_DIR/custom_nodes/.comfy-bundled"
+
+            if [[ "''${COMFY_SKIP_BUNDLED_NODES:-0}" == "1" ]]; then
+              # Opt-out: leave custom_nodes to ComfyUI-Manager, manual git clones, or
+              # the NixOS module's `customNodes` option. Remove only links whose
+              # target we recognise as one of our own, either from this build or
+              # from the state file. Matching the exact path rather than
+              # /nix/store/* matters: the module's customNodes symlinks also point
+              # into the store, and a loose match would delete a node the user
+              # declared under a bundled name. A node declared at the exact
+              # derivation we bundle is indistinguishable from our own link and
+              # does get removed.
+              # See: https://github.com/utensils/comfyui-nix/issues/92
+              known_links=("''${BUNDLED_NODES[@]}")
+              if [[ -f "$BUNDLED_STATE" ]]; then
+                while IFS= read -r recorded; do
+                  [[ -n "$recorded" ]] && known_links+=("$recorded")
+                done < "$BUNDLED_STATE"
+              fi
+              for entry in "''${known_links[@]}"; do
+                node_path="$BASE_DIR/custom_nodes/''${entry%%=*}"
+                if [[ -L "$node_path" && "$(readlink "$node_path")" == "''${entry#*=}" ]]; then
+                  rm -f "$node_path"
+                fi
+              done
+              rm -f "$BUNDLED_STATE"
+              echo "COMFY_SKIP_BUNDLED_NODES=1: not managing bundled custom nodes"
+            else
+              # Link our bundled custom nodes
+              # Remove stale directories if they exist but aren't symlinks
+              for entry in "''${BUNDLED_NODES[@]}"; do
+                node_dir="''${entry%%=*}"
+                if [[ -e "$BASE_DIR/custom_nodes/$node_dir" && ! -L "$BASE_DIR/custom_nodes/$node_dir" ]]; then
+                  rm -rf "$BASE_DIR/custom_nodes/$node_dir"
+                fi
+              done
+
+              # On macOS, remove Linux-only nodes if they were linked previously
+              # Note: PuLID now works on macOS via CoreML (insightface override removes mxnet dependency)
+              if [[ "$(uname)" == "Darwin" ]]; then
+                rm -f "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4" 2>/dev/null || true
+              fi
+
+              # Link bundled nodes (always update symlinks to pick up new Nix store paths)
+              ln -sfn "${customNodes.impact-pack}" "$BASE_DIR/custom_nodes/ComfyUI-Impact-Pack"
+              ln -sfn "${customNodes.rgthree-comfy}" "$BASE_DIR/custom_nodes/rgthree-comfy"
+              ln -sfn "${customNodes.kjnodes}" "$BASE_DIR/custom_nodes/ComfyUI-KJNodes"
+              ln -sfn "${customNodes.gguf}" "$BASE_DIR/custom_nodes/ComfyUI-GGUF"
+              ln -sfn "${customNodes.ltxvideo}" "$BASE_DIR/custom_nodes/ComfyUI-LTXVideo"
+              ln -sfn "${customNodes.florence2}" "$BASE_DIR/custom_nodes/ComfyUI-Florence2"
+              # bitsandbytes requires CUDA (Linux-only)
+              if [[ "$(uname)" != "Darwin" ]]; then
+                ln -sfn "${customNodes.bitsandbytes-nf4}" "$BASE_DIR/custom_nodes/ComfyUI_bitsandbytes_NF4"
+              fi
+              ln -sfn "${customNodes.x-flux}" "$BASE_DIR/custom_nodes/x-flux-comfyui"
+              ln -sfn "${customNodes.mmaudio}" "$BASE_DIR/custom_nodes/ComfyUI-MMAudio"
+              # PuLID - face ID for consistent face generation
+              # Works on all platforms: Linux uses CUDA, macOS uses CoreML via onnxruntime
+              ln -sfn "${customNodes.pulid}" "$BASE_DIR/custom_nodes/PuLID_ComfyUI"
+              ln -sfn "${customNodes.wanvideo}" "$BASE_DIR/custom_nodes/ComfyUI-WanVideoWrapper"
+
+              # Record what we actually linked, so a later opt-out can find these
+              # links again even once a version bump has changed every path.
+              : > "$BUNDLED_STATE"
+              for entry in "''${BUNDLED_NODES[@]}"; do
+                node_dir="''${entry%%=*}"
+                node_path="$BASE_DIR/custom_nodes/$node_dir"
+                if [[ -L "$node_path" ]]; then
+                  printf '%s=%s\n' "$node_dir" "$(readlink "$node_path")" >> "$BUNDLED_STATE"
+                fi
+              done
             fi
-            ln -sfn "${customNodes.x-flux}" "$BASE_DIR/custom_nodes/x-flux-comfyui"
-            ln -sfn "${customNodes.mmaudio}" "$BASE_DIR/custom_nodes/ComfyUI-MMAudio"
-            # PuLID - face ID for consistent face generation
-            # Works on all platforms: Linux uses CUDA, macOS uses CoreML via onnxruntime
-            ln -sfn "${customNodes.pulid}" "$BASE_DIR/custom_nodes/PuLID_ComfyUI"
-            ln -sfn "${customNodes.wanvideo}" "$BASE_DIR/custom_nodes/ComfyUI-WanVideoWrapper"
 
             # Create default ComfyUI-Manager config if it doesn't exist
             # Note: Manager moved config from user/default/ComfyUI-Manager to user/__manager
@@ -664,7 +735,6 @@ let
             # passwd entry for the running uid. Setting it here also keeps the
             # JIT cache out of /tmp so it survives restarts.
             # See: https://github.com/utensils/comfyui-nix/issues/41
-            #
             # Unlike the caches above this one honours a caller-supplied value,
             # so a path we cannot create must not abort startup under set -e:
             # torch's own cache_dir() calls makedirs and reports it better.
