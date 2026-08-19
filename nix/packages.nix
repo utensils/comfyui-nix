@@ -74,7 +74,8 @@ let
       (lib.getDev cuda_cudart) # cuda_runtime.h, driver_types.h, ...
       (lib.getLib cuda_cudart)
       (lib.getOutput "include" cuda_nvrtc) # nvrtc.h
-      (lib.getDev cuda_cccl) # cuda/std/*, thrust, cub
+      # The pinned nixpkgs still uses cuda_cccl; newer overrides expose cccl.
+      (lib.getDev (cudaPackages.cccl or cudaPackages.cuda_cccl)) # cuda/std/*, thrust, cub
       cuda_nvcc # bin/nvcc, nvvm/
     ];
   };
