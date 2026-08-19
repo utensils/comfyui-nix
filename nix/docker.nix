@@ -19,6 +19,12 @@
       useCpu = gpuSupport == "none";
       baseEnv = [
         "HOME=/root"
+        # Python's getpass.getuser() reads these before consulting the passwd
+        # database. fakeNss below covers callers that go to pwd.getpwuid()
+        # directly; between them uid 0 resolves to a name either way.
+        # See: https://github.com/utensils/comfyui-nix/issues/41
+        "USER=root"
+        "LOGNAME=root"
         "COMFY_USER_DIR=/data"
         "TMPDIR=/tmp"
         "PATH=/bin:/usr/bin"
@@ -68,6 +74,9 @@
       copyToRoot = pkgs.buildEnv {
         name = "comfy-ui-root";
         paths = [
+          # /etc/passwd + /etc/group for uid 0. Without them anything reaching
+          # pwd.getpwuid() raises "uid not found" inside the container.
+          pkgs.dockerTools.fakeNss
           pkgs.bash
           pkgs.coreutils
           pkgs.netcat

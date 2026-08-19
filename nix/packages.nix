@@ -657,6 +657,20 @@ let
             export FACEXLIB_MODELPATH="$BASE_DIR/.cache/facexlib"
             mkdir -p "$FACEXLIB_MODELPATH/facexlib/weights"
 
+            # Redirect TorchInductor/Triton compile caches to the data directory.
+            # torch._dynamo resolves this at import time; when unset it falls back
+            # to /tmp/torchinductor_$(getpass.getuser()), which raises
+            # "KeyError: getpwuid(): uid not found" in containers that have no
+            # passwd entry for the running uid. Setting it here also keeps the
+            # JIT cache out of /tmp so it survives restarts.
+            # See: https://github.com/utensils/comfyui-nix/issues/41
+            #
+            # Unlike the caches above this one honours a caller-supplied value,
+            # so a path we cannot create must not abort startup under set -e:
+            # torch's own cache_dir() calls makedirs and reports it better.
+            export TORCHINDUCTOR_CACHE_DIR="''${TORCHINDUCTOR_CACHE_DIR:-$BASE_DIR/.cache/torchinductor}"
+            mkdir -p "$TORCHINDUCTOR_CACHE_DIR" || true
+
       ${lib.optionalString useCuda ''
         # =====================================================================
         # Runtime CUDA kernel compilation (NVRTC)

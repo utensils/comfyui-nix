@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- ComfyUI no longer crashes at startup in containers with
+  `KeyError: 'getpwuid(): uid not found: 0'`. The launcher now sets
+  `TORCHINDUCTOR_CACHE_DIR`, which stops torch from deriving a cache path from
+  `getpass.getuser()`, and the Docker images gained `fakeNss` plus `USER`/
+  `LOGNAME` so uid 0 resolves to a name.
+  ([#41](https://github.com/utensils/comfyui-nix/issues/41))
+
 ### Changed
 - Updated ComfyUI to upstream `v0.32.0` (from `v0.30.2`), with the vendored
   wheels it pins: frontend `1.48.7`, workflow templates `0.11.39`,
