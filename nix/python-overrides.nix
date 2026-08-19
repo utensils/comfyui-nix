@@ -971,6 +971,19 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# torchsde's test suite costs ~3.5 minutes of every build of this flake, and it
+# is statistical rather than functional: test_normality_conditional asserts a
+# Kolmogorov-Smirnov p-value stays above 1e-5, so a borderline draw lands under
+# it and fails the whole nixos-rebuild for an unrelated reason. Dropping the
+# suite rather than just that test buys back the build time; pythonImportsCheck
+# still runs, and ComfyUI only uses torchsde's samplers.
+# See: https://github.com/utensils/comfyui-nix/issues/91
+// lib.optionalAttrs (prev ? torchsde) {
+  torchsde = prev.torchsde.overridePythonAttrs (_old: {
+    doCheck = false;
+  });
+}
+
 # Disable filterpy tests on Darwin (test_hinfinity triggers BPT trap in pytest)
 // lib.optionalAttrs (prev ? filterpy) {
   filterpy = prev.filterpy.overridePythonAttrs (old: {

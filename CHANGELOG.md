@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `getpass.getuser()`, and the Docker images gained `fakeNss` plus `USER`/
   `LOGNAME` so uid 0 resolves to a name.
   ([#41](https://github.com/utensils/comfyui-nix/issues/41))
+- `nixos-rebuild` no longer fails on torchsde's statistical
+  `test_normality_conditional`, which asserts a p-value above a threshold that
+  borderline draws fall under. Its test suite is disabled, also removing about
+  3.5 minutes from every build.
+  ([#91](https://github.com/utensils/comfyui-nix/issues/91))
 
 ### Changed
 - Updated ComfyUI to upstream `v0.32.0` (from `v0.30.2`), with the vendored
