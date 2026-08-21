@@ -62,6 +62,8 @@ jobs:
   # enabled. Remove the override once the flake follows this revision or newer.
   python-runtime-deps:
     runs-on: ubuntu-latest
+    env:
+      CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
     # One backend per job: a single runner cannot hold three GPU torch closures.
     strategy:
       fail-fast: false
@@ -91,10 +93,14 @@ jobs:
             experimental-features = nix-command flakes
             accept-flake-config = true
 
+      # Push realized store paths so subsequent runs (and this job across
+      # nixpkgs pin bumps) substitute instead of recompiling the whole
+      # unfree CUDA/ROCm/XPU stack from scratch. Fork PRs get no secret, so
+      # cachix-action falls back to read-only on an empty authToken.
       - uses: cachix/cachix-action@v14
         with:
           name: comfyui
-          pushFilter: "-"
+          authToken: ${{ env.CACHIX_AUTH_TOKEN }}
 
       - uses: cachix/cachix-action@v14
         with:
@@ -150,13 +156,12 @@ jobs:
             accept-flake-config = true
 
       # Push the backend Torch closures so the `check` job below substitutes them
-      # instead of recompiling. Same conditional-pushFilter pattern as the `build`
-      # job: fork PRs get no secret, so they fall back to read-only.
+      # instead of recompiling. Fork PRs get no secret, so cachix-action falls
+      # back to read-only on an empty authToken.
       - uses: cachix/cachix-action@v14
         with:
           name: comfyui
           authToken: ${{ env.CACHIX_AUTH_TOKEN }}
-          pushFilter: ${{ env.CACHIX_AUTH_TOKEN && '' || '-' }}
 
       - uses: cachix/cachix-action@v14
         with:
@@ -306,7 +311,6 @@ jobs:
         with:
           name: comfyui
           authToken: ${{ env.CACHIX_AUTH_TOKEN }}
-          pushFilter: ${{ env.CACHIX_AUTH_TOKEN && '' || '-' }}
 
       # Pull from nix-community cache (has CUDA packages)
       - name: Configure Cachix (nix-community)
