@@ -1,0 +1,77 @@
+name: Release tag
+
+# Tags main automatically whenever the pinned ComfyUI version changes.
+#
+# Tags pushed with the default GITHUB_TOKEN do not trigger other workflows,
+# so after creating the tag this job dispatches the CI (Docker images) and
+# FlakeHub workflows explicitly against the tag ref.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - nix/versions.nix
+  workflow_dispatch:
+
+concurrency:
+  group: release-tag
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read ComfyUI version
+        id: version
+        run: |
+          version=$(grep -m1 'version = ' nix/versions.nix | sed 's/.*"\(.*\)".*/\1/')
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Could not parse a semver version from nix/versions.nix (got '$version')" >&2
+            exit 1
+          fi
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag if missing
+        id: create
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+            echo "$TAG already exists, nothing to do"
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "ComfyUI $TAG"
+          git push origin "refs/tags/$TAG"
+          echo "created=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        if: steps.create.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release create "$TAG" \
+            --title "ComfyUI ${TAG#v}" \
+            --generate-notes \
+            --verify-tag
+
+      - name: Dispatch tag builds
+        if: steps.create.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh workflow run build.yml --ref "refs/tags/$TAG"
+          gh workflow run flakehub-publish-tagged.yml --ref "refs/tags/$TAG" -f "tag=$TAG"
