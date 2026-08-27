@@ -30,13 +30,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#91](https://github.com/utensils/comfyui-nix/issues/91))
 
 ### Changed
-- Updated ComfyUI to upstream `v0.32.0` (from `v0.30.2`), with the vendored
-  wheels it pins: frontend `1.48.7`, workflow templates `0.11.39`,
-  comfy-kitchen `0.2.30`, comfy-aimdo `0.4.13`. Brings LTX 2.5 and Wan-Animate2
-  support, MiniMax-H3 VAE fixes and optimizations, and comfy-kitchen attention.
+- Updated ComfyUI to upstream `v0.34.0` (from `v0.30.2`). Updated its pinned
+  dependencies: frontend `1.47.12` -> `1.49.6`, workflow templates `0.11.31`
+  -> `0.11.48` (core `0.3.295` -> `0.3.322`, JSON `0.1.30` -> `0.1.57`,
+  media assets `0.1.19` -> `0.1.35`), embedded docs `0.5.9` -> `0.5.10`,
+  comfy-kitchen `0.2.26` -> `0.2.31`, and comfy-aimdo `0.4.11` -> `0.4.15`.
+- Updated PyAV `16.0.1` -> `17.0.0`, using its CPython stable-ABI wheels on
+  Linux and macOS, to satisfy ComfyUI's new `av>=17.0.0` requirement.
+- Regenerated template input files from the current upstream manifest (673
+  files, 34 added since `v0.30.2`).
 - Upgraded Linux CUDA builds from PyTorch cu128 to cu130 and switched the
   runtime toolchain and libraries from CUDA 12.8 to CUDA 13.0.
   NVIDIA driver 580 or newer is now required.
+
+### Upstream Highlights (v0.31.0 - v0.34.0)
+- Added native support for LTX 2.5, Wan-Animate2, MiniMax Music 3, TRELLIS2,
+  Pixal3D, SAM3D Body, and taeh3.
+- Added HDR video output, AV1 encoding, MKV/WebM containers, H.264 color-space
+  selection, and per-token MiniMax-H3 video/audio latent noise masks.
+- Added or expanded partner nodes for Wan 3.0, Fish Audio, Seedance 2.5,
+  Seedream, Flux Video Upscale, Meshy 7, Gemini 3.7 Flash, and PixVerse V6.
+- Improved Gemma4 text generation, MiniMax-H3 conditioning, DynamicVRAM error
+  reporting, and enabled DynamicVRAM by default on ROCm 7.14 and newer.
+- Fixed temporary and external asset preview handling, custom user database
+  paths, nested-latent sampling without added noise, and several model-specific
+  decoding and text-generation regressions.
 
 ### Removed
 - CUDA support for Pascal and Volta GPUs, the pre-Turing architectures supported
