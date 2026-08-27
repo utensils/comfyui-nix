@@ -149,7 +149,7 @@ let
     aiohttp>=3.11.8
     yarl>=1.18.0
     SQLAlchemy>=2.0.0
-    av>=16.0.0
+    av>=17.0.0
     simpleeval>=1.0.0
     # Prevent ComfyUI-Manager from trying to "restore" vendored packages
     # Use exact pinning to ensure reproducibility
