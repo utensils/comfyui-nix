@@ -363,12 +363,26 @@ let
         # Linux: Set LD_LIBRARY_PATH for dynamic libraries
         # Order matters: system driver libs (/run/opengl-driver/lib on NixOS) take
         # precedence over Nix-bundled libs so userland ICDs stay in sync with the
-        # kernel DRM driver. This covers NVIDIA (CUDA), AMD (ROCm), and Intel (XPU).
-        export LD_LIBRARY_PATH="${libPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        # kernel DRM driver. This covers NVIDIA (CUDA), and Intel (XPU).
+        ${
+          if useRocm then
+            ''
+              # However this ordering breaks on AMD, due to older libraries in /run/opengl-driver/lib
+              # so torch's bundled libs must come first.
+              export LD_LIBRARY_PATH="${python.pkgs.torch}/${python.sitePackages}/torch/lib:${libPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
-        if [[ -d "/run/opengl-driver/lib" ]]; then
-          export LD_LIBRARY_PATH="/run/opengl-driver/lib:$LD_LIBRARY_PATH"
-        fi
+              if [[ -d "/run/opengl-driver/lib" ]]; then
+                export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/run/opengl-driver/lib"
+              fi
+            ''
+          else
+            ''
+              export LD_LIBRARY_PATH="${libPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+              if [[ -d "/run/opengl-driver/lib" ]]; then
+                export LD_LIBRARY_PATH="/run/opengl-driver/lib:$LD_LIBRARY_PATH"
+              fi
+            ''
+        }
 
         # Triton checks $CC before searching PATH. Pin it to the wrapped compiler
         # so the toolchain used at runtime is the one this build was made with,
