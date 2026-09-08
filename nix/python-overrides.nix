@@ -931,6 +931,18 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# inline-snapshot 0.34.2 fails three of its own documentation tests on the
+# pinned nixpkgs (they assert formatter output that has since changed) and is
+# not in the binary cache, so it gets built from source. It reaches us only as
+# a test helper in fastapi's checkInputs, where its own doc tests say nothing
+# about whether it works. Without this, fastapi and everything downstream of it
+# (openai, gradio) cannot build.
+// lib.optionalAttrs (prev ? inline-snapshot) {
+  inline-snapshot = prev.inline-snapshot.overridePythonAttrs (_old: {
+    doCheck = false;
+  });
+}
+
 # Disable accelerate test that fails with torch 2.10.0 inductor in Nix sandbox
 // lib.optionalAttrs ((useCuda || useRocm || useXpu) && (prev ? accelerate)) {
   accelerate = prev.accelerate.overridePythonAttrs (old: {

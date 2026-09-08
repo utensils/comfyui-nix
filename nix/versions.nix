@@ -1,7 +1,7 @@
 {
   ci.runtimeDepsNixpkgs = {
-    rev = "65179426c83bb3f6bc14898b42ea1c6f01d374b0";
-    hash = "sha256-xnJJk+ct+D2+wdRxj1wk36w5zV9RVESwRqcklPdt3fM=";
+    rev = "dc5d91f840324650bac8c379428c7037a416959a";
+    hash = "sha256-VaWGJ6+cIYN2erfSecbRV+4ljI185Ty2wUrXyvQbgOw=";
   };
 
   comfyui = {
@@ -110,18 +110,18 @@
     # Replaces glfw as of ComfyUI v0.28. Platform-specific wheels containing
     # native libEGL/libGLESv2 (no wheel exists for x86_64-darwin).
     comfyAngle = {
-      version = "0.1.0";
+      version = "0.1.1";
       linuxX86_64 = {
-        url = "https://files.pythonhosted.org/packages/94/79/09033953c3f2ef3d31e7cd626e01db9cdd2760a50bb22b83fa6aef32561e/comfy_angle-0.1.0-py3-none-manylinux_2_28_x86_64.whl";
-        hash = "sha256-L00X6YQ1PTfSR/r0c6+6vbmGP8OvPgIG+7fYK9wjrGc=";
+        url = "https://files.pythonhosted.org/packages/af/f4/5ddd0416e9619233b20e2a34c47d2359d4ac6b17a17f8bf59e0bfe5b93c3/comfy_angle-0.1.1-py3-none-manylinux_2_28_x86_64.whl";
+        hash = "sha256-PS/KuThuu7VlPWZpb6i8rTKcHRhS6kth8obqmUhahAo=";
       };
       linuxAarch64 = {
-        url = "https://files.pythonhosted.org/packages/65/1d/87298bb1935268c63bc27d24487b5e40f58e74da3138e122123ce6b052cb/comfy_angle-0.1.0-py3-none-manylinux_2_28_aarch64.whl";
-        hash = "sha256-KJVqfXjbrjtB+DiIpeCIQ6x0e3Zj+WdMKWFCdNPxfBU=";
+        url = "https://files.pythonhosted.org/packages/48/be/a4df53ed0cd450b3f892b4f746a048b3b2bd9b1eb97816538ea69c06abd1/comfy_angle-0.1.1-py3-none-manylinux_2_28_aarch64.whl";
+        hash = "sha256-ZrfIkJ+YMnk1cDfvD2mU+n4wOkHYp3oKB1pjek6z/m4=";
       };
       darwinArm64 = {
-        url = "https://files.pythonhosted.org/packages/d4/eb/f98f8aefcad8ec1a5ea55d8e83d2762a721bbc3fa625e54430776cf29a00/comfy_angle-0.1.0-py3-none-macosx_11_0_arm64.whl";
-        hash = "sha256-o60v5vHwos6m8z7G6xs0OS4OMOsyOkPgbYztjC9QwPQ=";
+        url = "https://files.pythonhosted.org/packages/9f/0d/44c35dbe55cacd4b7683d83ab00aacc2c136268e2545a425a8af4c2c8b0e/comfy_angle-0.1.1-py3-none-macosx_11_0_arm64.whl";
+        hash = "sha256-wK8X4XBwz3r129ZsUaG2zKKCDIYR5IfnvTmABqFEcSQ=";
       };
     };
 
@@ -141,18 +141,10 @@
       };
     };
 
-    # UI deps some custom nodes expect
-    gradioClient = {
-      version = "1.13.3";
-      url = "https://files.pythonhosted.org/packages/6e/0b/337b74504681b5dde39f20d803bb09757f9973ecdc65fd4e819d4b11faf7/gradio_client-1.13.3-py3-none-any.whl";
-      hash = "sha256-P2Pk0zoomcGhKxD+PPd7gqaRn/Gh+2OR9qoiWBGqOQw=";
-    };
-
-    gradio = {
-      version = "5.49.1";
-      url = "https://files.pythonhosted.org/packages/8d/95/1c25fbcabfa201ab79b016c8716a4ac0f846121d4bbfd2136ffb6d87f31e/gradio-5.49.1-py3-none-any.whl";
-      hash = "sha256-Gxk2k4eAGiamun/S901GxbDirJ3e8U8k3cDRH7GUIbc=";
-    };
+    # gradio / gradio-client are NOT vendored: nixpkgs ships a self-consistent
+    # gradio 6 + gradio-client pair that hf-gradio (a new gradio 6 dependency)
+    # also resolves against. Vendoring either one puts two gradio-client
+    # versions in the same closure and the build fails on duplicate packages.
 
     # Optional attention optimization (used by --use-sage-attention)
     sageattention = {
@@ -403,19 +395,19 @@
     };
 
     rgthree-comfy = {
-      version = "1.0.2607232129";
+      version = "git-2026-09-01-2c5342a8cb0e";
       owner = "rgthree";
       repo = "rgthree-comfy";
-      rev = "6b76ee6f2c5a007710b5a16f97c94330d6ecc871";
-      hash = "sha256-tcgwh2xiUXyQpLuYy/X2kxMKZz1+VlLPRf7HQA3lvhk=";
+      rev = "2c5342a8cb0eaecaabf61435a5f37dd594c510ba";
+      hash = "sha256-Z3yKY+6VW5wfsOkI+LrNFd3oZMXKVITtinsNXVXFNec=";
     };
 
     kjnodes = {
-      version = "git-2026-03-07-c88ac88a8f8a";
+      version = "git-2026-09-07-c9869eade992";
       owner = "kijai";
       repo = "ComfyUI-KJNodes";
-      rev = "c88ac88a8f8a6a090a0d5d607156090cb2911503";
-      hash = "sha256-wr1ynNRvD9ehrlnvi+0RJuawfeYLQmi3hFK9FCGdr1g=";
+      rev = "c9869eade9920a1b949de07c4a197156006bcceb";
+      hash = "sha256-8jhXmMmIdf99bkxZjPXcorPUIpEPEIjFthSTwJUVj+Y=";
     };
 
     gguf = {
@@ -427,19 +419,19 @@
     };
 
     ltxvideo = {
-      version = "git-2026-07-27-3b9c5cde4700";
+      version = "git-2026-08-20-15d09abb5a18";
       owner = "Lightricks";
       repo = "ComfyUI-LTXVideo";
-      rev = "3b9c5cde4700917074823d45e25401d81049f8fc";
-      hash = "sha256-Knxz0siBvoVqkwPMTtjW/W0/yvh2PYz8B4grdsvFY/I=";
+      rev = "15d09abb5a187a8dcaea2fc31fe51ee96e6c9d0d";
+      hash = "sha256-gIe9PgtRS+B7L3DR0stH1VTUhRxOSMf5W7THB/kGHsw=";
     };
 
     florence2 = {
-      version = "git-2026-03-07-606bc5cd3465";
+      version = "git-2026-05-06-9ece3de91421";
       owner = "kijai";
       repo = "ComfyUI-Florence2";
-      rev = "606bc5cd3465d48c66aa573bc1680c9bbe78edd9";
-      hash = "sha256-R/o9BG/92fsoWAnpdmr9xi9f/SIuNLx4VGufstRc9hw=";
+      rev = "9ece3de914214c5f581d725167bc9d0eeb0d1120";
+      hash = "sha256-TlAntRh6US5IkLzY32K5qTpr8KMQQmEQzUeExAHgDJA=";
     };
 
     bitsandbytes-nf4 = {
@@ -475,11 +467,11 @@
     };
 
     wanvideo = {
-      version = "git-2026-03-07-df8f3e49daaa";
+      version = "git-2026-05-24-088128b22424";
       owner = "kijai";
       repo = "ComfyUI-WanVideoWrapper";
-      rev = "df8f3e49daaad117cf3090cc916c83f3d001494c";
-      hash = "sha256-nfKQAojS5HsvXNa1vw1Dz9R/vNZxyRYI5CFp/WnjZ4k=";
+      rev = "088128b224242e110d3906c6750e9a3a348a659b";
+      hash = "sha256-/S6sr/6VXx3UxticdE+oxzRtbs+LiG54egMdqIYuB1M=";
     };
   };
 }

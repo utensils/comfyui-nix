@@ -1,5 +1,5 @@
 {
-  description = "A Nix flake for ComfyUI v0.30.0 with Python 3.12";
+  description = "A Nix flake for ComfyUI with Python 3.12";
 
   nixConfig = {
     extra-substituters = [
@@ -263,7 +263,20 @@
               rocm = buildShell nativePackagesRocm.pythonRuntime;
             };
 
-          formatter = pkgs.nixfmt-rfc-style;
+          # nixfmt >= 1.4.0 reads stdin when invoked bare, so binding the
+          # formatter to the raw package makes `nix fmt` a silent no-op. Wrap it
+          # in the same find-based invocation the `nixfmt` check uses so the two
+          # cannot drift apart again.
+          formatter = pkgs.writeShellApplication {
+            name = "nixfmt-tree";
+            runtimeInputs = [
+              pkgs.nixfmt-rfc-style
+              pkgs.findutils
+            ];
+            text = ''
+              find "''${@:-.}" -name '*.nix' -type f -exec nixfmt {} +
+            '';
+          };
 
           checks = import ./nix/checks.nix {
             inherit

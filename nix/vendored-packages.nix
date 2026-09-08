@@ -211,66 +211,6 @@ rec {
         ];
       };
 
-  gradioClient = mkWheel {
-    pname = "gradio-client";
-    version = versions.vendored.gradioClient.version;
-    url = versions.vendored.gradioClient.url;
-    hash = versions.vendored.gradioClient.hash;
-    pythonRelaxDeps = [ "websockets" ];
-    propagatedBuildInputs = with python.pkgs; [
-      fsspec
-      httpx
-      huggingface-hub
-      packaging
-      typing-extensions
-      websockets
-    ];
-  };
-
-  gradio = mkWheel {
-    pname = "gradio";
-    version = versions.vendored.gradio.version;
-    url = versions.vendored.gradio.url;
-    hash = versions.vendored.gradio.hash;
-    pythonRelaxDeps = [
-      "aiofiles"
-      "pillow"
-      "pydantic"
-      "starlette"
-      "tomlkit"
-    ];
-    propagatedBuildInputs = with python.pkgs; [
-      aiofiles
-      anyio
-      brotli
-      fastapi
-      ffmpy
-      gradioClient
-      groovy
-      httpx
-      huggingface-hub
-      jinja2
-      markupsafe
-      numpy
-      orjson
-      packaging
-      pandas
-      pillow
-      pydantic
-      pydub
-      python-multipart
-      pyyaml
-      ruff
-      safehttpx
-      semantic-version
-      starlette
-      tomlkit
-      typer
-      typing-extensions
-      uvicorn
-    ];
-  };
-
   sageattention = mkWheel {
     pname = "sageattention";
     version = versions.vendored.sageattention.version;

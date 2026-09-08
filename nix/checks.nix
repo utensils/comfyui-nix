@@ -270,8 +270,8 @@ let
   # single CI job never has to realize three multi-gigabyte GPU closures.
   runtimeDepsPackages = {
     facexlib = pythonPackages.facexlib;
-    gradio-client = vendoredPackages.gradioClient;
-    gradio = vendoredPackages.gradio;
+    gradio-client = pythonPackages.gradio-client;
+    gradio = pythonPackages.gradio;
     manager = vendoredPackages.comfyuiManager;
     mss = mssRuntimeDeps;
   };

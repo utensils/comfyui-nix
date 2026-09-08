@@ -100,6 +100,8 @@ ignore = [
     "TRY002",   # Generic Exception acceptable for HTTP errors
     "TRY301",   # Inline raise acceptable for HTTP error handling
     "ASYNC230", # Blocking file I/O acceptable (aiofiles would be extra dependency)
+    "ASYNC240", # Blocking os.path stat calls acceptable; the suggested trio/anyio
+                # Path migration conflicts with the global "PTH" ignore above
 ]
 # Persistence: Allow complex setup function (would need architectural refactoring)
 "src/persistence/persistence.py" = [

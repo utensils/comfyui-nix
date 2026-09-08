@@ -21,10 +21,10 @@ let
     {
       name,
       src,
-    # Future options (not yet implemented):
-    # pythonDeps ? [],      # Additional Python packages
-    # patches ? [],         # Patches to apply
-    # postInstall ? "",     # Post-install script
+      # Future options (not yet implemented):
+      # pythonDeps ? [],      # Additional Python packages
+      # patches ? [],         # Patches to apply
+      # postInstall ? "",     # Post-install script
     }:
     # For now, just return the source directly
     # In the future, this could wrap the source in a derivation

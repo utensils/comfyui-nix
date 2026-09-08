@@ -160,8 +160,8 @@ let
     comfy-kitchen==${versions.vendored.comfyKitchen.version}
     comfy-aimdo==${versions.vendored.comfyAimdo.version}
     comfy-angle==${versions.vendored.comfyAngle.version}
-    gradio-client==${versions.vendored.gradioClient.version}
-    gradio==${versions.vendored.gradio.version}
+    gradio-client==${python.pkgs.gradio-client.version}
+    gradio==${python.pkgs.gradio.version}
     sageattention==${versions.vendored.sageattention.version}
   '';
 
@@ -292,6 +292,10 @@ let
         # Face analysis packages - work on all platforms (insightface override removes mxnet)
         ++ lib.optionals (ps ? insightface) [ ps.insightface ]
         ++ lib.optionals (ps ? facexlib) [ ps.facexlib ]
+        # UI deps some custom nodes expect. Taken from nixpkgs rather than
+        # vendored so gradio, gradio-client and hf-gradio stay one consistent set.
+        ++ lib.optionals (ps ? gradio && available ps.gradio) [ ps.gradio ]
+        ++ lib.optionals (ps ? gradio-client && available ps.gradio-client) [ ps.gradio-client ]
         ++ [
           vendored.comfyuiFrontendPackage
           vendored.comfyuiWorkflowTemplates
@@ -299,8 +303,6 @@ let
           vendored.comfyuiManager
           vendored.comfyKitchen
           vendored.comfyAimdo
-          vendored.gradioClient
-          vendored.gradio
           vendored.sageattention
         ]
         # comfy-angle (GLSL shader nodes): no wheel on x86_64-darwin
