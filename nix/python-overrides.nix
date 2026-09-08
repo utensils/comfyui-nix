@@ -5,11 +5,12 @@
 }:
 let
   lib = pkgs.lib;
-  useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
-  useRocm = gpuSupport == "rocm" && pkgs.stdenv.isLinux;
+  useCuda = gpuSupport == "cuda" && pkgs.stdenv.hostPlatform.isLinux;
+  useRocm = gpuSupport == "rocm" && pkgs.stdenv.hostPlatform.isLinux;
   # Intel XPU wheels are Linux x86_64 only (no aarch64 upstream)
-  useXpu = gpuSupport == "xpu" && pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isx86_64;
-  useDarwinArm64 = pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isAarch64;
+  useXpu =
+    gpuSupport == "xpu" && pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isx86_64;
+  useDarwinArm64 = pkgs.stdenv.hostPlatform.isDarwin && pkgs.stdenv.hostPlatform.isAarch64;
   sentencepieceNoGperf = pkgs.sentencepiece.override { withGPerfTools = false; };
   cudaPackages = pkgs.cudaPackages_13;
 
@@ -840,7 +841,7 @@ lib.optionalAttrs useCuda {
 # Note: When useCuda=true, torch/torchvision/torchaudio are replaced with pre-built wheels
 # above. Packages that depend on torch (kornia, accelerate, etc.) will automatically
 # use our wheel-based torch via final.torch since we've overridden it in the overlay.
-// lib.optionalAttrs (pkgs.stdenv.isDarwin && prev ? sentencepiece) {
+// lib.optionalAttrs (pkgs.stdenv.hostPlatform.isDarwin && prev ? sentencepiece) {
   sentencepiece = prev.sentencepiece.overridePythonAttrs (old: {
     buildInputs = [ sentencepieceNoGperf.dev ];
     nativeBuildInputs = old.nativeBuildInputs or [ ];
@@ -858,22 +859,22 @@ lib.optionalAttrs useCuda {
     let
       # Use platform-specific abi3 wheels from PyPI (av 17.0.0, Python 3.12)
       wheelSrc =
-        if pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isx86_64 then
+        if pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isx86_64 then
           pkgs.fetchurl {
             url = "https://files.pythonhosted.org/packages/d2/59/d19bc3257dd985d55337d7f0414c019414b97e16cd3690ebf9941a847543/av-17.0.0-cp311-abi3-manylinux_2_28_x86_64.whl";
             hash = "sha256-EGDLqF+X9KM3MRFp2SwLXhQ0Us+lyg5l+kmdeVXoWS4=";
           }
-        else if pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isAarch64 then
+        else if pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isAarch64 then
           pkgs.fetchurl {
             url = "https://files.pythonhosted.org/packages/00/c0/637721f3cd5bb8bd16105a1a08efd781fc12f449931bdb3a4d0cfd63fa55/av-17.0.0-cp311-abi3-manylinux_2_28_aarch64.whl";
             hash = "sha256-tEDaasR9oGKdUJMW8kvNhY8zFY290PG3KT1x6ZvrJt4=";
           }
-        else if pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isx86_64 then
+        else if pkgs.stdenv.hostPlatform.isDarwin && pkgs.stdenv.hostPlatform.isx86_64 then
           pkgs.fetchurl {
             url = "https://files.pythonhosted.org/packages/b1/fb/55e3b5b5d1fc61466292f26fbcbabafa2642f378dc48875f8f554591e1a4/av-17.0.0-cp311-abi3-macosx_11_0_x86_64.whl";
             hash = "sha256-7UAT+sd8MJpKaBQdz2FI8YIbsQc6NtQok3l2KmNy9xE=";
           }
-        else if pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isAarch64 then
+        else if pkgs.stdenv.hostPlatform.isDarwin && pkgs.stdenv.hostPlatform.isAarch64 then
           pkgs.fetchurl {
             url = "https://files.pythonhosted.org/packages/52/03/9ace1acc08bc9ae38c14bf3a4b1360e995e4d999d1d33c2cbd7c9e77582a/av-17.0.0-cp311-abi3-macosx_14_0_arm64.whl";
             hash = "sha256-5Etsg+nzvp957ofQt3onzqmpzWe9YwNiyGt+VqdI37s=";
@@ -893,8 +894,8 @@ lib.optionalAttrs useCuda {
         dontConfigure = true;
         propagatedBuildInputs = [ final.numpy ];
         # Linux manylinux wheels need autoPatchelfHook to fix library paths
-        nativeBuildInputs = lib.optionals pkgs.stdenv.isLinux [ pkgs.autoPatchelfHook ];
-        buildInputs = lib.optionals pkgs.stdenv.isLinux [
+        nativeBuildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.autoPatchelfHook ];
+        buildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [
           pkgs.stdenv.cc.cc.lib
           pkgs.zlib
         ];
@@ -935,8 +936,8 @@ lib.optionalAttrs useCuda {
 # pinned nixpkgs (they assert formatter output that has since changed) and is
 # not in the binary cache, so it gets built from source. It reaches us only as
 # a test helper in fastapi's checkInputs, where its own doc tests say nothing
-# about whether it works. Without this, fastapi and everything downstream of it
-# (openai, gradio) cannot build.
+# about whether it works. Without this, fastapi and everything downstream of
+# it (openai, openapi-core, sqlframe) cannot build.
 // lib.optionalAttrs (prev ? inline-snapshot) {
   inline-snapshot = prev.inline-snapshot.overridePythonAttrs (_old: {
     doCheck = false;
@@ -1019,7 +1020,7 @@ lib.optionalAttrs useCuda {
 # Disable filterpy tests on Darwin (test_hinfinity triggers BPT trap in pytest)
 // lib.optionalAttrs (prev ? filterpy) {
   filterpy = prev.filterpy.overridePythonAttrs (old: {
-    doCheck = if pkgs.stdenv.isDarwin then false else (old.doCheck or true);
+    doCheck = if pkgs.stdenv.hostPlatform.isDarwin then false else (old.doCheck or true);
   });
 }
 

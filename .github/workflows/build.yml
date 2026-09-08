@@ -58,8 +58,9 @@ jobs:
           nix build .#checks.x86_64-linux.shellcheck --print-build-logs
           nix build .#checks.x86_64-linux.pytest --print-build-logs
 
-  # Exercise package metadata against nixpkgs with the runtime dependency hook
-  # enabled. Remove the override once the flake follows this revision or newer.
+  # Exercise package metadata against the runtime dependency hook. The flake's
+  # own nixpkgs now has the hook enabled by default, so these build against the
+  # locked input directly; the pinned-revision override this used to need is gone.
   python-runtime-deps:
     runs-on: ubuntu-latest
     env:
@@ -114,11 +115,7 @@ jobs:
 
       - name: Check Python runtime dependencies
         run: |
-          nixpkgs_rev="$(nix eval --raw --file nix/versions.nix ci.runtimeDepsNixpkgs.rev)"
-          nixpkgs_hash="$(nix eval --raw --file nix/versions.nix ci.runtimeDepsNixpkgs.hash)"
           nix build ".#checks.x86_64-linux.${{ matrix.check }}" \
-            --override-input nixpkgs "github:NixOS/nixpkgs/$nixpkgs_rev?narHash=$nixpkgs_hash" \
-            --no-write-lock-file \
             --no-link \
             --print-build-logs --max-jobs 1 --cores 2
 

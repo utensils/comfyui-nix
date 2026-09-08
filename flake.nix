@@ -193,10 +193,10 @@
             dockerImageLinuxXpu = linuxX86PackagesXpu.dockerImageXpu;
             dockerImageLinuxArm64 = linuxArm64Packages.dockerImage;
           }
-          // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+          // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
             dockerImage = nativePackages.dockerImage;
           }
-          // pkgs.lib.optionalAttrs (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64) {
+          // pkgs.lib.optionalAttrs (pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isx86_64) {
             # CUDA package uses pre-built wheels for all supported GPU architectures
             cuda = nativePackagesCuda.default;
             dockerImageCuda = nativePackagesCuda.dockerImageCuda;
@@ -229,7 +229,7 @@
                     pkgs.libGL
                     pkgs.libGLU
                     pkgs.git
-                    pkgs.nixfmt-rfc-style
+                    pkgs.nixfmt
                     pkgs.ruff
                     pkgs.pyright
                     pkgs.shellcheck
@@ -238,12 +238,12 @@
                     pkgs.python3Packages.pytest
 
                   ]
-                  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [ pkgs.apple-sdk_14 ];
+                  ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.apple-sdk_14 ];
 
                   shellHook =
                     let
                       defaultDir =
-                        if pkgs.stdenv.isDarwin then
+                        if pkgs.stdenv.hostPlatform.isDarwin then
                           "$HOME/Library/Application Support/comfy-ui"
                         else
                           "$HOME/.config/comfy-ui";
@@ -270,7 +270,7 @@
           formatter = pkgs.writeShellApplication {
             name = "nixfmt-tree";
             runtimeInputs = [
-              pkgs.nixfmt-rfc-style
+              pkgs.nixfmt
               pkgs.findutils
             ];
             text = ''
@@ -323,19 +323,19 @@
           comfy-ui = self.packages.${final.stdenv.hostPlatform.system}.default;
           # CUDA variant (x86_64 Linux only) - uses pre-built wheels for all supported GPU architectures
           comfy-ui-cuda =
-            if final.stdenv.isLinux && final.stdenv.isx86_64 then
+            if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then
               self.packages.${final.stdenv.hostPlatform.system}.cuda
             else
               throw "comfy-ui-cuda is only available on x86_64 Linux";
           # ROCm variant (x86_64 Linux only) - uses pre-built wheels supporting all GPU architectures
           comfy-ui-rocm =
-            if final.stdenv.isLinux && final.stdenv.isx86_64 then
+            if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then
               self.packages.${final.stdenv.hostPlatform.system}.rocm
             else
               throw "comfy-ui-rocm is only available on x86_64 Linux";
           # Intel XPU variant (x86_64 Linux only) - pre-built wheels from pytorch.org/whl/xpu
           comfy-ui-xpu =
-            if final.stdenv.isLinux && final.stdenv.isx86_64 then
+            if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then
               self.packages.${final.stdenv.hostPlatform.system}.xpu
             else
               throw "comfy-ui-xpu is only available on x86_64 Linux";

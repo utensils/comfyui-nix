@@ -122,8 +122,8 @@ let
       format = "wheel";
       src = pkgs.fetchurl { inherit url hash; };
       doCheck = false;
-      nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.autoPatchelfHook ];
-      buildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.stdenv.cc.cc.lib ];
+      nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.autoPatchelfHook ];
+      buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.cc.lib ];
       autoPatchelfIgnoreMissingDeps = [ "libamdhip64.so.7" ];
     };
 in
@@ -202,8 +202,8 @@ rec {
         doCheck = false;
         # The wheel bundles native ANGLE libs (libEGL.so/libGLESv2.so) that need
         # their DT_NEEDED entries resolved against Nix store paths on Linux.
-        nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.autoPatchelfHook ];
-        buildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [
+        nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.autoPatchelfHook ];
+        buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
           pkgs.stdenv.cc.cc.lib
           pkgs.libx11
           pkgs.libxcb

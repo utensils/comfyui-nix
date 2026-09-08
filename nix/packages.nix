@@ -7,9 +7,10 @@
   extraPythonPackages ? (_: [ ]),
 }:
 let
-  useCuda = gpuSupport == "cuda" && pkgs.stdenv.isLinux;
-  useRocm = gpuSupport == "rocm" && pkgs.stdenv.isLinux;
-  useXpu = gpuSupport == "xpu" && pkgs.stdenv.isLinux && pkgs.stdenv.hostPlatform.isx86_64;
+  useCuda = gpuSupport == "cuda" && pkgs.stdenv.hostPlatform.isLinux;
+  useRocm = gpuSupport == "rocm" && pkgs.stdenv.hostPlatform.isLinux;
+  useXpu =
+    gpuSupport == "xpu" && pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isx86_64;
   cudaPackages = pkgs.cudaPackages_13;
 
   # Intel XPU runtime libraries (Level Zero loader, Intel compute-runtime, OpenCL ICD)
@@ -160,8 +161,6 @@ let
     comfy-kitchen==${versions.vendored.comfyKitchen.version}
     comfy-aimdo==${versions.vendored.comfyAimdo.version}
     comfy-angle==${versions.vendored.comfyAngle.version}
-    gradio-client==${python.pkgs.gradio-client.version}
-    gradio==${python.pkgs.gradio.version}
     sageattention==${versions.vendored.sageattention.version}
   '';
 
@@ -274,7 +273,10 @@ let
         ++ lib.optionals (ps ? torchsde && available ps.torchsde) [ ps.torchsde ]
         # kornia-rs is still marked bad on aarch64-linux in pinned nixpkgs.
         ++ lib.optionals (
-          (pkgs.stdenv.isDarwin || (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64))
+          (
+            pkgs.stdenv.hostPlatform.isDarwin
+            || (pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isx86_64)
+          )
           && ps ? kornia
           && available ps.kornia
         ) [ ps.kornia ]
@@ -286,16 +288,14 @@ let
         ++ lib.optionals (ps ? rich && available ps.rich) [ ps.rich ]
         ++ lib.optionals (ps ? "comfy-cli" && available ps."comfy-cli") [ ps."comfy-cli" ]
         # Linux-only packages (CUDA dependencies)
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? bitsandbytes) [ ps.bitsandbytes ]
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? xformers) [ ps.xformers ]
-        ++ lib.optionals (pkgs.stdenv.isLinux && ps ? triton && available ps.triton) [ ps.triton ]
+        ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && ps ? bitsandbytes) [ ps.bitsandbytes ]
+        ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && ps ? xformers) [ ps.xformers ]
+        ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && ps ? triton && available ps.triton) [
+          ps.triton
+        ]
         # Face analysis packages - work on all platforms (insightface override removes mxnet)
         ++ lib.optionals (ps ? insightface) [ ps.insightface ]
         ++ lib.optionals (ps ? facexlib) [ ps.facexlib ]
-        # UI deps some custom nodes expect. Taken from nixpkgs rather than
-        # vendored so gradio, gradio-client and hf-gradio stay one consistent set.
-        ++ lib.optionals (ps ? gradio && available ps.gradio) [ ps.gradio ]
-        ++ lib.optionals (ps ? gradio-client && available ps.gradio-client) [ ps.gradio-client ]
         ++ [
           vendored.comfyuiFrontendPackage
           vendored.comfyuiWorkflowTemplates
@@ -348,14 +348,14 @@ let
   # macOS: ~/Library/Application Support/comfy-ui (Apple convention)
   # Linux: ~/.config/comfy-ui (XDG convention)
   defaultDataDir =
-    if pkgs.stdenv.isDarwin then
+    if pkgs.stdenv.hostPlatform.isDarwin then
       "$HOME/Library/Application Support/comfy-ui"
     else
       "$HOME/.config/comfy-ui";
 
   # Platform-specific library path setup
   libraryPathSetup =
-    if pkgs.stdenv.isDarwin then
+    if pkgs.stdenv.hostPlatform.isDarwin then
       ''
         # macOS: Set DYLD_LIBRARY_PATH for dynamic libraries
         export DYLD_LIBRARY_PATH="${libPath}''${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
@@ -394,7 +394,7 @@ let
       '';
 
   # Platform-specific browser command
-  browserCommand = if pkgs.stdenv.isDarwin then "/usr/bin/open" else "xdg-open";
+  browserCommand = if pkgs.stdenv.hostPlatform.isDarwin then "/usr/bin/open" else "xdg-open";
 
   # Minimal launcher using writeShellApplication (Nix best practice)
   comfyUiLauncher = pkgs.writeShellApplication {
@@ -405,10 +405,10 @@ let
       pkgs.gnused
       pkgs.git # Required for ComfyUI Manager to clone custom nodes
     ]
-    ++ lib.optionals (!pkgs.stdenv.isDarwin) [
+    ++ lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [
       pkgs.xdg-utils # Provides xdg-open for --open flag on Linux
     ]
-    ++ lib.optionals pkgs.stdenv.isLinux [
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
       # Triton builds a small C shim (cuda_utils) on first use and shells out to
       # a compiler to do it; torch.utils.cpp_extension.load() drives ninja. Under
       # `nix run` these happen to be inherited from the user's shell, but the

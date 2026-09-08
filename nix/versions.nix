@@ -1,9 +1,4 @@
 {
-  ci.runtimeDepsNixpkgs = {
-    rev = "dc5d91f840324650bac8c379428c7037a416959a";
-    hash = "sha256-VaWGJ6+cIYN2erfSecbRV+4ljI185Ty2wUrXyvQbgOw=";
-  };
-
   comfyui = {
     version = "0.34.0";
     releaseDate = "2026-08-26T02:09:08Z";
@@ -140,11 +135,6 @@
         hash = "sha256-vYlTAfj8feJO/c89RG8zUFDjfWeXbiP9+FwV+1qs/n8=";
       };
     };
-
-    # gradio / gradio-client are NOT vendored: nixpkgs ships a self-consistent
-    # gradio 6 + gradio-client pair that hf-gradio (a new gradio 6 dependency)
-    # also resolves against. Vendoring either one puts two gradio-client
-    # versions in the same closure and the build fails on duplicate packages.
 
     # Optional attention optimization (used by --use-sage-attention)
     sageattention = {
