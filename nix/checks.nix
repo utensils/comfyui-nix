@@ -83,6 +83,22 @@ let
   upstreamModuleDisabled =
     pkgs.lib.length namespaceDeclarations == 1
     && pkgs.lib.hasSuffix "nix/modules/comfyui.nix" (pkgs.lib.head namespaceDeclarations);
+  # Regression guard for issue #101: the module must not define `nixpkgs.overlays`
+  # (or any other option `nixpkgs.nixosModules.readOnlyPkgs` marks read-only), and
+  # must still resolve its package without the overlay being applied.
+  readOnlyPkgsSystem = nixpkgs.lib.nixosSystem {
+    modules = [
+      nixpkgs.nixosModules.readOnlyPkgs
+      nixosModule
+      {
+        nixpkgs.pkgs = pkgs;
+        system.stateVersion = "26.05";
+        services.comfyui.enable = true;
+      }
+    ];
+  };
+  readOnlyPkgsExecStart = readOnlyPkgsSystem.config.systemd.services.comfyui.serviceConfig.ExecStart;
+
   defaultModuleSystem = evalModule { };
   moduleSystem = evalModule {
     extraPythonPackages = ps: [
@@ -380,6 +396,10 @@ in
   nixos-module-namespace =
     assert upstreamModuleDisabled;
     pkgs.runCommand "nixos-module-namespace" { } "touch $out";
+
+  nixos-module-read-only-pkgs =
+    assert pkgs.lib.hasPrefix packages.default.outPath readOnlyPkgsExecStart;
+    pkgs.runCommand "nixos-module-read-only-pkgs" { } "touch $out";
 
   pytest =
     let

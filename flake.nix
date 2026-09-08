@@ -315,11 +315,16 @@
           comfyui-custom-nodes = self.legacyPackages.${final.stdenv.hostPlatform.system}.customNodes;
         };
 
+        # The module deliberately does not touch `nixpkgs.overlays`: defining that
+        # option from a module is incompatible with `nixpkgs.nixosModules.readOnlyPkgs`
+        # (issue #101). The packages are handed to the module directly instead, so
+        # importing it is enough - add `overlays.default` yourself only if you want
+        # `pkgs.comfy-ui*` available elsewhere in your configuration.
         nixosModules.default =
-          { ... }:
+          { pkgs, ... }:
           {
             imports = [ ./nix/modules/comfyui.nix ];
-            nixpkgs.overlays = [ self.overlays.default ];
+            services.comfyui.packageSet = self.packages.${pkgs.stdenv.hostPlatform.system};
           };
       };
     };

@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#92](https://github.com/utensils/comfyui-nix/issues/92))
 
 ### Fixed
+- `nixosModules.default` no longer sets `nixpkgs.overlays`, so it composes with
+  `nixpkgs.nixosModules.readOnlyPkgs` instead of failing with
+  `The option 'nixpkgs.overlays' is defined multiple times`. The module gets its
+  packages directly from this flake, so importing it is enough; add
+  `comfyui-nix.overlays.default` yourself only if you also want `pkgs.comfy-ui*`
+  elsewhere in your configuration.
+  ([#101](https://github.com/utensils/comfyui-nix/issues/101))
 - ComfyUI no longer crashes at startup in containers with
   `KeyError: 'getpwuid(): uid not found: 0'`. The launcher now sets
   `TORCHINDUCTOR_CACHE_DIR`, which stops torch from deriving a cache path from

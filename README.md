@@ -411,7 +411,6 @@ nix profile add github:utensils/comfyui-nix#xpu
 ```nix
 {
   imports = [ comfyui-nix.nixosModules.default ];
-  nixpkgs.overlays = [ comfyui-nix.overlays.default ];
 
   services.comfyui = {
     enable = true;
@@ -429,6 +428,13 @@ nix profile add github:utensils/comfyui-nix#xpu
   };
 }
 ```
+
+> **Note:** The module brings its own packages, so `nixpkgs.overlays` does not need
+> `comfyui-nix.overlays.default` for the service to work. Add the overlay only if you also
+> want `pkgs.comfy-ui*` available elsewhere in your configuration. Because the module never
+> defines `nixpkgs.overlays` itself, it composes with `nixpkgs.nixosModules.readOnlyPkgs`
+> (the one exception is `services.comfyui.cudaCapabilities`, which writes to
+> `nixpkgs.config`; leave it unset under `readOnlyPkgs`).
 
 > **Note:** nixpkgs ships its own `services.comfyui` module
 > (`nixos/modules/services/misc/comfyui.nix`). Importing this module automatically disables

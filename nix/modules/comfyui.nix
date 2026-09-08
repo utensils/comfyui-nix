@@ -12,17 +12,24 @@ let
   useXpu = cfg.gpuSupport == "xpu";
   useCpu = cfg.gpuSupport == "none";
 
+  # Package set backing the `services.comfyui.package` default. See the
+  # `packageSet` option below.
+  gpuPackage =
+    backend:
+    cfg.packageSet.${backend}
+      or (throw "comfy-ui with ${backend} support is only available on x86_64 Linux");
+
   # Determine which package to use based on configuration
   # CUDA package uses pre-built wheels for all supported GPU architectures
   resolvePackage =
     if useCuda then
-      pkgs.comfy-ui-cuda
+      gpuPackage "cuda"
     else if useRocm then
-      pkgs.comfy-ui-rocm
+      gpuPackage "rocm"
     else if useXpu then
-      pkgs.comfy-ui-xpu
+      gpuPackage "xpu"
     else
-      pkgs.comfy-ui;
+      cfg.packageSet.default;
   effectivePackage =
     if cfg.extraPythonPackages == null then
       cfg.package
@@ -160,6 +167,11 @@ in
         from Turing through Blackwell. This setting is primarily useful
         for optimizing other CUDA-enabled packages in your system configuration.
 
+        Leave this at `null` when using `nixpkgs.nixosModules.readOnlyPkgs`: it is
+        the only option here that writes to `nixpkgs.config`, which that module
+        makes read-only. Set `cudaCapabilities` on your own nixpkgs instance
+        instead.
+
         Example: [ "8.9" ] for Ada Lovelace (RTX 40xx) GPUs.
 
         Common values:
@@ -187,14 +199,40 @@ in
       '';
     };
 
+    packageSet = lib.mkOption {
+      type = lib.types.lazyAttrsOf lib.types.raw;
+      internal = true;
+      default = {
+        default = pkgs.comfy-ui;
+        cuda = pkgs.comfy-ui-cuda;
+        rocm = pkgs.comfy-ui-rocm;
+        xpu = pkgs.comfy-ui-xpu;
+      };
+      defaultText = lib.literalMD ''
+        the `comfy-ui*` attributes from `comfyui-nix.overlays.default`
+      '';
+      description = ''
+        Backend-keyed comfyui-nix packages used to pick the default
+        `services.comfyui.package`.
+
+        `comfyui-nix.nixosModules.default` sets this to the flake's own
+        `packages.<system>`, so importing the module is enough and no overlay is
+        required. The module deliberately does not define `nixpkgs.overlays`
+        itself, because that is incompatible with
+        `nixpkgs.nixosModules.readOnlyPkgs`.
+
+        The default reads the overlay attributes instead, so importing
+        `nix/modules/comfyui.nix` directly keeps working when
+        `comfyui-nix.overlays.default` is in `nixpkgs.overlays`.
+      '';
+    };
+
     package = lib.mkOption {
       type = lib.types.package;
       default = resolvePackage;
-      defaultText = lib.literalExpression ''
-        if useCuda then pkgs.comfy-ui-cuda
-        else if useRocm then pkgs.comfy-ui-rocm
-        else if useXpu then pkgs.comfy-ui-xpu
-        else pkgs.comfy-ui
+      defaultText = lib.literalMD ''
+        the comfyui-nix package matching `gpuSupport`, taken from this flake's
+        `packages.<system>` (`cuda`, `rocm`, `xpu` or `default`)
       '';
       description = ''
         ComfyUI package to run. Automatically set based on `gpuSupport`:
