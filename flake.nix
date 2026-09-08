@@ -274,7 +274,22 @@
               pkgs.findutils
             ];
             text = ''
-              find "''${@:-.}" -name '*.nix' -type f -exec nixfmt {} +
+              # `nix fmt` forwards user flags alongside paths (e.g.
+              # `nix fmt -- --check .`). Split them so flags reach nixfmt and
+              # only paths reach find.
+              opts=()
+              paths=()
+              for arg in "$@"; do
+                case "$arg" in
+                  -*) opts+=("$arg") ;;
+                  *) paths+=("$arg") ;;
+                esac
+              done
+              if [ ''${#paths[@]} -eq 0 ]; then
+                paths=(.)
+              fi
+              find "''${paths[@]}" -name '*.nix' -type f \
+                -exec nixfmt ''${opts[@]+"''${opts[@]}"} {} +
             '';
           };
 
