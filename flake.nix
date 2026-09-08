@@ -29,13 +29,15 @@
       versions = import ./nix/versions.nix;
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
-      # Supported systems: Linux (x86_64, aarch64), macOS (Intel, Apple Silicon)
+      # Supported systems: Linux (x86_64, aarch64), macOS (Apple Silicon)
       # Note: CUDA support is only available on x86_64-linux
       # Note: ROCm support is only available on x86_64-linux
+      # Note: x86_64-darwin is absent because nixpkgs 26.11 dropped Intel macOS;
+      # declaring it makes every output for that system fail to evaluate.
+      # https://nixos.org/manual/nixpkgs/unstable/release-notes#x86_64-darwin-26.11
       systems = [
         "x86_64-linux"
         "aarch64-linux"
-        "x86_64-darwin"
         "aarch64-darwin"
       ];
 
