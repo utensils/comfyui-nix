@@ -943,6 +943,18 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# backrefs' test_timeout asserts that a regex operation exceeds a wall-clock
+# timeout, which does not hold on every builder: it passes locally but fails
+# on CI runners with "DID NOT RAISE TimeoutError". backrefs is not in the
+# binary cache on the pinned nixpkgs, so it is built from source and the flake
+# test runs. It reaches us transitively through einops' check inputs, and the
+# failure cascades all the way up to pyright-check.
+// lib.optionalAttrs (prev ? backrefs) {
+  backrefs = prev.backrefs.overridePythonAttrs (old: {
+    disabledTests = (old.disabledTests or [ ]) ++ [ "test_timeout" ];
+  });
+}
+
 # Disable accelerate test that fails with torch 2.10.0 inductor in Nix sandbox
 // lib.optionalAttrs ((useCuda || useRocm || useXpu) && (prev ? accelerate)) {
   accelerate = prev.accelerate.overridePythonAttrs (old: {
