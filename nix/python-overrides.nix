@@ -707,6 +707,22 @@ lib.optionalAttrs useCuda {
       doCheck = false;
       dontCheckRuntimeDeps = true; # Intel wheel pip names use hyphens/underscores inconsistently
 
+      # The XPU wheel names ~20 Intel runtime wheels that nixpkgs provides under
+      # different pip-visible names, so anything that resolves torch's declared
+      # requirements reports every one of them as missing. dontCheckRuntimeDeps
+      # above only covers this derivation; downstream builds (xformers builds a
+      # wheel with `pypa build --no-isolation`, which validates build deps) read
+      # the installed METADATA and fail. Strip those entries, exactly as the
+      # CUDA wheel does for its nvidia-* requirements. Nix still supplies the
+      # libraries through propagatedBuildInputs.
+      postInstall = ''
+        for metadata in "$out/${final.python.sitePackages}"/torch-*.dist-info/METADATA; do
+          if [[ -f "$metadata" ]]; then
+            sed -i -E '/^Requires-Dist: (dpcpp-|impi-|intel-|mkl|oneccl|onemkl-|tbb|tcmlib|triton|umf)/d' "$metadata"
+          fi
+        done
+      '';
+
       passthru = {
         cudaSupport = false;
         rocmSupport = false;
