@@ -37,6 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#91](https://github.com/utensils/comfyui-nix/issues/91))
 
 ### Changed
+- Updated ComfyUI to upstream `v0.37.0` (from `v0.34.0`). Updated its pinned
+  dependencies: frontend `1.49.6` -> `1.52.7`, workflow templates `0.11.48`
+  -> `0.11.66` (core `0.3.322` -> `0.3.357`, JSON `0.1.57` -> `0.1.92`,
+  media assets 01 `0.1.35` -> `0.1.47`, and the new media assets 02 `0.1.3`),
+  embedded docs `0.5.10` -> `0.5.12`, comfy-kitchen `0.2.31` -> `0.2.35`, and
+  comfy-aimdo `0.4.15` -> `0.5.5`.
+- Regenerated template input files from the current upstream manifest (728
+  files, up from 673).
 - Updated ComfyUI to upstream `v0.34.0` (from `v0.30.2`). Updated its pinned
   dependencies: frontend `1.47.12` -> `1.49.6`, workflow templates `0.11.31`
   -> `0.11.48` (core `0.3.295` -> `0.3.322`, JSON `0.1.30` -> `0.1.57`,
@@ -49,6 +57,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded Linux CUDA builds from PyTorch cu128 to cu130 and switched the
   runtime toolchain and libraries from CUDA 12.8 to CUDA 13.0.
   NVIDIA driver 580 or newer is now required.
+
+### Upstream Highlights (v0.35.0 - v0.37.0)
+- Added native support for Qwen-Image 2.1, MoGe 3, Marigold v2, YuE2 music,
+  SenseNova U1.5, and WAN3-Prime, plus Qwen3 CUDA graphs and w4a8 GEMV.
+- Added the Comfy Compiler, generic loops in the graph
+  executor, and automatic `--fast-disk` detection (disable with
+  `--disable-fast-disk`).
+- Added Video Trim, Video Crop, and Video Concatenate nodes, a File3DToMesh
+  node, AVIF output in Save Image Advanced, and linear color space in
+  ImageColorSpace.
+- Memory limits now follow the container's cgroup limit instead of host RAM,
+  and TRELLIS, MiniMax-H3, and Wan workflows use less peak VRAM.
+- Added or expanded partner nodes for Recraft V4, Gemini 3.8 Flash, Tripo P2,
+  Bria, Flux Video Edit, Pruna P-Video-2, GPT Image 2, and Meshy 7.1.
 
 ### Upstream Highlights (v0.31.0 - v0.34.0)
 - Added native support for LTX 2.5, Wan-Animate2, MiniMax Music 3, TRELLIS2,

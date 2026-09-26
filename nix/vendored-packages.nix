@@ -74,6 +74,13 @@ let
     hash = versions.vendored.workflowTemplatesMediaAssets01.hash;
   };
 
+  workflowTemplatesMediaAssets02 = mkWheel {
+    pname = "comfyui-workflow-templates-media-assets-02";
+    version = versions.vendored.workflowTemplatesMediaAssets02.version;
+    url = versions.vendored.workflowTemplatesMediaAssets02.url;
+    hash = versions.vendored.workflowTemplatesMediaAssets02.hash;
+  };
+
   # comfy-angle ships platform-specific wheels (native libEGL/libGLESv2).
   # No wheel exists for x86_64-darwin; consumers must handle null.
   angleWheel =
@@ -148,6 +155,7 @@ rec {
       workflowTemplatesMediaImage
       workflowTemplatesMediaOther
       workflowTemplatesMediaAssets01
+      workflowTemplatesMediaAssets02
     ];
   };
 
