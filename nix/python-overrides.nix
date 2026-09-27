@@ -309,6 +309,16 @@ lib.optionalAttrs useCuda {
     # skips via dontBuild. Remove this phase override when nixpkgs rewrites
     # wheel metadata before its runtime dependency check.
     preInstallPhases = [ "pythonRelaxDepsHook" ];
+    nativeBuildInputs = [ pkgs.cctools ];
+    # OpenCV's dependencies already load nixpkgs OpenMP. Loading the wheel's
+    # second runtime afterwards crashes CPU matmul inside __kmp_suspend_64.
+    # Use the same runtime regardless of Python module import order.
+    postFixup = ''
+      install_name_tool -change @rpath/libomp.dylib \
+        ${pkgs.llvmPackages.openmp}/lib/libomp.dylib \
+        "$out/${final.python.sitePackages}/torch/lib/libtorch_cpu.dylib"
+      rm "$out/${final.python.sitePackages}/torch/lib/libomp.dylib"
+    '';
     propagatedBuildInputs = with final; [
       filelock
       typing-extensions

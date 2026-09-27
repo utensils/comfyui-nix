@@ -61,6 +61,16 @@ that Homebrew compiler probe, retaining Nix's compiler and the rest of setup.
 The targeted package build verifies imports of `insightface`, `insightface.app`,
 and `insightface.model_zoo`.
 
+After those fixes, Ultralytics' first model-forward test reproducibly crashed
+in CPU convolution/batch-normalization fusion. A minimal `cv2`-then-`torch`
+import followed by a 256-wide CPU matrix multiplication reproduced it; the
+reverse import order passed. LLDB traced the fault to `__kmp_suspend_64`, and
+dyld showed both nixpkgs OpenMP and the torch wheel's bundled OpenMP loaded.
+The Apple Silicon wheel now links `libtorch_cpu.dylib` to nixpkgs OpenMP and
+removes its bundled copy. Both import orders, CPU matrix operations through
+size 1024, and real MPS matrix multiplication passed with the unified runtime.
+A Darwin-only Nix check covers both import orders in fresh processes.
+
 Build either dependency using the repository's actual Python overrides (the
 `pythonRuntime.pkgs` attribute of a `withPackages` environment is the stock
 package set, so it must not be used for this reproduction):

@@ -283,6 +283,33 @@ in
     pkgs.lib.mapAttrsToList (name: path: { inherit name path; }) runtimeDepsPackages
   );
 }
+//
+  pkgs.lib.optionalAttrs (pkgs.stdenv.hostPlatform.isDarwin && pkgs.stdenv.hostPlatform.isAarch64)
+    {
+      darwin-torch-import-order =
+        let
+          python = (pythonFor "none").withPackages (ps: [
+            ps.torch
+            ps.opencv-python
+          ]);
+        in
+        pkgs.runCommand "darwin-torch-import-order" { } ''
+          # Separate processes expose OpenMP initialization in either import order.
+          for first in cv2 torch; do
+            ${python}/bin/python - "$first" <<'PY'
+          import importlib
+          import sys
+          first = sys.argv[1]
+          importlib.import_module(first)
+          importlib.import_module("torch" if first == "cv2" else "cv2")
+          import torch
+          matrix = torch.arange(256 * 256, dtype=torch.float32).reshape(256, 256)
+          torch.testing.assert_close(matrix @ torch.eye(256), matrix)
+          PY
+          done
+          touch $out
+        '';
+    }
 // runtimeDepsChecks
 // torchRuntimeDepsChecks
 //

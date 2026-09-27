@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#92](https://github.com/utensils/comfyui-nix/issues/92))
 
 ### Fixed
+- Apple Silicon PyTorch uses nixpkgs' OpenMP runtime alongside OpenCV, fixing
+  CPU matrix multiplication crashes when OpenCV is imported first.
 - macOS InsightFace builds use the Nix compiler without probing Homebrew,
   avoiding a missing `which` executable in the build sandbox.
 - macOS dependency builds select an available port for Valkey's Redis test
