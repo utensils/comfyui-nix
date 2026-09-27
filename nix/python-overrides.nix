@@ -972,6 +972,19 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# These asynchronous kernel-disconnect tests are sensitive to load in the Nix
+# sandbox: orphan cleanup can miss its deadline, which also makes the companion
+# file-descriptor assertion report the sockets that are still being cleaned up.
+# jupyter-server reaches us through einops' check inputs, like backrefs above.
+// lib.optionalAttrs (prev ? jupyter-server) {
+  jupyter-server = prev.jupyter-server.overridePythonAttrs (old: {
+    disabledTests = (old.disabledTests or [ ]) ++ [
+      "test_no_fd_leak_on_disconnect_with_orphaned_kernel_info_channel"
+      "test_disconnect_resolves_orphaned_kernel_info_future"
+    ];
+  });
+}
+
 # Disable accelerate test that fails with torch 2.10.0 inductor in Nix sandbox
 // lib.optionalAttrs ((useCuda || useRocm || useXpu) && (prev ? accelerate)) {
   accelerate = prev.accelerate.overridePythonAttrs (old: {
