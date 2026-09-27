@@ -318,6 +318,24 @@ lib.optionalAttrs useCuda {
         ${pkgs.llvmPackages.openmp}/lib/libomp.dylib \
         "$out/${final.python.sitePackages}/torch/lib/libtorch_cpu.dylib"
       rm "$out/${final.python.sitePackages}/torch/lib/libomp.dylib"
+
+      # Spawned DataLoader workers pass Python's resource-tracker pipe to the
+      # manager. Keeping it open deadlocks interpreter shutdown while tensors
+      # still hold manager sockets. The manager only needs stdin/out/err.
+      manager="$out/${final.python.sitePackages}/torch/bin/torch_shm_manager"
+      mv "$manager" "$manager.real"
+      cat > manager-launcher.c <<EOF
+      #include <stdio.h>
+      #include <unistd.h>
+      int main(int argc, char **argv) {
+          int max_fd = getdtablesize();
+          for (int fd = 3; fd < max_fd; ++fd) close(fd);
+          execv("$manager.real", argv);
+          perror("torch_shm_manager");
+          return 127;
+      }
+      EOF
+      $CC -O2 manager-launcher.c -o "$manager"
     '';
     propagatedBuildInputs = with final; [
       filelock

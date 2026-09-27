@@ -71,6 +71,17 @@ removes its bundled copy. Both import orders, CPU matrix operations through
 size 1024, and real MPS matrix multiplication passed with the unified runtime.
 A Darwin-only Nix check covers both import orders in fresh processes.
 
+The timm suite then passed 395 tests but hung during Python finalization.
+Process samples showed the parent waiting for its multiprocessing resource
+tracker, whose pipe remained open in four PyTorch shared-memory managers.
+A spawned worker transferring a shared tensor reproduced that wait.
+PyTorch's [manager launcher](https://github.com/pytorch/pytorch/blob/v2.5.1/torch/lib/libshm/core.cpp)
+forks and execs without closing unrelated inherited descriptors. The Darwin
+wheel now launches its manager through a small executable that closes
+descriptors above stderr, preserving the stdout handshake and manager sockets.
+A bounded Nix regression check transfers a tensor from a spawned worker and
+stops the resource tracker while retaining the tensor's manager connection.
+
 Build either dependency using the repository's actual Python overrides (the
 `pythonRuntime.pkgs` attribute of a `withPackages` environment is the stock
 package set, so it must not be used for this reproduction):
