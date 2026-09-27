@@ -985,10 +985,24 @@ lib.optionalAttrs useCuda {
   });
 }
 
-# Disable accelerate test that fails with torch 2.10.0 inductor in Nix sandbox
-// lib.optionalAttrs ((useCuda || useRocm || useXpu) && (prev ? accelerate)) {
+# Keep accelerate's tests compatible with our platform-specific torch wheels.
+// lib.optionalAttrs (prev ? accelerate) {
   accelerate = prev.accelerate.overridePythonAttrs (old: {
-    disabledTests = (old.disabledTests or [ ]) ++ [ "test_convert_to_fp32" ];
+    disabledTests =
+      (old.disabledTests or [ ])
+      # torch 2.10.0 inductor cannot run this test in the Nix sandbox.
+      ++ lib.optionals (useCuda || useRocm || useXpu) [ "test_convert_to_fp32" ]
+      # FSDP2 requires torch >= 2.6; Apple Silicon intentionally uses 2.5.1
+      # for MPS stability. This test lacks a working version guard.
+      ++ lib.optionals useDarwinArm64 [ "test_param_mapping_error_handling" ];
+  });
+}
+
+# This dataset utility test downloads fixture archives from GitHub. Disable it
+# on every platform so uncached builds also work without sandbox networking.
+// lib.optionalAttrs (prev ? ultralytics) {
+  ultralytics = prev.ultralytics.overridePythonAttrs (old: {
+    disabledTests = (old.disabledTests or [ ]) ++ [ "test_data_utils" ];
   });
 }
 

@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#92](https://github.com/utensils/comfyui-nix/issues/92))
 
 ### Fixed
+- Apple Silicon builds no longer run Accelerate's FSDP2 parameter-mapping test
+  against the intentionally pinned PyTorch 2.5.1, which lacks FSDP2 support.
+  ([#105](https://github.com/utensils/comfyui-nix/issues/105))
+- Uncached Ultralytics builds skip the dataset utility test that downloads
+  fixture archives from GitHub inside the offline Nix sandbox. All other
+  existing dependency checks remain enabled.
+  ([#99](https://github.com/utensils/comfyui-nix/issues/99))
 - `nixosModules.default` no longer sets `nixpkgs.overlays`, so it composes with
   `nixpkgs.nixosModules.readOnlyPkgs` instead of failing with
   `The option 'nixpkgs.overlays' is defined multiple times`. The module gets its
