@@ -45,6 +45,14 @@ and initialization behavior, not full workflow compatibility.
 
 ## Reproduction
 
+The uncached macOS validation also uncovered a host-port collision in the
+transitive Valkey test dependency. Nixpkgs' Redis test hook starts its server on
+port 6379 and waits indefinitely for a Unix socket if startup fails. The host
+already had a Redis service listening on that port; no fixture server was
+running and the hook repeatedly reported a missing socket. The Darwin override
+selects an available loopback port and passes the same port to Valkey's
+`--valkey-url` pytest option. This preserves the host service and the test suite.
+
 Build either dependency using the repository's actual Python overrides (the
 `pythonRuntime.pkgs` attribute of a `withPackages` environment is the stock
 package set, so it must not be used for this reproduction):

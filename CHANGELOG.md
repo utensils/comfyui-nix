@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#92](https://github.com/utensils/comfyui-nix/issues/92))
 
 ### Fixed
+- macOS dependency builds select an available port for Valkey's Redis test
+  fixture, avoiding an infinite startup wait when a host service uses port 6379.
 - Apple Silicon builds no longer run Accelerate's FSDP2 parameter-mapping test
   against the intentionally pinned PyTorch 2.5.1, which lacks FSDP2 support.
   ([#105](https://github.com/utensils/comfyui-nix/issues/105))

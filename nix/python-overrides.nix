@@ -1006,6 +1006,24 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# Isolate Valkey's Redis test server from existing services on Darwin hosts.
+// lib.optionalAttrs (pkgs.stdenv.hostPlatform.isDarwin && prev ? valkey) {
+  valkey = prev.valkey.overridePythonAttrs (old: {
+    # Darwin builds share the host's ports. The Redis test hook otherwise
+    # retries forever when an existing service occupies its default port 6379.
+    preCheck = (old.preCheck or "") + ''
+      redisTestPort="$(${final.python.interpreter} - <<'PY'
+      import socket
+      with socket.socket() as server:
+          server.bind(("127.0.0.1", 0))
+          print(server.getsockname()[1])
+      PY
+      )"
+      pytestFlagsArray+=("--valkey-url=valkey://127.0.0.1:$redisTestPort/0")
+    '';
+  });
+}
+
 # Disable failing timm test (torch dynamo/inductor test needs setuptools at runtime)
 // lib.optionalAttrs (prev ? timm) {
   timm = prev.timm.overridePythonAttrs (old: {
