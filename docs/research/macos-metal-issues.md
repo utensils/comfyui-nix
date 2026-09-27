@@ -53,6 +53,14 @@ running and the hook repeatedly reported a missing socket. The Darwin override
 selects an available loopback port and passes the same port to Valkey's
 `--valkey-url` pytest option. This preserves the host service and the test suite.
 
+The subsequent macOS gate reproduced another build failure in InsightFace
+1.0.1: its `setup.py` invokes `which brew` even when no optional Cython extension
+is enabled. The Nix sandbox has no `which` executable, so wheel metadata
+generation fails with `FileNotFoundError`. The Darwin override removes only
+that Homebrew compiler probe, retaining Nix's compiler and the rest of setup.
+The targeted package build verifies imports of `insightface`, `insightface.app`,
+and `insightface.model_zoo`.
+
 Build either dependency using the repository's actual Python overrides (the
 `pythonRuntime.pkgs` attribute of a `withPackages` environment is the stock
 package set, so it must not be used for this reproduction):

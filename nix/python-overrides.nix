@@ -1169,6 +1169,15 @@ lib.optionalAttrs useCuda {
 # This enables PuLID and other face-related nodes on macOS Apple Silicon.
 // lib.optionalAttrs (prev ? insightface) {
   insightface = prev.insightface.overridePythonAttrs (old: {
+    # Nix supplies the compiler; upstream's Homebrew probe requires an absent
+    # `which` executable and can select a compiler outside the build sandbox.
+    postPatch =
+      (old.postPatch or "")
+      + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+        substituteInPlace setup.py \
+          --replace-fail 'if platform.system() == "Darwin":' 'if False: # Compiler provided by Nix'
+      '';
+
     # Remove mxnet from dependencies - it's only used for one legacy CLI command
     # and prevents the package from working on macOS (mxnet is Linux-only in nixpkgs)
     dependencies = builtins.filter (dep: dep.pname or "" != "mxnet") (old.dependencies or [ ]);
