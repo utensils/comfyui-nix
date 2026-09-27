@@ -82,6 +82,14 @@ descriptors above stderr, preserving the stdout handshake and manager sockets.
 A bounded Nix regression check transfers a tensor from a spawned worker and
 stops the resource tracker while retaining the tensor's manager connection.
 
+The final macOS import check also reproduced comfy-kitchen failing to register
+its convolution operator because PyTorch 2.5.1 rejects `list[int]` in custom-op
+parameter annotations. Its [schema type table](https://github.com/pytorch/pytorch/blob/v2.5.1/torch/_library/infer_schema.py)
+accepts `typing.List[int]`. The Apple Silicon wheel now converts list annotations
+in the four affected eager operator modules to `typing.List`, retaining the
+operator implementations and leaving Linux wheels unchanged. The existing
+`comfy-extras-imports` check exercises the complete registration path.
+
 Build either dependency using the repository's actual Python overrides (the
 `pythonRuntime.pkgs` attribute of a `withPackages` environment is the stock
 package set, so it must not be used for this reproduction):

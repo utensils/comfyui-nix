@@ -185,11 +185,25 @@ rec {
     ];
   };
 
-  comfyKitchen = mkNativeWheel {
-    pname = "comfy-kitchen";
-    version = versions.vendored.comfyKitchen.version;
-    inherit (selectPlatformWheel versions.vendored.comfyKitchen) url hash;
-  };
+  comfyKitchen =
+    (mkNativeWheel {
+      pname = "comfy-kitchen";
+      version = versions.vendored.comfyKitchen.version;
+      inherit (selectPlatformWheel versions.vendored.comfyKitchen) url hash;
+    }).overrideAttrs
+      (old: {
+        postInstall =
+          (old.postInstall or "")
+          + pkgs.lib.optionalString (pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isAarch64) ''
+            # PyTorch 2.5.1 schema inference accepts typing.List, not PEP 585 list.
+            for module in conv3d group_norm_pad3d na sol_attn; do
+              substituteInPlace "$out/${python.sitePackages}/comfy_kitchen/backends/eager/$module.py" \
+                --replace-fail 'import torch' 'from typing import List
+            import torch' \
+                --replace-fail 'list[' 'List['
+            done
+          '';
+      });
 
   comfyAimdo = mkNativeWheel {
     pname = "comfy-aimdo";
