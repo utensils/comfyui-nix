@@ -108,11 +108,6 @@ jobs:
           name: nix-community
           pushFilter: "-"
 
-      - uses: cachix/cachix-action@v14
-        with:
-          name: cuda-maintainers
-          pushFilter: "-"
-
       - name: Check Python runtime dependencies
         run: |
           nix build ".#checks.x86_64-linux.${{ matrix.check }}" \
@@ -165,11 +160,6 @@ jobs:
           name: nix-community
           pushFilter: "-"
 
-      - uses: cachix/cachix-action@v14
-        with:
-          name: cuda-maintainers
-          pushFilter: "-"
-
       - name: Build ${{ matrix.check }}
         run: |
           nix build .#checks.x86_64-linux.${{ matrix.check }} \
@@ -219,11 +209,6 @@ jobs:
       - uses: cachix/cachix-action@v14
         with:
           name: nix-community
-          pushFilter: "-"
-
-      - uses: cachix/cachix-action@v14
-        with:
-          name: cuda-maintainers
           pushFilter: "-"
 
       - run: nix flake check --print-build-logs
@@ -314,13 +299,6 @@ jobs:
         uses: cachix/cachix-action@v14
         with:
           name: nix-community
-          pushFilter: "-"
-
-      # Pull from cuda-maintainers cache (legacy, still has packages)
-      - name: Configure Cachix (cuda-maintainers)
-        uses: cachix/cachix-action@v14
-        with:
-          name: cuda-maintainers
           pushFilter: "-"
 
       - name: Free disk space
