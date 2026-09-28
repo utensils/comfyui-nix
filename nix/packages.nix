@@ -781,6 +781,12 @@ let
         # with a system CUDA toolkit can export these before launch.
         # See: https://github.com/utensils/comfyui-nix/issues/60
         export TRITON_PTXAS_PATH="''${TRITON_PTXAS_PATH:-${cudaPackages.cuda_nvcc}/bin/ptxas}"
+        # For sm_100 and newer (Blackwell) Triton uses a separate `ptxas-blackwell`
+        # binary from TRITON_PTXAS_BLACKWELL_PATH and never falls back to
+        # TRITON_PTXAS_PATH. Without it every Triton kernel fails on Blackwell GPUs
+        # with "Cannot find ptxas-blackwell". The CUDA 13 ptxas already supports
+        # these architectures, so reuse it.
+        export TRITON_PTXAS_BLACKWELL_PATH="''${TRITON_PTXAS_BLACKWELL_PATH:-${cudaPackages.cuda_nvcc}/bin/ptxas}"
         export TRITON_LIBDEVICE_PATH="''${TRITON_LIBDEVICE_PATH:-${cudaPackages.cuda_nvcc}/nvvm/libdevice/libdevice.10.bc}"
         export TRITON_CUDACRT_PATH="''${TRITON_CUDACRT_PATH:-${cudaPackages.cuda_cudart}/include}"
         export TRITON_CUDART_PATH="''${TRITON_CUDART_PATH:-${cudaPackages.cuda_cudart}/include}"
