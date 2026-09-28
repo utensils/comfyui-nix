@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#92](https://github.com/utensils/comfyui-nix/issues/92))
 
 ### Fixed
+- CUDA builds point Triton's `TRITON_PTXAS_BLACKWELL_PATH` at the bundled CUDA
+  13 `ptxas`. Triton looks up a separate `ptxas-blackwell` for sm_100 and newer
+  architectures, so every Triton kernel failed on Blackwell GPUs with
+  `Cannot find ptxas-blackwell`. Since v0.37.0 text encoding also runs through
+  Triton when the comfy-kitchen Triton backend is enabled, which made image
+  generation fail as well.
 - Apple Silicon comfy-kitchen operators use list annotations supported by
   PyTorch 2.5.1, preventing an import failure during operator registration.
 - Apple Silicon PyTorch shared-memory helpers close inherited resource-tracker
