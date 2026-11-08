@@ -353,6 +353,12 @@
               self.packages.${final.stdenv.hostPlatform.system}.rocm
             else
               throw "comfy-ui-rocm is only available on x86_64 Linux";
+          # ROCm 7.2 variant (x86_64 Linux only) - the gfx1151 (Strix Halo) path
+          comfy-ui-rocm72 =
+            if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then
+              self.packages.${final.stdenv.hostPlatform.system}.rocm72
+            else
+              throw "comfy-ui-rocm72 is only available on x86_64 Linux";
           # Intel XPU variant (x86_64 Linux only) - pre-built wheels from pytorch.org/whl/xpu
           comfy-ui-xpu =
             if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then

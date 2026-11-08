@@ -376,6 +376,11 @@ let
               if [[ -d "/run/opengl-driver/lib" ]]; then
                 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/run/opengl-driver/lib"
               fi
+
+              # The rocprofiler-register bundled in torch/lib races with HIP's env
+              # init and SEGVs in hipLaunchKernel_validate under multithreaded first
+              # launches (ROCm/rocm-systems#10196). A user-set value still wins.
+              export ROCPROFILER_REGISTER_ENABLED="''${ROCPROFILER_REGISTER_ENABLED:-0}"
             ''
           else
             ''
