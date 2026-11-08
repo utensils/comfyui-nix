@@ -39,6 +39,18 @@ let
       resolvePackage.withExtraPythonPackages cfg.extraPythonPackages
     else
       cfg.package;
+  # ComfyUI's attention flags are mutually exclusive (argparse group); don't add
+  # ours when the user already picked one via extraArgs.
+  hasAttentionFlag = lib.any (
+    arg:
+    lib.elem arg [
+      "--use-split-cross-attention"
+      "--use-quad-cross-attention"
+      "--use-pytorch-cross-attention"
+      "--use-sage-attention"
+      "--use-flash-attention"
+    ]
+  ) cfg.extraArgs;
   args = [
     "--listen"
     cfg.listenAddress
@@ -48,7 +60,9 @@ let
     cfg.dataDir
   ]
   ++ lib.optional cfg.enableManager "--enable-manager"
-  ++ lib.optionals (useRocm && cfg.rocmUsePyTorchAttention) [ "--use-pytorch-cross-attention" ]
+  ++ lib.optionals (useRocm && cfg.rocmUsePyTorchAttention && !hasAttentionFlag) [
+    "--use-pytorch-cross-attention"
+  ]
   ++ cfg.extraArgs;
   # The launcher reads COMFY_SKIP_BUNDLED_NODES; cfg.environment still wins so a
   # user can override it explicitly.
@@ -182,7 +196,8 @@ in
 
     rocmUsePyTorchAttention = lib.mkOption {
       type = lib.types.bool;
-      default = true;
+      default = cfg.rocmChannel == "rocm72";
+      defaultText = lib.literalExpression ''rocmChannel == "rocm72"'';
       description = ''
         When `gpuSupport = "rocm"`, pass `--use-pytorch-cross-attention` so
         ComfyUI uses PyTorch's native `scaled_dot_product_attention` instead of
@@ -190,8 +205,10 @@ in
         AMD ISA — notably gfx1151 (Strix Halo) ships no `ckF` kernels, so the
         default xformers path raises "No operator found for
         memory_efficient_attention_forward". PyTorch SDPA ships ROCm flash /
-        memory-efficient kernels that cover these GPUs. Set to `false` to use
-        xformers (e.g. on gfx1100 where its kernels are available).
+        memory-efficient kernels that cover these GPUs. Defaults to
+        on only for `rocmChannel = "rocm72"` so existing rocm71 setups are
+        unchanged. Skipped automatically if `extraArgs` already contains an
+        attention flag (they are mutually exclusive in ComfyUI).
 
         Has no effect unless `gpuSupport = "rocm"`.
       '';
@@ -248,6 +265,7 @@ in
         default = pkgs.comfy-ui;
         cuda = pkgs.comfy-ui-cuda;
         rocm = pkgs.comfy-ui-rocm;
+        rocm72 = pkgs.comfy-ui-rocm72;
         xpu = pkgs.comfy-ui-xpu;
       };
       defaultText = lib.literalMD ''
