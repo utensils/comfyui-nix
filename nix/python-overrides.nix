@@ -2,6 +2,7 @@
   pkgs,
   versions,
   gpuSupport ? "none", # "none", "cuda", "rocm", "xpu"
+  rocmChannel ? "rocm71", # when gpuSupport="rocm": which pytorchWheels entry ("rocm71" | "rocm72")
 }:
 let
   lib = pkgs.lib;
@@ -19,9 +20,11 @@ let
   # CUDA runtime libraries are supplied by nixpkgs, so no separate toolkit is needed at runtime
   cudaWheels = versions.pytorchWheels.cu130;
 
-  # Pre-built PyTorch ROCm wheels from pytorch.org
-  # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time)
-  rocmWheels = versions.pytorchWheels.rocm71;
+  # Pre-built PyTorch ROCm wheels from pytorch.org.
+  # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time).
+  # `rocmChannel` selects the wheel set: "rocm71" or "rocm72" (the gfx1151 /
+  # Strix Halo path). See versions.nix.
+  rocmWheels = versions.pytorchWheels.${rocmChannel};
 
   # Pre-built PyTorch XPU wheels from pytorch.org (Intel oneAPI / SYCL)
   # Unlike CUDA/ROCm, the XPU torch wheel does NOT bundle its SYCL / MKL /
@@ -107,7 +110,8 @@ let
   );
 
   # ROCm libraries needed by PyTorch wheels (for auto-patchelf)
-  # The wheels bundle ROCm libraries internally; only compression libs are needed externally
+  # The stable rocm71/rocm72 wheels bundle the ROCm runtime internally; only
+  # compression libs are needed externally.
   rocmLibs = pkgs.lib.optionals useRocm (
     with pkgs;
     [

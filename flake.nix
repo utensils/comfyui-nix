@@ -94,11 +94,21 @@
           };
 
           pythonOverridesFor =
-            pkgs: gpuSupport: import ./nix/python-overrides.nix { inherit pkgs versions gpuSupport; };
+            pkgs: gpuSupport: rocmChannel:
+            import ./nix/python-overrides.nix {
+              inherit
+                pkgs
+                versions
+                gpuSupport
+                rocmChannel
+                ;
+            };
 
           mkPython =
             pkgs: gpuSupport:
-            pkgs.python312.override { packageOverrides = pythonOverridesFor pkgs gpuSupport; };
+            pkgs.python312.override {
+              packageOverrides = pythonOverridesFor pkgs gpuSupport "rocm71";
+            };
 
           mkPythonEnv =
             pkgs:
@@ -115,6 +125,7 @@
             pkgs:
             {
               gpuSupport ? "none",
+              rocmChannel ? "rocm71",
             }:
             import ./nix/packages.nix {
               inherit
@@ -123,7 +134,7 @@
                 gpuSupport
                 ;
               lib = pkgs.lib;
-              pythonOverrides = pythonOverridesFor pkgs gpuSupport;
+              pythonOverrides = pythonOverridesFor pkgs gpuSupport rocmChannel;
             };
 
           # Linux packages for Docker image cross-builds
@@ -139,6 +150,11 @@
           # CUDA uses pre-built wheels for all supported GPU architectures
           nativePackagesCuda = mkComfyPackages pkgs { gpuSupport = "cuda"; };
           nativePackagesRocm = mkComfyPackages pkgs { gpuSupport = "rocm"; };
+          # ROCm 7.2 — stable wheels; first stable whose HSA runtime runs gfx1151.
+          nativePackagesRocm72 = mkComfyPackages pkgs {
+            gpuSupport = "rocm";
+            rocmChannel = "rocm72";
+          };
           nativePackagesXpu = mkComfyPackages pkgs { gpuSupport = "xpu"; };
 
           pythonEnv = mkPythonEnv pkgs;
@@ -203,6 +219,8 @@
             cuda = nativePackagesCuda.default;
             dockerImageCuda = nativePackagesCuda.dockerImageCuda;
             rocm = nativePackagesRocm.default;
+            # ROCm 7.2 — stable wheels; the recommended gfx1151 (Strix Halo) path.
+            rocm72 = nativePackagesRocm72.default;
             dockerImageRocm = nativePackagesRocm.dockerImageRocm;
             # Intel XPU (oneAPI / SYCL) — pre-built wheels, Linux x86_64 only.
             # Targets Arc A/B series and Core Ultra iGPUs (Meteor Lake+).

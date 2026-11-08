@@ -25,7 +25,9 @@ let
     if useCuda then
       gpuPackage "cuda"
     else if useRocm then
-      gpuPackage "rocm"
+      # rocmChannel selects the wheel set: "rocm" (stable rocm71) or
+      # "rocm72" (stable rocm7.2 — the gfx1151 / Strix Halo path).
+      gpuPackage (if cfg.rocmChannel == "rocm72" then "rocm72" else "rocm")
     else if useXpu then
       gpuPackage "xpu"
     else
@@ -46,6 +48,7 @@ let
     cfg.dataDir
   ]
   ++ lib.optional cfg.enableManager "--enable-manager"
+  ++ lib.optionals (useRocm && cfg.rocmUsePyTorchAttention) [ "--use-pytorch-cross-attention" ]
   ++ cfg.extraArgs;
   # The launcher reads COMFY_SKIP_BUNDLED_NODES; cfg.environment still wins so a
   # user can override it explicitly.
@@ -152,6 +155,45 @@ in
 
         Not yet validated on real Intel hardware by the project maintainers —
         feedback welcome.
+      '';
+    };
+
+    rocmChannel = lib.mkOption {
+      type = lib.types.enum [
+        "rocm71"
+        "rocm72"
+      ];
+      default = "rocm71";
+      description = ''
+        When `gpuSupport = "rocm"`, selects which ROCm wheel set to use.
+
+        - `rocm71` (default): the stable ROCm 7.1 wheels from pytorch.org.
+        - `rocm72`: the stable ROCm 7.2 wheels from pytorch.org (torch 2.14.x).
+          Use this for gfx1151 (Strix Halo / Ryzen AI MAX 395): it is the
+          first STABLE release whose HSA runtime (Ext 1.15) + `gfx11-generic`
+          ISA target actually run on that iGPU. The rocm71 wheels ship the
+          gfx1151 code objects but the 7.1 HSA runtime SEGVs in QueueCreate
+          at the first kernel launch on gfx1151; 7.2 fixes it with
+          self-contained manylinux wheels.
+
+        Has no effect unless `gpuSupport = "rocm"`.
+      '';
+    };
+
+    rocmUsePyTorchAttention = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        When `gpuSupport = "rocm"`, pass `--use-pytorch-cross-attention` so
+        ComfyUI uses PyTorch's native `scaled_dot_product_attention` instead of
+        xformers. xformers' ROCm Composable-Kernel backend is not built for every
+        AMD ISA — notably gfx1151 (Strix Halo) ships no `ckF` kernels, so the
+        default xformers path raises "No operator found for
+        memory_efficient_attention_forward". PyTorch SDPA ships ROCm flash /
+        memory-efficient kernels that cover these GPUs. Set to `false` to use
+        xformers (e.g. on gfx1100 where its kernels are available).
+
+        Has no effect unless `gpuSupport = "rocm"`.
       '';
     };
 

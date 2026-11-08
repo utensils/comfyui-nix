@@ -235,6 +235,33 @@
         hash = "sha256-pUuMH2HeAbGrlGWJqgFYId0RCTVEcCJJ0gq6VpE8aLs=";
       };
     };
+    # Linux x86_64 ROCm 7.2
+    #
+    # WHY: ROCm 7.2 is the first STABLE release whose HSA runtime
+    # (Runtime Ext 1.15) + `gfx11-generic` ISA target actually run on
+    # gfx1151 (Strix Halo / Ryzen AI MAX 395). The rocm71 wheels above
+    # (torch 2.10.0) DO ship gfx1151 code objects, but the 7.1 HSA runtime
+    # SEGVs in QueueCreate at the very first kernel launch on this iGPU
+    # (verified on real hardware: halogen stopped, GTT free, firmware fixed —
+    # still crashes). 7.2 fixes it with self-contained manylinux wheels, so
+    # gfx1151 works on a STABLE channel — no nightly / TheRock runtime needed.
+    rocm72 = {
+      torch = {
+        version = "2.14.1";
+        url = "https://download.pytorch.org/whl/rocm7.2/torch-2.14.1%2Brocm7.2-cp312-cp312-manylinux_2_28_x86_64.whl";
+        hash = "sha256-/DXkj9gzKfXWCrkllR0Tjttab86EMjYAcDY3+8aTVBw=";
+      };
+      torchvision = {
+        version = "0.29.1";
+        url = "https://download.pytorch.org/whl/rocm7.2/torchvision-0.29.1%2Brocm7.2-cp312-cp312-manylinux_2_28_x86_64.whl";
+        hash = "sha256-wIfdLaVB6kQGTZVdmTy+jotS20NnR8xpDXxqBf8MuUs=";
+      };
+      torchaudio = {
+        version = "2.11.0";
+        url = "https://download.pytorch.org/whl/rocm7.2/torchaudio-2.11.0%2Brocm7.2-cp312-cp312-manylinux_2_28_x86_64.whl";
+        hash = "sha256-4DFtk4NGz6T/BLkUBakezFC9GHgQI+yldjt58Pe5vIw=";
+      };
+    };
     # Linux x86_64 Intel XPU (oneAPI / SYCL)
     # In-tree PyTorch XPU — no IPEX needed. Targets Arc A/B series and
     # Core Ultra (Meteor Lake+) iGPUs. Older Xe-LP iGPUs (UHD 770) are
