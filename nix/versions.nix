@@ -180,59 +180,71 @@
   # These avoid compiling PyTorch from source (which requires 30-60GB RAM)
   # CUDA wheels bundle CUDA libraries, so no separate CUDA toolkit needed at runtime
   # macOS wheels use PyTorch 2.5.1 to avoid MPS issues on macOS 26 (Tahoe)
+  #
+  # These wheels are built per interpreter.
+  # "{py}" in a URL stands for the interpreter tag of the Python selected in python.nix (e.g. "cp313"),
+  # and `hashes` holds one hash per tag.
+  # To move to another Python, add its hash here.
+  # python-overrides.nix resolves the rest.
   pytorchWheels = {
     # macOS Apple Silicon (arm64) - PyTorch 2.5.1 (2.9.x has MPS bugs on macOS 26)
     darwinArm64 = {
       torch = {
         version = "2.5.1";
-        url = "https://download.pytorch.org/whl/cpu/torch-2.5.1-cp312-none-macosx_11_0_arm64.whl";
-        hash = "sha256-jHEt9hEBlk6xGRCoRlFAEfC29ZIMVdv1Z7/4o0Fj1bE=";
+        url = "https://download.pytorch.org/whl/cpu/torch-2.5.1-{py}-none-macosx_11_0_arm64.whl";
+        hashes.cp312 = "sha256-jHEt9hEBlk6xGRCoRlFAEfC29ZIMVdv1Z7/4o0Fj1bE=";
       };
       torchvision = {
         version = "0.20.1";
-        url = "https://download.pytorch.org/whl/cpu/torchvision-0.20.1-cp312-cp312-macosx_11_0_arm64.whl";
-        hash = "sha256-GjElb/lF1k8Aa7MGgTp8laUx/ha/slNcg33UwQRTPXo=";
+        url = "https://download.pytorch.org/whl/cpu/torchvision-0.20.1-{py}-{py}-macosx_11_0_arm64.whl";
+        hashes.cp312 = "sha256-GjElb/lF1k8Aa7MGgTp8laUx/ha/slNcg33UwQRTPXo=";
       };
       torchaudio = {
         version = "2.5.1";
-        url = "https://download.pytorch.org/whl/cpu/torchaudio-2.5.1-cp312-cp312-macosx_11_0_arm64.whl";
-        hash = "sha256-8cv9/Ru9++conUenTzb/bF2HwyBWBiAv71p/tpP2HPA=";
+        url = "https://download.pytorch.org/whl/cpu/torchaudio-2.5.1-{py}-{py}-macosx_11_0_arm64.whl";
+        hashes.cp312 = "sha256-8cv9/Ru9++conUenTzb/bF2HwyBWBiAv71p/tpP2HPA=";
       };
     };
     # Linux x86_64 CUDA 13.0
     cu130 = {
       torch = {
         version = "2.10.0";
-        url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-hY8MvMeNcm/qlJnrNGT6qYOS+gk4RaMmIgm9Imt4RNY=";
+        url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-hY8MvMeNcm/qlJnrNGT6qYOS+gk4RaMmIgm9Imt4RNY=";
+        hashes.cp313 = "sha256-fg2ZIunpH3gLJ2GgxeusPBXJdAurBC4bWRSa+m1kdOs=";
       };
       torchvision = {
         version = "0.25.0";
-        url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-wvXjjwzVeieW5FA8DxM2XeugHbwWfvgg8L7sfKlvXy4=";
+        url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-wvXjjwzVeieW5FA8DxM2XeugHbwWfvgg8L7sfKlvXy4=";
+        hashes.cp313 = "sha256-6FM31Zvb9wBs0MdgEto2Y97VYG2txo9yKA2fKrHpGRo=";
       };
       torchaudio = {
         version = "2.10.0";
-        url = "https://download.pytorch.org/whl/cu130/torchaudio-2.10.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-7Vc+cxm6mm4Te0iV7d9Mn81CS7ThCmKSZ9ZLVazFf7s=";
+        url = "https://download.pytorch.org/whl/cu130/torchaudio-2.10.0%2Bcu130-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-7Vc+cxm6mm4Te0iV7d9Mn81CS7ThCmKSZ9ZLVazFf7s=";
+        hashes.cp313 = "sha256-ixwxw885dQ1HZ1K9ZQimz7G/rx1vDYhe195Kln7VLus=";
       };
     };
     # Linux x86_64 ROCm 7.1
     rocm71 = {
       torch = {
         version = "2.10.0";
-        url = "https://download.pytorch.org/whl/rocm7.1/torch-2.10.0%2Brocm7.1-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-AI7g13u4tfn07h8AISAZxGGRcePEGV3lbyUzMbO8Mg0=";
+        url = "https://download.pytorch.org/whl/rocm7.1/torch-2.10.0%2Brocm7.1-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-AI7g13u4tfn07h8AISAZxGGRcePEGV3lbyUzMbO8Mg0=";
+        hashes.cp313 = "sha256-PxiwbyM9SHG6qv24umYq5p/5HsEaob92ynbd4xtD6c0=";
       };
       torchvision = {
         version = "0.25.0";
-        url = "https://download.pytorch.org/whl/rocm7.1/torchvision-0.25.0%2Brocm7.1-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-iuo929t0gB0zdFd6ELPwTUmJfCet0jXLJTE99uZbGSk=";
+        url = "https://download.pytorch.org/whl/rocm7.1/torchvision-0.25.0%2Brocm7.1-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-iuo929t0gB0zdFd6ELPwTUmJfCet0jXLJTE99uZbGSk=";
+        hashes.cp313 = "sha256-VMBvKeIO+jZSLu3MWg+28DYn/w/yPMe+9G9xowQtsHQ=";
       };
       torchaudio = {
         version = "2.10.0";
-        url = "https://download.pytorch.org/whl/rocm7.1/torchaudio-2.10.0%2Brocm7.1-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-pUuMH2HeAbGrlGWJqgFYId0RCTVEcCJJ0gq6VpE8aLs=";
+        url = "https://download.pytorch.org/whl/rocm7.1/torchaudio-2.10.0%2Brocm7.1-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-pUuMH2HeAbGrlGWJqgFYId0RCTVEcCJJ0gq6VpE8aLs=";
+        hashes.cp313 = "sha256-OmI7RHzbLDuQ/deOz6+lE3gvD3HKlWEgAFG6fVBwS3Y=";
       };
     };
     # Linux x86_64 ROCm 7.2
@@ -248,18 +260,21 @@
     rocm72 = {
       torch = {
         version = "2.14.1";
-        url = "https://download.pytorch.org/whl/rocm7.2/torch-2.14.1%2Brocm7.2-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-/DXkj9gzKfXWCrkllR0Tjttab86EMjYAcDY3+8aTVBw=";
+        url = "https://download.pytorch.org/whl/rocm7.2/torch-2.14.1%2Brocm7.2-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-/DXkj9gzKfXWCrkllR0Tjttab86EMjYAcDY3+8aTVBw=";
+        hashes.cp313 = "sha256-u5dlN83aOOxV7RhFLK5636Y2op0WCbuOl/6OW2pSh3g=";
       };
       torchvision = {
         version = "0.29.1";
-        url = "https://download.pytorch.org/whl/rocm7.2/torchvision-0.29.1%2Brocm7.2-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-wIfdLaVB6kQGTZVdmTy+jotS20NnR8xpDXxqBf8MuUs=";
+        url = "https://download.pytorch.org/whl/rocm7.2/torchvision-0.29.1%2Brocm7.2-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-wIfdLaVB6kQGTZVdmTy+jotS20NnR8xpDXxqBf8MuUs=";
+        hashes.cp313 = "sha256-5ghqFc5kY2GY2UmnnxSnN/VAvFk3NgLC9Hmvs81aQGQ=";
       };
       torchaudio = {
         version = "2.11.0";
-        url = "https://download.pytorch.org/whl/rocm7.2/torchaudio-2.11.0%2Brocm7.2-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-4DFtk4NGz6T/BLkUBakezFC9GHgQI+yldjt58Pe5vIw=";
+        url = "https://download.pytorch.org/whl/rocm7.2/torchaudio-2.11.0%2Brocm7.2-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-4DFtk4NGz6T/BLkUBakezFC9GHgQI+yldjt58Pe5vIw=";
+        hashes.cp313 = "sha256-kijhxTTQTYD6e0YgX0SNqUf9BvVXO6hgLwQbUE7bNZY=";
       };
     };
     # Linux x86_64 Intel XPU (oneAPI / SYCL)
@@ -274,18 +289,21 @@
     xpu = {
       torch = {
         version = "2.10.0";
-        url = "https://download.pytorch.org/whl/xpu/torch-2.10.0%2Bxpu-cp312-cp312-linux_x86_64.whl";
-        hash = "sha256-tHNXHUeJEvkogcwT8V+hj4Rj+w+4oGjJbtR6fUWk2go=";
+        url = "https://download.pytorch.org/whl/xpu/torch-2.10.0%2Bxpu-{py}-{py}-linux_x86_64.whl";
+        hashes.cp312 = "sha256-tHNXHUeJEvkogcwT8V+hj4Rj+w+4oGjJbtR6fUWk2go=";
+        hashes.cp313 = "sha256-O8ZKdG/yWpPeFAkCxgyegZ10E/XOoeiNgJmcJ6WQHpw=";
       };
       torchvision = {
         version = "0.25.0";
-        url = "https://download.pytorch.org/whl/xpu/torchvision-0.25.0%2Bxpu-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-atJUNJa8KeWdPdYUqU0JqphwMYrttmBFNE//3f7dLPg=";
+        url = "https://download.pytorch.org/whl/xpu/torchvision-0.25.0%2Bxpu-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-atJUNJa8KeWdPdYUqU0JqphwMYrttmBFNE//3f7dLPg=";
+        hashes.cp313 = "sha256-gCafN4ZfzYtX8g5Hhu+uIgC/orJyeSbDx6zILw59NUg=";
       };
       torchaudio = {
         version = "2.10.0";
-        url = "https://download.pytorch.org/whl/xpu/torchaudio-2.10.0%2Bxpu-cp312-cp312-manylinux_2_28_x86_64.whl";
-        hash = "sha256-oD/un3Hi9OZC/P8vaokN6kYwm7cGrahDr40K5CBa4p8=";
+        url = "https://download.pytorch.org/whl/xpu/torchaudio-2.10.0%2Bxpu-{py}-{py}-manylinux_2_28_x86_64.whl";
+        hashes.cp312 = "sha256-oD/un3Hi9OZC/P8vaokN6kYwm7cGrahDr40K5CBa4p8=";
+        hashes.cp313 = "sha256-KWSjQHSaW5UeRT1ew+z0l7DDPfKdktCbmPHF/Bf4u2k=";
       };
     };
   };
@@ -402,8 +420,9 @@
     };
     triton-xpu = {
       version = "3.6.0";
-      url = "https://download.pytorch.org/whl/triton_xpu-3.6.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl";
-      hash = "sha256-e6neluXTZAC5lrn7nrOEQxlkU678Efr+GnuyJrxfuLs=";
+      url = "https://download.pytorch.org/whl/triton_xpu-3.6.0-{py}-{py}-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl";
+      hashes.cp312 = "sha256-e6neluXTZAC5lrn7nrOEQxlkU678Efr+GnuyJrxfuLs=";
+      hashes.cp313 = "sha256-b2i0GTEJkACA6I8I7jXV/ifboM91BOu+7HS/6sBmrJU=";
     };
   };
 

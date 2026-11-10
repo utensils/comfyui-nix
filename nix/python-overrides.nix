@@ -11,27 +11,52 @@ let
   # Intel XPU wheels are Linux x86_64 only (no aarch64 upstream)
   useXpu =
     gpuSupport == "xpu" && pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isx86_64;
-  useDarwinArm64 = pkgs.stdenv.hostPlatform.isDarwin && pkgs.stdenv.hostPlatform.isAarch64;
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+  useDarwinArm64 = isDarwin && pkgs.stdenv.hostPlatform.isAarch64;
+  # Whether torch is one of the pre-built wheels below instead of nixpkgs' own build.
+  # Packages depending on torch are then rebuilt against it, running their test suites here.
+  wheelTorch = useCuda || useRocm || useXpu || useDarwinArm64;
   sentencepieceNoGperf = pkgs.sentencepiece.override { withGPerfTools = false; };
   cudaPackages = pkgs.cudaPackages_13;
+
+  # Interpreter tag of the Python selected in python.nix, e.g. "cp313".
+  pythonTag =
+    "cp" + lib.replaceStrings [ "." ] [ "" ] (import ./python.nix { inherit pkgs; }).pythonVersion;
+
+  # Interpreter-specific wheels are pinned in versions.nix as a URL template plus one hash per tag,
+  # where "{py}" in the URL stands for the interpreter tag.
+  # Resolve a pin to the plain { url, hash } pair for the selected Python.
+  # Evaluation fails with a pointer to versions.nix when the hash for that tag is missing,
+  # which is the only thing a Python bump has to add.
+  resolveWheel =
+    name: spec:
+    spec
+    // {
+      url = lib.replaceStrings [ "{py}" ] [ pythonTag ] spec.url;
+      hash =
+        spec.hashes.${pythonTag}
+          or (throw "nix/versions.nix: no ${pythonTag} hash pinned for ${name} ${spec.version}");
+    };
+  resolveWheels = lib.mapAttrs resolveWheel;
 
   # Pre-built PyTorch CUDA wheels from pytorch.org
   # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time)
   # CUDA runtime libraries are supplied by nixpkgs, so no separate toolkit is needed at runtime
-  cudaWheels = versions.pytorchWheels.cu130;
+  cudaWheels = resolveWheels versions.pytorchWheels.cu130;
 
   # Pre-built PyTorch ROCm wheels from pytorch.org.
   # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time).
   # `rocmChannel` selects the wheel set: "rocm71" or "rocm72" (the gfx1151 /
   # Strix Halo path). See versions.nix.
-  rocmWheels = versions.pytorchWheels.${rocmChannel};
+  rocmWheels = resolveWheels versions.pytorchWheels.${rocmChannel};
 
   # Pre-built PyTorch XPU wheels from pytorch.org (Intel oneAPI / SYCL)
   # Unlike CUDA/ROCm, the XPU torch wheel does NOT bundle its SYCL / MKL /
   # Intel compiler runtimes — they ship as ~20 separate PyPI wheels declared
   # in Requires-Dist. All pinned in versions.xpuRuntime and packaged below.
   # Host still provides Level Zero loader + Intel compute-runtime at runtime.
-  xpuWheels = versions.pytorchWheels.xpu;
+  xpuWheels = resolveWheels versions.pytorchWheels.xpu;
+  tritonXpuWheel = resolveWheel "triton-xpu" versions.xpuRuntime.triton-xpu;
 
   # Ignore-list for deps neither the wheels nor nixpkgs provide.
   # Intel wheel-to-wheel SONAME refs are resolved via cross-wheel buildInputs
@@ -64,7 +89,7 @@ let
   # Pre-built PyTorch wheels for macOS Apple Silicon
   # PyTorch 2.5.1 is used instead of 2.9.x due to MPS bugs on macOS 26 (Tahoe)
   # See: https://github.com/pytorch/pytorch/issues/167679
-  darwinWheels = versions.pytorchWheels.darwinArm64;
+  darwinWheels = resolveWheels versions.pytorchWheels.darwinArm64;
 
   # Common build inputs for PyTorch wheels (manylinux compatibility)
   wheelBuildInputs = [
@@ -606,11 +631,10 @@ lib.optionalAttrs useCuda {
     # to nixpkgs' non-XPU triton or fails at dynamo compile time.
     tritonXpu = final.buildPythonPackage {
       pname = "triton";
-      version = versions.xpuRuntime.triton-xpu.version;
+      version = tritonXpuWheel.version;
       format = "wheel";
       src = pkgs.fetchurl {
-        url = versions.xpuRuntime.triton-xpu.url;
-        hash = versions.xpuRuntime.triton-xpu.hash;
+        inherit (tritonXpuWheel) url hash;
       };
       dontBuild = true;
       dontConfigure = true;
@@ -889,12 +913,98 @@ lib.optionalAttrs useCuda {
 # Note: When useCuda=true, torch/torchvision/torchaudio are replaced with pre-built wheels
 # above. Packages that depend on torch (kornia, accelerate, etc.) will automatically
 # use our wheel-based torch via final.torch since we've overridden it in the overlay.
-// lib.optionalAttrs (pkgs.stdenv.hostPlatform.isDarwin && prev ? sentencepiece) {
-  sentencepiece = prev.sentencepiece.overridePythonAttrs (old: {
-    buildInputs = [ sentencepieceNoGperf.dev ];
-    nativeBuildInputs = old.nativeBuildInputs or [ ];
-  });
-}
+# Overrides that only Darwin needs, limited to the packages the pinned nixpkgs has.
+#
+# Most of them work around test suites.
+# Darwin runs Python 3.12, whose package set is not in the binary cache, so everything is built from source there.
+# Linux runs nixpkgs' default Python,
+# where the same packages come from the binary cache or build and pass their tests unmodified.
+// lib.optionalAttrs isDarwin (
+  lib.filterAttrs (name: _: prev ? ${name}) {
+    sentencepiece = prev.sentencepiece.overridePythonAttrs (old: {
+      buildInputs = [ sentencepieceNoGperf.dev ];
+      nativeBuildInputs = old.nativeBuildInputs or [ ];
+    });
+
+    # Disable tests for open-clip-torch (they hang waiting for model downloads)
+    open-clip-torch = prev.open-clip-torch.overridePythonAttrs (_old: {
+      doCheck = false;
+    });
+
+    # Fix torchmetrics build: nixpkgs torchmetrics doesn't declare setuptools as a build backend
+    # dependency, so PEP517 build fails with "Cannot import 'setuptools.build_meta'".
+    torchmetrics = prev.torchmetrics.overridePythonAttrs (old: {
+      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+        final.setuptools
+        final.wheel
+      ];
+    });
+
+    # inline-snapshot 0.34.2 fails three of its own documentation tests on the
+    # pinned nixpkgs (they assert formatter output that has since changed) and is
+    # not in the binary cache, so it gets built from source. It reaches us only as
+    # a test helper in fastapi's checkInputs, where its own doc tests say nothing
+    # about whether it works. Without this, fastapi and everything downstream of
+    # it (openai, openapi-core, sqlframe) cannot build.
+    inline-snapshot = prev.inline-snapshot.overridePythonAttrs (_old: {
+      doCheck = false;
+    });
+
+    # backrefs' test_timeout asserts that a regex operation exceeds a wall-clock
+    # timeout, which does not hold on every builder: it passes locally but fails
+    # on CI runners with "DID NOT RAISE TimeoutError". backrefs is not in the
+    # binary cache on the pinned nixpkgs, so it is built from source and the flake
+    # test runs. It reaches us transitively through einops' check inputs, and the
+    # failure cascades all the way up to pyright-check.
+    backrefs = prev.backrefs.overridePythonAttrs (old: {
+      disabledTests = (old.disabledTests or [ ]) ++ [ "test_timeout" ];
+    });
+
+    # These asynchronous kernel-disconnect tests are sensitive to load in the Nix
+    # sandbox: orphan cleanup can miss its deadline, which also makes the companion
+    # file-descriptor assertion report the sockets that are still being cleaned up.
+    # jupyter-server reaches us through einops' check inputs, like backrefs above.
+    jupyter-server = prev.jupyter-server.overridePythonAttrs (old: {
+      disabledTests = (old.disabledTests or [ ]) ++ [
+        "test_no_fd_leak_on_disconnect_with_orphaned_kernel_info_channel"
+        "test_disconnect_resolves_orphaned_kernel_info_future"
+      ];
+    });
+
+    # This dataset utility test downloads fixture archives from GitHub.
+    ultralytics = prev.ultralytics.overridePythonAttrs (old: {
+      disabledTests = (old.disabledTests or [ ]) ++ [ "test_data_utils" ];
+    });
+
+    # Isolate Valkey's Redis test server from existing services on Darwin hosts.
+    valkey = prev.valkey.overridePythonAttrs (old: {
+      # Darwin builds share the host's ports. The Redis test hook otherwise
+      # retries forever when an existing service occupies its default port 6379.
+      preCheck = (old.preCheck or "") + ''
+        redisTestPort="$(${final.python.interpreter} - <<'PY'
+        import socket
+        with socket.socket() as server:
+            server.bind(("127.0.0.1", 0))
+            print(server.getsockname()[1])
+        PY
+        )"
+        pytestFlagsArray+=("--valkey-url=valkey://127.0.0.1:$redisTestPort/0")
+      '';
+    });
+
+    # mss runs screenshot tests through a virtual X server. They are not relevant
+    # to ComfyUI's runtime dependency closure and can fail in a headless Nix build
+    # sandbox. Remove this override once nixpkgs' mss checks are sandbox-independent.
+    mss = prev.mss.overridePythonAttrs (_old: {
+      doCheck = false;
+    });
+
+    # Disable filterpy tests on Darwin (test_hinfinity triggers BPT trap in pytest)
+    filterpy = prev.filterpy.overridePythonAttrs (_old: {
+      doCheck = false;
+    });
+  }
+)
 # Note: On Darwin, av uses ffmpeg 7.x and torchaudio uses ffmpeg 6.x.
 # These versions are mutually incompatible for building. The resulting runtime
 # warning about duplicate Objective-C classes is harmless in practice.
@@ -902,30 +1012,40 @@ lib.optionalAttrs useCuda {
 # Override av (PyAV) to use pre-built wheel for comfy_api_nodes compatibility
 # Using wheels avoids FFmpeg version issues (wheels bundle their own FFmpeg)
 # This fixes build failures when nixpkgs has FFmpeg 8.x (AVFMT_ALLOW_FLUSH removed)
+#
+# Keep this at 17.0.1 or newer.
+# With the 17.0.0 wheel on Python 3.13,
+# imageio's test_lagging_video_stream fails the build every time:
+# a forked child that runs gc.collect() after a video was read never returns.
+# 17.0.1 passes it.
+#
+# The bundled FFmpeg also keeps av independent of the caller's LD_LIBRARY_PATH.
+# nixpkgs' av links the system FFmpeg, which loads libasound,
+# and a libasound from a newer host glibc on LD_LIBRARY_PATH breaks `import av` at startup.
 // lib.optionalAttrs (prev ? av) {
   av =
     let
-      # Use platform-specific abi3 wheels from PyPI (av 17.0.0, Python 3.12)
+      # Use platform-specific abi3 wheels from PyPI (av 17.0.1; cp311-abi3, so any Python >= 3.11)
       wheelSrc =
         if pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isx86_64 then
           pkgs.fetchurl {
-            url = "https://files.pythonhosted.org/packages/d2/59/d19bc3257dd985d55337d7f0414c019414b97e16cd3690ebf9941a847543/av-17.0.0-cp311-abi3-manylinux_2_28_x86_64.whl";
-            hash = "sha256-EGDLqF+X9KM3MRFp2SwLXhQ0Us+lyg5l+kmdeVXoWS4=";
+            url = "https://files.pythonhosted.org/packages/02/28/167b291356c2cc315a2d62a95b0ceace72b5b0bf547de30b89313110f032/av-17.0.1-cp311-abi3-manylinux_2_28_x86_64.whl";
+            hash = "sha256-xYxxv/2Tg5CMhWlaxh0xhMZorMsEpb0bJi4PuNCfYKU=";
           }
         else if pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isAarch64 then
           pkgs.fetchurl {
-            url = "https://files.pythonhosted.org/packages/00/c0/637721f3cd5bb8bd16105a1a08efd781fc12f449931bdb3a4d0cfd63fa55/av-17.0.0-cp311-abi3-manylinux_2_28_aarch64.whl";
-            hash = "sha256-tEDaasR9oGKdUJMW8kvNhY8zFY290PG3KT1x6ZvrJt4=";
+            url = "https://files.pythonhosted.org/packages/a8/8b/8de3fd21c4b0b74d44337421abeab0e71462337fb6a28fff888e0c356cbd/av-17.0.1-cp311-abi3-manylinux_2_28_aarch64.whl";
+            hash = "sha256-5u7oSvpI0OkyEEfNPk+s1EtAFJP2vcdT4uHR58nm0T4=";
           }
         else if pkgs.stdenv.hostPlatform.isDarwin && pkgs.stdenv.hostPlatform.isx86_64 then
           pkgs.fetchurl {
-            url = "https://files.pythonhosted.org/packages/b1/fb/55e3b5b5d1fc61466292f26fbcbabafa2642f378dc48875f8f554591e1a4/av-17.0.0-cp311-abi3-macosx_11_0_x86_64.whl";
-            hash = "sha256-7UAT+sd8MJpKaBQdz2FI8YIbsQc6NtQok3l2KmNy9xE=";
+            url = "https://files.pythonhosted.org/packages/4c/82/e7007dcef7bd2d2c377e2e85977701384f42d19fc808c2ccb3a99eaf58f2/av-17.0.1-cp311-abi3-macosx_11_0_x86_64.whl";
+            hash = "sha256-mH9PRs6uTabGFNy9K4FJvp2/aAw7t6aEHFivnP9NkjA=";
           }
         else if pkgs.stdenv.hostPlatform.isDarwin && pkgs.stdenv.hostPlatform.isAarch64 then
           pkgs.fetchurl {
-            url = "https://files.pythonhosted.org/packages/52/03/9ace1acc08bc9ae38c14bf3a4b1360e995e4d999d1d33c2cbd7c9e77582a/av-17.0.0-cp311-abi3-macosx_14_0_arm64.whl";
-            hash = "sha256-5Etsg+nzvp957ofQt3onzqmpzWe9YwNiyGt+VqdI37s=";
+            url = "https://files.pythonhosted.org/packages/6b/aa/858b09a08ea6f83f91be44b5a5adad13ae8d9ac8b80fda27e73c24bfb160/av-17.0.1-cp311-abi3-macosx_14_0_arm64.whl";
+            hash = "sha256-2X9U5VsYp0kS9HnBl4qt0TQdONiS3ulbtcLy3M+nLzI=";
           }
         else
           # Fallback to source build for unsupported platforms
@@ -934,7 +1054,7 @@ lib.optionalAttrs useCuda {
     if wheelSrc != null then
       final.buildPythonPackage {
         pname = "av";
-        version = "17.0.0";
+        version = "17.0.1";
         format = "wheel";
         src = wheelSrc;
         # Wheel contains bundled FFmpeg libraries
@@ -955,68 +1075,6 @@ lib.optionalAttrs useCuda {
       prev.av;
 }
 
-# Disable tests for open-clip-torch (they hang waiting for model downloads)
-// lib.optionalAttrs (prev ? open-clip-torch) {
-  open-clip-torch = prev.open-clip-torch.overridePythonAttrs (old: {
-    doCheck = false;
-  });
-}
-
-# Disable tests for albumentations (very slow test suite, well-tested upstream)
-// lib.optionalAttrs (prev ? albumentations) {
-  albumentations = prev.albumentations.overridePythonAttrs (old: {
-    doCheck = false;
-  });
-}
-
-# Fix torchmetrics build: nixpkgs torchmetrics doesn't declare setuptools as a build backend
-# dependency, so PEP517 build fails with "Cannot import 'setuptools.build_meta'".
-// lib.optionalAttrs (prev ? torchmetrics) {
-  torchmetrics = prev.torchmetrics.overridePythonAttrs (old: {
-    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
-      final.setuptools
-      final.wheel
-    ];
-  });
-}
-
-# inline-snapshot 0.34.2 fails three of its own documentation tests on the
-# pinned nixpkgs (they assert formatter output that has since changed) and is
-# not in the binary cache, so it gets built from source. It reaches us only as
-# a test helper in fastapi's checkInputs, where its own doc tests say nothing
-# about whether it works. Without this, fastapi and everything downstream of
-# it (openai, openapi-core, sqlframe) cannot build.
-// lib.optionalAttrs (prev ? inline-snapshot) {
-  inline-snapshot = prev.inline-snapshot.overridePythonAttrs (_old: {
-    doCheck = false;
-  });
-}
-
-# backrefs' test_timeout asserts that a regex operation exceeds a wall-clock
-# timeout, which does not hold on every builder: it passes locally but fails
-# on CI runners with "DID NOT RAISE TimeoutError". backrefs is not in the
-# binary cache on the pinned nixpkgs, so it is built from source and the flake
-# test runs. It reaches us transitively through einops' check inputs, and the
-# failure cascades all the way up to pyright-check.
-// lib.optionalAttrs (prev ? backrefs) {
-  backrefs = prev.backrefs.overridePythonAttrs (old: {
-    disabledTests = (old.disabledTests or [ ]) ++ [ "test_timeout" ];
-  });
-}
-
-# These asynchronous kernel-disconnect tests are sensitive to load in the Nix
-# sandbox: orphan cleanup can miss its deadline, which also makes the companion
-# file-descriptor assertion report the sockets that are still being cleaned up.
-# jupyter-server reaches us through einops' check inputs, like backrefs above.
-// lib.optionalAttrs (prev ? jupyter-server) {
-  jupyter-server = prev.jupyter-server.overridePythonAttrs (old: {
-    disabledTests = (old.disabledTests or [ ]) ++ [
-      "test_no_fd_leak_on_disconnect_with_orphaned_kernel_info_channel"
-      "test_disconnect_resolves_orphaned_kernel_info_future"
-    ];
-  });
-}
-
 # Keep accelerate's tests compatible with our platform-specific torch wheels.
 // lib.optionalAttrs (prev ? accelerate) {
   accelerate = prev.accelerate.overridePythonAttrs (old: {
@@ -1030,34 +1088,9 @@ lib.optionalAttrs useCuda {
   });
 }
 
-# This dataset utility test downloads fixture archives from GitHub. Disable it
-# on every platform so uncached builds also work without sandbox networking.
-// lib.optionalAttrs (prev ? ultralytics) {
-  ultralytics = prev.ultralytics.overridePythonAttrs (old: {
-    disabledTests = (old.disabledTests or [ ]) ++ [ "test_data_utils" ];
-  });
-}
-
-# Isolate Valkey's Redis test server from existing services on Darwin hosts.
-// lib.optionalAttrs (pkgs.stdenv.hostPlatform.isDarwin && prev ? valkey) {
-  valkey = prev.valkey.overridePythonAttrs (old: {
-    # Darwin builds share the host's ports. The Redis test hook otherwise
-    # retries forever when an existing service occupies its default port 6379.
-    preCheck = (old.preCheck or "") + ''
-      redisTestPort="$(${final.python.interpreter} - <<'PY'
-      import socket
-      with socket.socket() as server:
-          server.bind(("127.0.0.1", 0))
-          print(server.getsockname()[1])
-      PY
-      )"
-      pytestFlagsArray+=("--valkey-url=valkey://127.0.0.1:$redisTestPort/0")
-    '';
-  });
-}
-
-# Disable failing timm test (torch dynamo/inductor test needs setuptools at runtime)
-// lib.optionalAttrs (prev ? timm) {
+# Disable failing timm test (torch dynamo/inductor cannot compile in the Nix sandbox)
+# Only where torch comes from a wheel: against nixpkgs' own torch, timm comes from the binary cache.
+// lib.optionalAttrs (wheelTorch && prev ? timm) {
   timm = prev.timm.overridePythonAttrs (old: {
     disabledTests = (old.disabledTests or [ ]) ++ [ "test_kron" ];
     # test_optim needs setuptools at runtime (torch dynamo/inductor)
@@ -1088,15 +1121,6 @@ lib.optionalAttrs useCuda {
   });
 }
 
-# mss runs screenshot tests through a virtual X server. They are not relevant
-# to ComfyUI's runtime dependency closure and can fail in a headless Nix build
-# sandbox. Remove this override once nixpkgs' mss checks are sandbox-independent.
-// lib.optionalAttrs (prev ? mss) {
-  mss = prev.mss.overridePythonAttrs (_old: {
-    doCheck = false;
-  });
-}
-
 # torchsde's test suite costs ~3.5 minutes of every build of this flake, and it
 # is statistical rather than functional: test_normality_conditional asserts a
 # Kolmogorov-Smirnov p-value stays above 1e-5, so a borderline draw lands under
@@ -1104,23 +1128,12 @@ lib.optionalAttrs useCuda {
 # suite rather than just that test buys back the build time; pythonImportsCheck
 # still runs, and ComfyUI only uses torchsde's samplers.
 # See: https://github.com/utensils/comfyui-nix/issues/91
-// lib.optionalAttrs (prev ? torchsde) {
+#
+# Only where torch comes from a wheel: against nixpkgs' own torch,
+# torchsde comes from the binary cache and its suite never runs here.
+// lib.optionalAttrs (wheelTorch && prev ? torchsde) {
   torchsde = prev.torchsde.overridePythonAttrs (_old: {
     doCheck = false;
-  });
-}
-
-# Disable filterpy tests on Darwin (test_hinfinity triggers BPT trap in pytest)
-// lib.optionalAttrs (prev ? filterpy) {
-  filterpy = prev.filterpy.overridePythonAttrs (old: {
-    doCheck = if pkgs.stdenv.hostPlatform.isDarwin then false else (old.doCheck or true);
-  });
-}
-
-# Fix bitsandbytes build - needs ninja for wheel building phase
-// lib.optionalAttrs (prev ? bitsandbytes) {
-  bitsandbytes = prev.bitsandbytes.overridePythonAttrs (old: {
-    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final.ninja ];
   });
 }
 

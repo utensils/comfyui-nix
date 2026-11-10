@@ -81,7 +81,7 @@ let
     ];
   };
 
-  python = pkgs.python312.override { packageOverrides = pythonOverrides; };
+  python = (import ./python.nix { inherit pkgs; }).override { packageOverrides = pythonOverrides; };
 
   vendored = import ./vendored-packages.nix { inherit pkgs python versions; };
 
@@ -656,25 +656,41 @@ let
             # This allows both pip and uv to install packages to a writable location
             # while keeping the Nix store read-only
             VENV_DIR="$BASE_DIR/.venv"
-            SITE_PACKAGES="$VENV_DIR/lib/python3.12/site-packages"
+            SITE_PACKAGES="$VENV_DIR/lib/python${python.pythonVersion}/site-packages"
             mkdir -p "$SITE_PACKAGES"
             mkdir -p "$VENV_DIR/bin"
 
-            # Create pyvenv.cfg if it doesn't exist (required for PEP 405 compliance)
-            if [[ ! -e "$VENV_DIR/pyvenv.cfg" ]]; then
-              cat > "$VENV_DIR/pyvenv.cfg" << PYVENV
+            # Packages are installed per Python minor version,
+            # so anything the Manager installed under a previous interpreter is no longer on sys.path.
+            # Say so instead of letting nodes fail with a bare ImportError.
+            for old_site in "$VENV_DIR"/lib/python3.*/site-packages; do
+              if [[ -d "$old_site" && "$old_site" != "$SITE_PACKAGES" ]] \
+                && [[ -n "$(find "$old_site" -mindepth 1 -print -quit 2>/dev/null)" ]]; then
+                echo "Note: $old_site was populated by an older Python and is ignored by Python ${python.pythonVersion}."
+                echo "      Reinstall the affected custom node dependencies via ComfyUI-Manager, then remove that directory."
+              fi
+            done
+
+            # Write pyvenv.cfg (required for PEP 405 compliance).
+            # Rewritten on every start because it names the interpreter's store path and version,
+            # both of which change whenever the flake is updated.
+            cat > "$VENV_DIR/pyvenv.cfg" << PYVENV
       home = ${pythonRuntime}/bin
       include-system-site-packages = true
-      version = 3.12.9
+      version = ${python.version}
       PYVENV
-            fi
 
-            # Symlink Python executable into venv bin (some tools expect this)
-            if [[ ! -e "$VENV_DIR/bin/python" ]]; then
-              ln -sf "${pythonRuntime}/bin/python" "$VENV_DIR/bin/python"
-              ln -sf "${pythonRuntime}/bin/python3" "$VENV_DIR/bin/python3"
-              ln -sf "${pythonRuntime}/bin/python3.12" "$VENV_DIR/bin/python3.12"
-            fi
+            # Symlink Python executable into venv bin (some tools expect this).
+            # Refreshed on every start for the same reason as pyvenv.cfg,
+            # and links left behind by another Python minor version are dropped.
+            for old_link in "$VENV_DIR"/bin/python3.*; do
+              if [[ -L "$old_link" && "$old_link" != "$VENV_DIR/bin/python${python.pythonVersion}" ]]; then
+                rm -f "$old_link"
+              fi
+            done
+            ln -sfn "${pythonRuntime}/bin/python" "$VENV_DIR/bin/python"
+            ln -sfn "${pythonRuntime}/bin/python3" "$VENV_DIR/bin/python3"
+            ln -sfn "${pythonRuntime}/bin/python${python.pythonVersion}" "$VENV_DIR/bin/python${python.pythonVersion}"
 
             # Set VIRTUAL_ENV so uv installs to our mutable venv instead of Nix store
             export VIRTUAL_ENV="$VENV_DIR"

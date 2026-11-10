@@ -1,5 +1,5 @@
 {
-  description = "A Nix flake for ComfyUI with Python 3.12";
+  description = "A Nix flake for ComfyUI with Python 3.13";
 
   nixConfig = {
     extra-substituters = [
@@ -82,14 +82,12 @@
             system = "x86_64-linux";
             config = {
               allowUnfree = true;
-              allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
             };
           };
           pkgsLinuxArm64 = import nixpkgs {
             system = "aarch64-linux";
             config = {
               allowUnfree = true;
-              allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
             };
           };
 
@@ -106,7 +104,7 @@
 
           mkPython =
             pkgs: gpuSupport:
-            pkgs.python312.override {
+            (import ./nix/python.nix { inherit pkgs; }).override {
               packageOverrides = pythonOverridesFor pkgs gpuSupport "rocm71";
             };
 
@@ -194,7 +192,6 @@
             inherit system;
             config = {
               allowUnfree = true;
-              allowBrokenPredicate = pkg: (pkg.pname or "") == "open-clip-torch";
               # Keep the x86_64-only ROCm development shell evaluable on aarch64-linux.
               allowUnsupportedSystem = system == "aarch64-linux";
             };

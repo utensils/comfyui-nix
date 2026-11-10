@@ -54,6 +54,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#91](https://github.com/utensils/comfyui-nix/issues/91))
 
 ### Changed
+- Linux now runs on Python 3.13 (from 3.12),
+  the version upstream ComfyUI recommends and ships in its portable builds.
+  macOS stays on 3.12 because the pinned PyTorch 2.5.1 has no Python 3.13 wheel for macOS.
+  Packages that ComfyUI-Manager installed into `<data-dir>/.venv/lib/python3.12` are not visible to Python 3.13,
+  so the launcher prints a note asking to reinstall them.
+- PyTorch wheel pins in `nix/versions.nix` are now a URL template plus one hash per interpreter tag,
+  so moving to another Python only requires adding hashes.
+  The new `wheel-pins` check fails evaluation when a pin lacks the hash for the selected Python.
+- Updated the bundled PyAV wheel `17.0.0` -> `17.0.1`,
+  because `17.0.0` hangs imageio's fork regression test on Python 3.13.
+- Reduced the Python package overrides that Linux no longer needs on nixpkgs' default Python.
+  The overrides for open-clip-torch, torchmetrics, inline-snapshot, backrefs, jupyter-server, ultralytics, mss and filterpy
+  now apply to macOS only,
+  so on Linux those packages come from the binary cache or build with their test suites enabled.
+  The timm and torchsde overrides now apply only where PyTorch comes from a pre-built wheel.
+  The albumentations and bitsandbytes overrides and the `allowBrokenPredicate` for open-clip-torch are removed,
+  since nixpkgs dropped albumentations, already builds bitsandbytes with ninja,
+  and no longer marks open-clip-torch as broken.
 - Updated ComfyUI to upstream `v0.37.0` (from `v0.34.0`). Updated its pinned
   dependencies: frontend `1.49.6` -> `1.52.7`, workflow templates `0.11.48`
   -> `0.11.66` (core `0.3.322` -> `0.3.357`, JSON `0.1.57` -> `0.1.92`,

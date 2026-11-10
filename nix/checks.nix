@@ -197,7 +197,8 @@ let
         touch $out
       '';
   mssRuntimeDeps =
-    assert !pythonPackages.mss.doInstallCheck;
+    # The override that disables mss' tests only applies on Darwin.
+    assert pkgs.stdenv.hostPlatform.isDarwin -> !pythonPackages.mss.doInstallCheck;
     pythonPackages.mss;
   # Every backend's torch comes from a pre-built wheel whose metadata names
   # distributions nixpkgs supplies outside PyPI. Those requirements are dropped
@@ -276,6 +277,28 @@ let
   runtimeDepsChecks = pkgs.lib.mapAttrs' (
     name: package: pkgs.lib.nameValuePair "${name}-runtime-deps" package
   ) runtimeDepsPackages;
+  # Interpreter-specific wheel pins carry one hash per interpreter tag.
+  # Most backends are never built in a single check run,
+  # so find the pins that lack a hash for the selected Python by evaluation alone.
+  basePython = pythonFor "none";
+  pythonTag = "cp" + pkgs.lib.replaceStrings [ "." ] [ "" ] basePython.pythonVersion;
+  versions = import ./versions.nix;
+  wheelChannels =
+    if pkgs.stdenv.hostPlatform.isDarwin then
+      { inherit (versions.pytorchWheels) darwinArm64; }
+    else
+      removeAttrs versions.pytorchWheels [ "darwinArm64" ]
+      // {
+        xpuRuntime = { inherit (versions.xpuRuntime) triton-xpu; };
+      };
+  wheelPinsMissingHash = pkgs.lib.concatLists (
+    pkgs.lib.mapAttrsToList (
+      channel: wheels:
+      pkgs.lib.mapAttrsToList (name: _: "${channel}.${name}") (
+        pkgs.lib.filterAttrs (_: spec: !(spec.hashes ? ${pythonTag})) wheels
+      )
+    ) wheelChannels
+  );
 in
 {
   package = packages.default;
@@ -351,6 +374,12 @@ in
     }
 // runtimeDepsChecks
 // torchRuntimeDepsChecks
+// {
+  wheel-pins =
+    assert pkgs.lib.assertMsg (wheelPinsMissingHash == [ ])
+      "nix/versions.nix: no ${pythonTag} hash pinned for ${pkgs.lib.concatStringsSep ", " wheelPinsMissingHash}";
+    pkgs.runCommand "wheel-pins" { } "touch $out";
+}
 //
   pkgs.lib.optionalAttrs
     (
