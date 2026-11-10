@@ -1056,10 +1056,12 @@ lib.optionalAttrs useCuda {
   });
 }
 
-# Disable failing timm test (torch dynamo/inductor test needs setuptools at runtime)
+# timm's Kron optimizer tests go through torch.compile (dynamo/inductor)
 // lib.optionalAttrs (prev ? timm) {
   timm = prev.timm.overridePythonAttrs (old: {
-    disabledTests = (old.disabledTests or [ ]) ++ [ "test_kron" ];
+    # inductor hashes precompiled headers with `openssl sha512`; the torch wheels
+    # lack the nixpkgs patch that points it at an absolute openssl path
+    nativeCheckInputs = (old.nativeCheckInputs or [ ]) ++ [ pkgs.openssl ];
     # test_optim needs setuptools at runtime (torch dynamo/inductor)
     nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
       final.setuptools
