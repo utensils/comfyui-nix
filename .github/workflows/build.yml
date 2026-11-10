@@ -112,7 +112,7 @@ jobs:
         run: |
           nix build ".#checks.x86_64-linux.${{ matrix.check }}" \
             --no-link \
-            --print-build-logs --max-jobs 1 --cores 2
+            --print-build-logs
 
   # Realize the extended runtime for every backend so PRs cannot replace the
   # backend-specific Torch/NumPy stack or ship dependencies that fail to import.
@@ -163,7 +163,7 @@ jobs:
       - name: Build ${{ matrix.check }}
         run: |
           nix build .#checks.x86_64-linux.${{ matrix.check }} \
-            --print-build-logs --max-jobs 1 --cores 2
+            --print-build-logs
 
   # Full nix flake check (includes package build) — only on main/tags
   #
