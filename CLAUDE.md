@@ -43,7 +43,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `nixfmt`: Verify Nix formatting (nixfmt-rfc-style)
   - `shellcheck`: Lint shell scripts in `scripts/`
   - `package`: Full build of the default package
-- **Manual linting in dev shell** (`nix develop`):
+  - `wheel-pins`: Every interpreter-specific wheel pin in `nix/versions.nix` has a hash for the selected Python (evaluation only)- **Manual linting in dev shell** (`nix develop`):
   - `ruff check src/` — lint Python (or `ruff check src/path/to/file.py` for a single file)
   - `ruff format src/` — format Python (or `ruff format src/path/to/file.py`)
   - `pyright src/` — type-check Python (or `pyright src/path/to/file.py`)
@@ -57,7 +57,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Vendored wheels (spandrel, frontend, docs, etc.) also pinned in `nix/versions.nix`
 - Template input files: auto-generated in `nix/template-inputs.nix`
   - Update with: `./scripts/update-template-inputs.sh && git add nix/template-inputs.nix`
-- Python version: 3.12
+- Python version: 3.13 on Linux, 3.12 on macOS (torch 2.5.1 has no cp313 macOS wheel) — selected in `nix/python.nix`
 - PyTorch: macOS uses pre-built wheels (2.5.1, pinned to work around MPS bugs on macOS 26); CUDA uses pre-built wheels from pytorch.org (cu130); ROCm uses pre-built wheels from pytorch.org (rocm7.1); Intel XPU uses pre-built wheels from pytorch.org (xpu, oneAPI/SYCL — no IPEX); Linux CPU uses nixpkgs
 
 ## Project Architecture
@@ -91,7 +91,7 @@ Each module branches on this value to select platform-specific PyTorch wheels, r
 
 **XPU-specific notes** (Intel oneAPI / SYCL):
 
-- Wheel channel: `https://download.pytorch.org/whl/xpu` — `torch 2.10.0+xpu`, `torchvision 0.25.0+xpu`, `torchaudio 2.10.0+xpu` (cp312, Linux x86_64 only)
+- Wheel channel: `https://download.pytorch.org/whl/xpu` — `torch 2.10.0+xpu`, `torchvision 0.25.0+xpu`, `torchaudio 2.10.0+xpu` (cp313, Linux x86_64 only)
 - No IPEX required — ComfyUI uses `torch.xpu.is_available()` auto-detection
 - Host must provide Level Zero loader + Intel compute-runtime at runtime. The launcher prefers `/run/opengl-driver/lib` (NixOS `hardware.graphics.extraPackages`) and falls back to Nix-bundled `pkgs.level-zero` + `pkgs.intel-compute-runtime` + `pkgs.ocl-icd` for non-NixOS Linux
 - Runtime env vars set by launcher: `SYCL_CACHE_PERSISTENT=1`, `SYCL_CACHE_DIR=<data-dir>/.cache/libsycl_cache`. Opt-in: `COMFY_ENABLE_XPU_FP64_EMULATION=1` enables `OverrideDefaultFP64Settings` + `IGC_EnableDPEmulation` for iGPUs without native FP64

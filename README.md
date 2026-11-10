@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![NixOS](https://img.shields.io/badge/NixOS-unstable-blue.svg?logo=nixos)](https://nixos.org)
 
-A slightly opinionated, pure Nix flake for [ComfyUI] with Python 3.12 and curated custom nodes. Supports macOS (Apple Silicon) and Linux.
+A slightly opinionated, pure Nix flake for [ComfyUI] with Python 3.13 (3.12 on macOS) and curated custom nodes. Supports macOS (Apple Silicon) and Linux.
 
 <p align="center">
   <img src="comfyui-demo.gif" alt="ComfyUI Demo" />
@@ -645,7 +645,7 @@ nix run .#buildDockerXpu   # Intel XPU
 ## Development
 
 ```bash
-nix develop              # Dev shell with Python 3.12, ruff, pyright
+nix develop              # Dev shell with Python 3.13, ruff, pyright
 nix flake check          # Run all checks (build, lint, type-check, nixfmt)
 nix run .#update         # Check for ComfyUI updates
 ```
