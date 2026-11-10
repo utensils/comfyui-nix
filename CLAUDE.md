@@ -43,7 +43,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `nixfmt`: Verify Nix formatting (nixfmt-rfc-style)
   - `shellcheck`: Lint shell scripts in `scripts/`
   - `package`: Full build of the default package
-  - `wheel-pins`: Every interpreter-specific wheel pin in `nix/versions.nix` has a hash for the selected Python (evaluation only)- **Manual linting in dev shell** (`nix develop`):
+  - `wheel-pins`: Every interpreter-specific wheel pin in `nix/versions.nix` has a hash for the selected Python (evaluation only)
+- **Manual linting in dev shell** (`nix develop`):
   - `ruff check src/` — lint Python (or `ruff check src/path/to/file.py` for a single file)
   - `ruff format src/` — format Python (or `ruff format src/path/to/file.py`)
   - `pyright src/` — type-check Python (or `pyright src/path/to/file.py`)
