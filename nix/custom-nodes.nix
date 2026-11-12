@@ -347,6 +347,7 @@ let
         open-clip-torch
         accelerate
         ftfy
+        torchaudio
       ];
 
     meta = with lib; {
@@ -430,6 +431,7 @@ let
         opencv4
         scipy
         einops
+        torchaudio
       ];
 
     meta = with lib; {
