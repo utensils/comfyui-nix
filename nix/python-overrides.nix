@@ -1038,21 +1038,30 @@ lib.optionalAttrs useCuda {
   });
 }
 
-# Isolate Valkey's Redis test server from existing services on Darwin hosts.
-// lib.optionalAttrs (pkgs.stdenv.hostPlatform.isDarwin && prev ? valkey) {
+# Valkey reaches us through narwhals' check inputs (sqlframe -> databricks ->
+# pybreaker -> fakeredis -> valkey), so it builds from source when uncached.
+// lib.optionalAttrs (prev ? valkey) {
   valkey = prev.valkey.overridePythonAttrs (old: {
+    # This connection-reset proxy test is timing-sensitive and hits the 30s
+    # pytest-timeout under sandbox load.
+    disabledTestPaths = (old.disabledTestPaths or [ ]) ++ [
+      "tests/test_asyncio/test_cwe_404.py::test_standalone_pipeline"
+    ];
     # Darwin builds share the host's ports. The Redis test hook otherwise
-    # retries forever when an existing service occupies its default port 6379.
-    preCheck = (old.preCheck or "") + ''
-      redisTestPort="$(${final.python.interpreter} - <<'PY'
-      import socket
-      with socket.socket() as server:
-          server.bind(("127.0.0.1", 0))
-          print(server.getsockname()[1])
-      PY
-      )"
-      pytestFlagsArray+=("--valkey-url=valkey://127.0.0.1:$redisTestPort/0")
-    '';
+    # retries forever when an existing service occupies its default port 6379,
+    # so isolate Valkey's test server from existing services there.
+    preCheck =
+      (old.preCheck or "")
+      + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+        redisTestPort="$(${final.python.interpreter} - <<'PY'
+        import socket
+        with socket.socket() as server:
+            server.bind(("127.0.0.1", 0))
+            print(server.getsockname()[1])
+        PY
+        )"
+        pytestFlagsArray+=("--valkey-url=valkey://127.0.0.1:$redisTestPort/0")
+      '';
   });
 }
 
@@ -1065,6 +1074,10 @@ lib.optionalAttrs useCuda {
       final.setuptools
       final.wheel
     ];
+    # Inductor's codecache shells out to `openssl` to hash compiled kernels.
+    # nixpkgs' torch patches in a store path, but the pre-built CUDA/ROCm/XPU
+    # wheels look it up on PATH, which is empty in the check sandbox.
+    nativeCheckInputs = (old.nativeCheckInputs or [ ]) ++ [ pkgs.openssl ];
   });
 }
 

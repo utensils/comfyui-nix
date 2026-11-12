@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   avoiding a missing `which` executable in the build sandbox.
 - macOS dependency builds select an available port for Valkey's Redis test
   fixture, avoiding an infinite startup wait when a host service uses port 6379.
+- Uncached Valkey builds skip the timing-sensitive
+  `test_cwe_404.py::test_standalone_pipeline`, which hit pytest-timeout under
+  sandbox load and failed the whole build via narwhals' check inputs.
 - Apple Silicon builds no longer run Accelerate's FSDP2 parameter-mapping test
   against the intentionally pinned PyTorch 2.5.1, which lacks FSDP2 support.
   ([#105](https://github.com/utensils/comfyui-nix/issues/105))
@@ -54,6 +57,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#91](https://github.com/utensils/comfyui-nix/issues/91))
 
 ### Changed
+- Updated ComfyUI to upstream `v0.44.0` (from `v0.37.0`). Updated its pinned
+  dependencies: frontend `1.52.7` -> `1.57.6`, workflow templates `0.11.66`
+  -> `0.11.101` (core `0.3.357` -> `0.3.392`, JSON `0.1.92` -> `0.1.127`,
+  media assets 01 `0.1.47` -> `0.1.48`, media assets 02 `0.1.3` -> `0.1.27`),
+  embedded docs `0.5.12` -> `0.5.16`, comfy-kitchen `0.2.35` -> `0.2.40`, and
+  comfy-aimdo `0.5.5` -> `0.6.0`.
+- Updated flake inputs: nixpkgs (2026-09-07 -> 2026-11-07) and flake-parts.
+- Regenerated template input files from the current upstream manifest (816
+  files, up from 728).
 - Updated ComfyUI to upstream `v0.37.0` (from `v0.34.0`). Updated its pinned
   dependencies: frontend `1.49.6` -> `1.52.7`, workflow templates `0.11.48`
   -> `0.11.66` (core `0.3.322` -> `0.3.357`, JSON `0.1.57` -> `0.1.92`,

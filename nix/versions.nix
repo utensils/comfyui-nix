@@ -1,9 +1,9 @@
 {
   comfyui = {
-    version = "0.37.0";
-    releaseDate = "2026-09-21T07:35:01Z";
-    rev = "73c9bad4d21e7addbe1d13bc92eee0f1431b017d";
-    hash = "sha256-hfpoQsu8xzKHCy2Qqw2BMGsorwizJEuhKXWjUUJzTHs=";
+    version = "0.44.0";
+    releaseDate = "2026-11-04T01:12:27Z";
+    rev = "2c75dc1b379a59e0880619d029607af5169a62ef";
+    hash = "sha256-iuuLmC1j4bsoLshCrO+RDcNO2JuvtoKzIqEGpmKNBN0=";
   };
 
   vendored = {
@@ -14,27 +14,27 @@
     };
 
     frontendPackage = {
-      version = "1.52.7";
-      url = "https://files.pythonhosted.org/packages/a8/1e/835f8b0396645a28266a87eeda6392f461a2ef87391cbf729ef9a7ae5d75/comfyui_frontend_package-1.52.7-py3-none-any.whl";
-      hash = "sha256-OqViT6UIX4Rh0xt+uIpC7Wmg54OjW+wcKjO5D8dmCVA=";
+      version = "1.57.6";
+      url = "https://files.pythonhosted.org/packages/79/f2/2f99e418fa31d7d73d23723d7fce0a4bba2d363ad0fb59ab973d78191ea3/comfyui_frontend_package-1.57.6-py3-none-any.whl";
+      hash = "sha256-WTrx15dnzvw1h8hi3Ts9kP8AUwxfgwcVIvj5gHwXU0Y=";
     };
 
     workflowTemplates = {
-      version = "0.11.66";
-      url = "https://files.pythonhosted.org/packages/f3/40/437f91c26e198dfc4bcad70efec1a91d79068dd78ed76fc57130c08b650d/comfyui_workflow_templates-0.11.66-py3-none-any.whl";
-      hash = "sha256-KvmT6Eu1qJ5muoRpdUDPIVCTAjxKDABP9Mwr4CN6GY4=";
+      version = "0.11.101";
+      url = "https://files.pythonhosted.org/packages/bb/b2/3861b3d803130ea92cf5c079fab88ca6b8cb6785d4a82227507852220adf/comfyui_workflow_templates-0.11.101-py3-none-any.whl";
+      hash = "sha256-zjMs0SZ84/ELgF7ZHc4d72nPxlt2pH2qCVTRORygqME=";
     };
 
     workflowTemplatesCore = {
-      version = "0.3.357";
-      url = "https://files.pythonhosted.org/packages/b7/eb/e6236ad859a7db133e02d51f79711626f88863b6f165cba77f3a6b5afa48/comfyui_workflow_templates_core-0.3.357-py3-none-any.whl";
-      hash = "sha256-+o2u8mZaHYWUvvU6WP+8R6B4j8O72LaLSmrWxisbQDM=";
+      version = "0.3.392";
+      url = "https://files.pythonhosted.org/packages/ea/4a/afb588e9e43dfb7016ebe7f1eb9bb351174b75afd50c48a700a08212fedf/comfyui_workflow_templates_core-0.3.392-py3-none-any.whl";
+      hash = "sha256-Q4cPrmXPuy0gnjArZfrEm7rc7T2rUPGLnW3JV25UU0Y=";
     };
 
     workflowTemplatesJson = {
-      version = "0.1.92";
-      url = "https://files.pythonhosted.org/packages/c7/c6/9fa43666d27e4a33243cd24721e94bf978649a7ea7d8d0b9eb498cc0da3e/comfyui_workflow_templates_json-0.1.92-py3-none-any.whl";
-      hash = "sha256-aA3ZBSX67rQdvNZyTGAGUT1ge3w6QYqxc/qFDIPckbE=";
+      version = "0.1.127";
+      url = "https://files.pythonhosted.org/packages/08/92/d5c2c87ce7847c667df98d22b565aef3a4658dc5588e64649deeca510eb1/comfyui_workflow_templates_json-0.1.127-py3-none-any.whl";
+      hash = "sha256-o9xSq8OShG0wGg+hKeI6dwsuaDeZVd2UE/gUvdA+w/4=";
     };
 
     workflowTemplatesMediaApi = {
@@ -62,21 +62,21 @@
     };
 
     workflowTemplatesMediaAssets01 = {
-      version = "0.1.47";
-      url = "https://files.pythonhosted.org/packages/b2/a5/d091abf1e0e0c81debc29337be3308d3bbbaf477ef223aeee9e46454c264/comfyui_workflow_templates_media_assets_01-0.1.47-py3-none-any.whl";
-      hash = "sha256-ga/4qp+RHYbYuors2MDVgNZoCf9C5KUdaAqQj6/tiD0=";
+      version = "0.1.48";
+      url = "https://files.pythonhosted.org/packages/7c/4c/39858b7dd6036fae44e15baf6eb5e55671291d25b9e0931bc0956ce12055/comfyui_workflow_templates_media_assets_01-0.1.48-py3-none-any.whl";
+      hash = "sha256-dzPtEoZ+lea4s5viC8xzV5wo6X5aRAhv+5d8wsHHjEM=";
     };
 
     workflowTemplatesMediaAssets02 = {
-      version = "0.1.3";
-      url = "https://files.pythonhosted.org/packages/cf/8e/17af57c9e3cb120e43fc19dff9a34b357c8ae6eb23e08785d7d697afc9d3/comfyui_workflow_templates_media_assets_02-0.1.3-py3-none-any.whl";
-      hash = "sha256-hZLANvYLTxgHXxdz2+PTkc/JZ/fc97QUPsRvyS6wr3o=";
+      version = "0.1.27";
+      url = "https://files.pythonhosted.org/packages/91/c2/7e12e783c461aa67376051d42d49ec522164411855ec64bec2ef92cff584/comfyui_workflow_templates_media_assets_02-0.1.27-py3-none-any.whl";
+      hash = "sha256-zEpHBgeEXe1tEkB++UtfL+1QCtAecnpgN83JEkqU+L8=";
     };
 
     embeddedDocs = {
-      version = "0.5.12";
-      url = "https://files.pythonhosted.org/packages/ba/13/b57fb0de3eb1bcef0b6e26444ab357a8d6a18d859d58245c4a6307ca82e3/comfyui_embedded_docs-0.5.12-py3-none-any.whl";
-      hash = "sha256-kEKdjRfqXYX53gC8wlzU4rxhSqPWwDzOvzKuxlsQeoA=";
+      version = "0.5.16";
+      url = "https://files.pythonhosted.org/packages/aa/73/565750a7eefe9ca0690aa855a48aaa4a00d71c6bb79886107e078be40030/comfyui_embedded_docs-0.5.16-py3-none-any.whl";
+      hash = "sha256-W+qE7qadY3DDe3Jel+2b43KaQXtB0OF6d3CQAcuVm5Y=";
     };
 
     manager = {
@@ -92,18 +92,18 @@
     # (issue #66), so prefer the platform wheels where they exist and keep the
     # any-wheel as the macOS fallback.
     comfyKitchen = {
-      version = "0.2.35";
+      version = "0.2.40";
       any = {
-        url = "https://files.pythonhosted.org/packages/14/60/8f075cceb07cb78d3792446b1156b7f5a41b260ac60645ef1483e34f71ce/comfy_kitchen-0.2.35-py3-none-any.whl";
-        hash = "sha256-+V1IY4rdGjbu0UA3ggwPhfDfdlMh7rU/B1C++JBqvL4=";
+        url = "https://files.pythonhosted.org/packages/9c/2e/1c6c621a1cd2ba89ae12fe99e095faa50986c0e6485461170732adfcfa6d/comfy_kitchen-0.2.40-py3-none-any.whl";
+        hash = "sha256-5YNPLOmTyNXqjAFlAVfGOXQrWijssNlSU3d/MbUkgJk=";
       };
       linuxX86_64 = {
-        url = "https://files.pythonhosted.org/packages/8b/c5/13b976741bc3b35f3a7fcded995c5a774dccfe69aee0e792a0381378777c/comfy_kitchen-0.2.35-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl";
-        hash = "sha256-nFnomBAdJlf5Z5EKz2q8b3ctdrlF2obF/aX32BfRzaE=";
+        url = "https://files.pythonhosted.org/packages/5d/40/1871ee8c58eeef8d15cbf49a461eba0775303f2d9eb34c11af7c29e455c1/comfy_kitchen-0.2.40-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl";
+        hash = "sha256-63JmZMdyGJ5uznQodkh/E0mWWAi4VHQnkOkAHbt8D50=";
       };
       linuxAarch64 = {
-        url = "https://files.pythonhosted.org/packages/45/9f/0495991518293be6ed02839516ff5140f76dc414d007c78f5e9dcf393038/comfy_kitchen-0.2.35-cp312-abi3-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl";
-        hash = "sha256-M1ZjMeI6ppeEuzcw4hgkHv3KlBCTfwofUecSgYCI7AU=";
+        url = "https://files.pythonhosted.org/packages/48/51/5944dd2e8b78c475173eb4afcaa46c07f0b5c68df2f7d6cd94823017aa5c/comfy_kitchen-0.2.40-cp312-abi3-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl";
+        hash = "sha256-O9WWSCpPaacmhFznX6dRiWzn5cLSEO06MHlOoXhxvrs=";
       };
     };
 
@@ -127,18 +127,18 @@
     };
 
     comfyAimdo = {
-      version = "0.5.5";
+      version = "0.6.0";
       any = {
-        url = "https://files.pythonhosted.org/packages/be/52/3ae1892775f0138af1c0cc27341cf073e0890731f0c68848e8831738f9c2/comfy_aimdo-0.5.5-py3-none-any.whl";
-        hash = "sha256-IItDeaCA1qeNtJ5iNnUWQrjp4JjuJwsDWhdA7CGDn70=";
+        url = "https://files.pythonhosted.org/packages/e1/b7/4df602266532178ee08e267747a4a31aded7c81738a0c4482303ce004fa2/comfy_aimdo-0.6.0-py3-none-any.whl";
+        hash = "sha256-D3HIk/AwMD3qM5/fbjAEFGYdrau7PwPT58WzxKYywPs=";
       };
       linuxX86_64 = {
-        url = "https://files.pythonhosted.org/packages/5d/18/807dd84d80469c9620928429911b9ff04c699e8b47204423a8804ac3f09d/comfy_aimdo-0.5.5-cp39-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl";
-        hash = "sha256-ek3HaDEnOi+Df2fPScnlB+d4sZr/F+bvijSm6WlP2Go=";
+        url = "https://files.pythonhosted.org/packages/21/7a/d349443e634d56ab3c1d5b279f0d4858e29905234de03171f840258e4a83/comfy_aimdo-0.6.0-cp39-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl";
+        hash = "sha256-M2qWoKq+aQxZVYE6ejAT22cKWGkQreeYzaxLCGTrIqw=";
       };
       linuxAarch64 = {
-        url = "https://files.pythonhosted.org/packages/8c/53/751aae9e7635b3921647579fdca2d7f29c5bc3e8081743fef9dea1fdf36d/comfy_aimdo-0.5.5-cp39-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl";
-        hash = "sha256-IrZkGfnxiH/Z+0nw5f+aiLeow49rlHKeXC6L+Tb/LXA=";
+        url = "https://files.pythonhosted.org/packages/bd/71/b6c3e8e1711e3738eb6878e286050698058472a509d5733af8b3ddad61c8/comfy_aimdo-0.6.0-cp39-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl";
+        hash = "sha256-x3ddYSKHOnEKN18loyF0raXwze6HSTLRcRBKEXCNvgA=";
       };
     };
 
