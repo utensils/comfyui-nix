@@ -1123,10 +1123,16 @@ lib.optionalAttrs useCuda {
   });
 }
 
-# Disable filterpy tests on Darwin (test_hinfinity triggers BPT trap in pytest)
+# Disable filterpy tests on Darwin (test_hinfinity triggers BPT trap in pytest).
+# nixpkgs marks it broken on Darwin because Hydra's builds fail in those same
+# tests ("last successful hydra build on darwin was in 2025"); with the tests
+# skipped it builds, so clear the flag. facexlib (PuLID) depends on it.
 // lib.optionalAttrs (prev ? filterpy) {
   filterpy = prev.filterpy.overridePythonAttrs (old: {
     doCheck = if pkgs.stdenv.hostPlatform.isDarwin then false else (old.doCheck or true);
+    meta = (old.meta or { }) // {
+      broken = false;
+    };
   });
 }
 
