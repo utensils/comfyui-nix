@@ -1017,6 +1017,18 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# peft's LoRA-FA and LoRA+ optimizer tests reference an LRScheduler name that
+# is undefined under Apple Silicon's pinned torch 2.5.1, so collection errors.
+# These optimizers are not used by the bundled nodes (Florence2 uses peft LoRA).
+// lib.optionalAttrs (useDarwinArm64 && prev ? peft) {
+  peft = prev.peft.overridePythonAttrs (old: {
+    disabledTestPaths = (old.disabledTestPaths or [ ]) ++ [
+      "tests/test_lorafa.py"
+      "tests/test_loraplus.py"
+    ];
+  });
+}
+
 # Keep accelerate's tests compatible with our platform-specific torch wheels.
 // lib.optionalAttrs (prev ? accelerate) {
   accelerate = prev.accelerate.overridePythonAttrs (old: {
@@ -1027,6 +1039,11 @@ lib.optionalAttrs useCuda {
       # FSDP2 requires torch >= 2.6; Apple Silicon intentionally uses 2.5.1
       # for MPS stability. This test lacks a working version guard.
       ++ lib.optionals useDarwinArm64 [ "test_param_mapping_error_handling" ];
+    # Same FSDP2 gap: newer accelerate adds an FSDP2 plugin test class that
+    # needs torch.distributed.fsdp APIs missing from torch 2.5.1.
+    disabledTestPaths =
+      (old.disabledTestPaths or [ ])
+      ++ lib.optionals useDarwinArm64 [ "tests/fsdp/test_fsdp.py::FSDP2PluginIntegration" ];
   });
 }
 
@@ -1041,28 +1058,20 @@ lib.optionalAttrs useCuda {
 # Valkey reaches us through narwhals' check inputs (sqlframe -> databricks ->
 # pybreaker -> fakeredis -> valkey), so it builds from source when uncached.
 // lib.optionalAttrs (prev ? valkey) {
-  valkey = prev.valkey.overridePythonAttrs (old: {
-    # This connection-reset proxy test is timing-sensitive and hits the 30s
-    # pytest-timeout under sandbox load.
-    disabledTestPaths = (old.disabledTestPaths or [ ]) ++ [
-      "tests/test_asyncio/test_cwe_404.py::test_standalone_pipeline"
-    ];
-    # Darwin builds share the host's ports. The Redis test hook otherwise
-    # retries forever when an existing service occupies its default port 6379,
-    # so isolate Valkey's test server from existing services there.
-    preCheck =
-      (old.preCheck or "")
-      + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
-        redisTestPort="$(${final.python.interpreter} - <<'PY'
-        import socket
-        with socket.socket() as server:
-            server.bind(("127.0.0.1", 0))
-            print(server.getsockname()[1])
-        PY
-        )"
-        pytestFlagsArray+=("--valkey-url=valkey://127.0.0.1:$redisTestPort/0")
-      '';
-  });
+  valkey = prev.valkey.overridePythonAttrs (
+    old:
+    {
+      # This connection-reset proxy test is timing-sensitive and hits the 30s
+      # pytest-timeout under sandbox load.
+      disabledTestPaths = (old.disabledTestPaths or [ ]) ++ [
+        "tests/test_asyncio/test_cwe_404.py::test_standalone_pipeline"
+      ];
+      # Darwin builds share the host's network, and many Valkey tests connect to a
+      # hard-coded 127.0.0.1:6379 (and a sentinel), which cannot be isolated from
+      # host services. Valkey is only a check input here, so skip its suite there.
+    }
+    // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin { doCheck = false; }
+  );
 }
 
 # Disable failing timm test (torch dynamo/inductor test needs setuptools at runtime)

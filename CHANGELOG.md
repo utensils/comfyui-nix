@@ -36,8 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   CPU matrix multiplication crashes when OpenCV is imported first.
 - macOS InsightFace builds use the Nix compiler without probing Homebrew,
   avoiding a missing `which` executable in the build sandbox.
-- macOS dependency builds select an available port for Valkey's Redis test
-  fixture, avoiding an infinite startup wait when a host service uses port 6379.
+- macOS builds skip Valkey's test suite. Many of its tests connect to a
+  hard-coded `127.0.0.1:6379`, which the shared host network can't isolate, so
+  the previous random-port workaround left 14 tests failing after the nixpkgs
+  update in #119. Valkey is only a check input of narwhals here.
 - Uncached Valkey builds skip the timing-sensitive
   `test_cwe_404.py::test_standalone_pipeline`, which hit pytest-timeout under
   sandbox load and failed the whole build via narwhals' check inputs.
