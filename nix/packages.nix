@@ -251,6 +251,9 @@ let
           # PuLID dependencies
           onnxruntime # ONNX runtime
         ]
+        # MMAudio + WanVideoWrapper dependency. Upstream ComfyUI dropped torchaudio
+        # (Comfy-Org/ComfyUI#16457); it ships only because these bundled nodes import it.
+        ++ lib.optionals (ps ? torchaudio && available ps.torchaudio) [ ps.torchaudio ]
         ++ [ ps."color-matcher" ] # Color matching (hyphenated name needs quoting)
         # Common custom-node deps ("it just works" set)
         ++ lib.optionals (ps ? ollama && available ps.ollama) [ ps.ollama ]
@@ -269,7 +272,6 @@ let
       optionals =
         torchPackages
         ++ lib.optionals (ps ? torchvision && available ps.torchvision) [ ps.torchvision ]
-        ++ lib.optionals (ps ? torchaudio && available ps.torchaudio) [ ps.torchaudio ]
         ++ lib.optionals (ps ? torchsde && available ps.torchsde) [ ps.torchsde ]
         # kornia-rs is still marked bad on aarch64-linux in pinned nixpkgs.
         ++ lib.optionals (

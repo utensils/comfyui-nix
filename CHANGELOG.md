@@ -57,6 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#91](https://github.com/utensils/comfyui-nix/issues/91))
 
 ### Changed
+- torchaudio is now listed as a dependency of the bundled ComfyUI-MMAudio and
+  ComfyUI-WanVideoWrapper nodes rather than of ComfyUI itself, since upstream
+  ComfyUI dropped it (Comfy-Org/ComfyUI#16457). It is still shipped while those
+  nodes are bundled, so the package contents are unchanged.
+  ([#121](https://github.com/utensils/comfyui-nix/issues/121))
 - Updated ComfyUI to upstream `v0.44.0` (from `v0.37.0`). Updated its pinned
   dependencies: frontend `1.52.7` -> `1.57.6`, workflow templates `0.11.66`
   -> `0.11.101` (core `0.3.357` -> `0.3.392`, JSON `0.1.92` -> `0.1.127`,
