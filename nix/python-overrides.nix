@@ -1027,6 +1027,11 @@ lib.optionalAttrs useCuda {
       # FSDP2 requires torch >= 2.6; Apple Silicon intentionally uses 2.5.1
       # for MPS stability. This test lacks a working version guard.
       ++ lib.optionals useDarwinArm64 [ "test_param_mapping_error_handling" ];
+    # Same FSDP2 gap: newer accelerate adds an FSDP2 plugin test class that
+    # needs torch.distributed.fsdp APIs missing from torch 2.5.1.
+    disabledTestPaths =
+      (old.disabledTestPaths or [ ])
+      ++ lib.optionals useDarwinArm64 [ "tests/fsdp/test_fsdp.py::FSDP2PluginIntegration" ];
   });
 }
 
