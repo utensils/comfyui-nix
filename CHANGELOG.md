@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#92](https://github.com/utensils/comfyui-nix/issues/92))
 
 ### Fixed
+- macOS packages evaluate again. The nixpkgs update in #119 marks filterpy
+  broken on Darwin because its tests crash there; our override already skips
+  those tests, so it now also clears the broken flag. Without this, every
+  `aarch64-darwin` output failed with `Refusing to evaluate package
+  'python3.12-filterpy-2.0.0'`.
 - The model downloader now subscribes to `model_download_progress` through
   ComfyUI's API client (`window.comfyAPI.api.api`). It previously registered
   only through the legacy `window.api`, which current frontends don't define,
