@@ -1017,6 +1017,18 @@ lib.optionalAttrs useCuda {
   });
 }
 
+# peft's LoRA-FA and LoRA+ optimizer tests reference an LRScheduler name that
+# is undefined under Apple Silicon's pinned torch 2.5.1, so collection errors.
+# These optimizers are not used by the bundled nodes (Florence2 uses peft LoRA).
+// lib.optionalAttrs (useDarwinArm64 && prev ? peft) {
+  peft = prev.peft.overridePythonAttrs (old: {
+    disabledTestPaths = (old.disabledTestPaths or [ ]) ++ [
+      "tests/test_lorafa.py"
+      "tests/test_loraplus.py"
+    ];
+  });
+}
+
 # Keep accelerate's tests compatible with our platform-specific torch wheels.
 // lib.optionalAttrs (prev ? accelerate) {
   accelerate = prev.accelerate.overridePythonAttrs (old: {
