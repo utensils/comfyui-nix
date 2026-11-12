@@ -4,45 +4,32 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
     console.log("[MODEL_DOWNLOADER] Loading model downloader extension...");
 }
 
+// Forward a progress event to the core module, if it has loaded.
+function forwardProgress(event) {
+    if (window.modelDownloader && typeof window.modelDownloader.handleMessageEvent === 'function') {
+        window.modelDownloader.handleMessageEvent(event);
+    }
+}
+
+// Resolve ComfyUI's API client. Current frontends expose it as
+// window.comfyAPI.api.api (and app.api); window.api is legacy.
+function getComfyApi() {
+    return window.comfyAPI?.api?.api || window.app?.api || window.api || null;
+}
+
 // Register message handler as early as possible
 function registerMessageHandler() {
     try {
-        // Register the model_download_progress message type in all possible ways
-        // to ensure compatibility with different ComfyUI versions
-        
-        // Method 1: Add to the reportedUnknownMessageTypes set if it exists
-        if (window.api && typeof window.api.reportedUnknownMessageTypes !== 'undefined') {
-            if (!(window.api.reportedUnknownMessageTypes instanceof Set)) {
-                window.api.reportedUnknownMessageTypes = new Set();
-            }
-            window.api.reportedUnknownMessageTypes.add('model_download_progress');
+        // Preferred: subscribe through the API client. This delivers each
+        // model_download_progress message as a CustomEvent and registers the
+        // type, so the frontend no longer logs "Unknown message type".
+        const comfyApi = getComfyApi();
+        if (comfyApi && typeof comfyApi.addEventListener === 'function') {
+            comfyApi.addEventListener('model_download_progress', forwardProgress);
+            return;
         }
-        
-        // Method 2: Using API extension system (newer ComfyUI versions)
-        if (window.api && typeof window.api.registerExtension === 'function') {
-            window.api.registerExtension({
-                name: "model_downloader",
-                init() {
-                    window.api.addEventListener("model_download_progress", function(data) {
-                        // Forward to our event handler function if available
-                        if (window.modelDownloader && typeof window.modelDownloader.handleMessageEvent === 'function') {
-                            window.modelDownloader.handleMessageEvent(data);
-                        }
-                    });
-                }
-            });
-        }
-        
-        // Method 3: Using custom API message handler (alternative newer ComfyUI versions)
-        if (window.app && typeof window.app.registerMessageHandler === 'function') {
-            window.app.registerMessageHandler('model_download_progress', function(event) {
-                if (window.modelDownloader && typeof window.modelDownloader.handleMessageEvent === 'function') {
-                    window.modelDownloader.handleMessageEvent(event);
-                }
-            });
-        }
-        
-        // Method 4: Direct WebSocket patching (fallback for older ComfyUI versions)
+
+        // Fallback: patch the WebSocket directly when no API client is found
         function patchWebSocket() {
             // Find the WebSocket object to patch
             let socket = null;
@@ -69,10 +56,7 @@ function registerMessageHandler() {
                     try {
                         const message = JSON.parse(event.data);
                         if (message.type === 'model_download_progress') {
-                            // Forward to our handler
-                            if (window.modelDownloader && typeof window.modelDownloader.handleMessageEvent === 'function') {
-                                window.modelDownloader.handleMessageEvent(message);
-                            }
+                            forwardProgress(message);
                         }
                     } catch (e) {
                         // Ignore JSON parse errors
