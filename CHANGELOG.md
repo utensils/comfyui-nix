@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#92](https://github.com/utensils/comfyui-nix/issues/92))
 
 ### Fixed
+- The model downloader now subscribes to `model_download_progress` through
+  ComfyUI's API client (`window.comfyAPI.api.api`). It previously registered
+  only through the legacy `window.api`, which current frontends don't define,
+  so progress arrived solely through a WebSocket monkey-patch and frontend
+  1.57 logged `Unknown message type model_download_progress`. The socket patch
+  remains as a fallback when no API client is found.
 - Apple Silicon comfy-kitchen operators use list annotations supported by
   PyTorch 2.5.1, preventing an import failure during operator registration.
 - Apple Silicon PyTorch shared-memory helpers close inherited resource-tracker
