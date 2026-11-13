@@ -4,6 +4,8 @@
   versions,
 }:
 let
+  useDarwinArm64 = pkgs.stdenv.hostPlatform.isDarwin && pkgs.stdenv.hostPlatform.isAarch64;
+
   mkWheel =
     {
       pname,
@@ -194,7 +196,7 @@ rec {
       (old: {
         postInstall =
           (old.postInstall or "")
-          + pkgs.lib.optionalString (pkgs.stdenv.isDarwin && pkgs.stdenv.hostPlatform.isAarch64) ''
+          + pkgs.lib.optionalString useDarwinArm64 ''
             # PyTorch 2.5.1 schema inference accepts typing.List, not PEP 585 list.
             for module in conv3d group_norm_pad3d na sol_attn; do
               substituteInPlace "$out/${python.sitePackages}/comfy_kitchen/backends/eager/$module.py" \
