@@ -70,6 +70,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#91](https://github.com/utensils/comfyui-nix/issues/91))
 
 ### Changed
+- Updated the default bundled ROCm runtime from 7.1 to ROCm 7.14 using the
+  matching TheRock SDK host libraries and GPU-device payloads. The `rocm`
+  package, development shell, Docker images, and NixOS service use the new
+  runtime; Python remains on 3.12. Explicit `rocm71` and `rocm72` selections
+  retain the older runtimes.
 - torchaudio is now listed as a dependency of the bundled ComfyUI-MMAudio and
   ComfyUI-WanVideoWrapper nodes rather than of ComfyUI itself, since upstream
   ComfyUI dropped it (Comfy-Org/ComfyUI#16457). It is still shipped while those

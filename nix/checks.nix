@@ -199,10 +199,9 @@ let
   mssRuntimeDeps =
     assert !pythonPackages.mss.doInstallCheck;
     pythonPackages.mss;
-  # Every backend's torch comes from a pre-built wheel whose metadata names
-  # distributions nixpkgs supplies outside PyPI. Those requirements are dropped
-  # from the installed metadata (or waved through with dontCheckRuntimeDeps),
-  # so assert on the installed result instead of trusting the hook.
+  # Every backend's pre-built torch wheel names runtime distributions provided
+  # by Nix packages rather than PyPI resolution. Verify the installed metadata
+  # and wheel version instead of trusting the runtime dependency hook.
   #
   # The interpreter must come from `pythonFor <backend>`: `pythonRuntime.pkgs`
   # is the unoverridden nixpkgs package set and yields the stock CPU torch,
@@ -232,13 +231,18 @@ let
       assert setuptools.__version__
       assert torch.__version__
       assert "${expectedTorchVersions.${backend}}" in torch.__version__, torch.__version__
+      ${pkgs.lib.optionalString (backend == "rocm") ''
+        assert torch.version.hip is not None and torch.version.hip.startswith("7.14"), torch.version.hip
+        import triton
+        assert triton.__version__ == "3.9.0", triton.__version__
+      ''}
       PY
       touch $out
     '';
   # Guards against the check silently falling back to nixpkgs' CPU torch again.
   expectedTorchVersions = {
     cuda = "+cu";
-    rocm = "+rocm";
+    rocm = "+rocm7.14";
     xpu = "+xpu";
   };
   torchRuntimeDepsChecks =
@@ -255,7 +259,10 @@ let
     // pkgs.lib.optionalAttrs (packages ? rocm) {
       rocm-torch-runtime-deps = mkTorchRuntimeDeps {
         backend = "rocm";
-        removedRequirements = [ "triton-rocm" ];
+        removedRequirements = [
+          "rocm["
+          "triton-rocm"
+        ];
       };
     }
     // pkgs.lib.optionalAttrs (packages ? xpu) {

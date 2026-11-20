@@ -2,7 +2,7 @@
   pkgs,
   versions,
   gpuSupport ? "none", # "none", "cuda", "rocm", "xpu"
-  rocmChannel ? "rocm71", # when gpuSupport="rocm": which pytorchWheels entry ("rocm71" | "rocm72")
+  rocmChannel ? "rocm714", # when gpuSupport="rocm": which pytorchWheels entry
 }:
 let
   lib = pkgs.lib;
@@ -20,10 +20,9 @@ let
   # CUDA runtime libraries are supplied by nixpkgs, so no separate toolkit is needed at runtime
   cudaWheels = versions.pytorchWheels.cu130;
 
-  # Pre-built PyTorch ROCm wheels from pytorch.org.
-  # These avoid compiling PyTorch from source (which requires 30-60GB RAM and hours of build time).
-  # `rocmChannel` selects the wheel set: "rocm71" or "rocm72" (the gfx1151 /
-  # Strix Halo path). See versions.nix.
+  # PyTorch's 7.14 wheels use the TheRock SDK split runtime. `rocmWheels`
+  # selects the matching torch-family wheels; its runtime and GFX device
+  # payloads are pinned separately in versions.nix.
   rocmWheels = versions.pytorchWheels.${rocmChannel};
 
   # Pre-built PyTorch XPU wheels from pytorch.org (Intel oneAPI / SYCL)
@@ -109,9 +108,8 @@ let
     ]
   );
 
-  # ROCm libraries needed by PyTorch wheels (for auto-patchelf)
-  # The stable rocm71/rocm72 wheels bundle the ROCm runtime internally; only
-  # compression libs are needed externally.
+  # The ROCm 7.14 SDK runtime is packaged from its pinned host-library and
+  # per-GFX device wheels; older channels carry their runtime in torch.
   rocmLibs = pkgs.lib.optionals useRocm (
     with pkgs;
     [
@@ -120,6 +118,15 @@ let
       bzip2 # libbz2.so.1
     ]
   );
+  rocmSdkRuntimeSources = [
+    (pkgs.fetchurl {
+      inherit (versions.rocmSdk.core) url hash;
+    })
+    (pkgs.fetchurl {
+      inherit (versions.rocmSdk.libraries) url hash;
+    })
+  ]
+  ++ lib.mapAttrsToList (_: spec: pkgs.fetchurl spec) versions.rocmSdk.devices;
 in
 final: prev:
 # CUDA torch from pre-built wheels - avoids 30-60GB RAM compilation
@@ -415,7 +422,7 @@ lib.optionalAttrs useCuda {
   };
 }
 # ROCm torch from pre-built wheels - avoids 30-60GB RAM compilation
-# The wheels bundle ROCm libraries internally, providing full GPU support
+# ROCm 7.14 splits runtime libraries and GPU kernels into TheRock SDK wheels.
 // lib.optionalAttrs useRocm {
   torch = final.buildPythonPackage {
     pname = "torch";
@@ -427,41 +434,53 @@ lib.optionalAttrs useCuda {
     };
     dontBuild = true;
     dontConfigure = true;
+    dontCheckRuntimeDeps = rocmChannel == "rocm714";
     nativeBuildInputs = [
       pkgs.autoPatchelfHook
       pkgs.gnused
     ];
-    buildInputs = wheelBuildInputs ++ rocmLibs;
+    buildInputs =
+      wheelBuildInputs ++ rocmLibs ++ lib.optionals (rocmChannel == "rocm714") [ final.rocmSdkRuntime ];
+    runtimeDependencies = lib.optionals (rocmChannel == "rocm714") [
+      "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_core"
+      "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_libraries"
+    ];
+    preFixup = lib.optionalString (rocmChannel == "rocm714") ''
+      addAutoPatchelfSearchPath "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_core/lib"
+      addAutoPatchelfSearchPath "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_libraries/lib"
+    '';
 
-    # The ROCm wheel names triton-rocm, which is provided by the bundled ROCm
-    # runtime rather than a PyPI package. The runtime dependency hook cannot
-    # recognize that provider, so validate the rewritten installed metadata in
-    # the rocm-torch-runtime-deps check instead.
-    dontCheckRuntimeDeps = true;
-    # These are provided by nixpkgs rocmPackages, not PyPI packages
+    # The Nix runtime package replaces the PyPI extras selector with its pinned
+    # core, libraries, device wheels, and Triton ROCm distribution.
     postInstall = ''
       for metadata in "$out/${final.python.sitePackages}"/torch-*.dist-info/METADATA; do
         if [[ -f "$metadata" ]]; then
+          sed -i '/^Requires-Dist: rocm\[/d' "$metadata"
           sed -i '/^Requires-Dist: triton-rocm/d' "$metadata"
         fi
       done
     '';
 
-    propagatedBuildInputs = with final; [
-      filelock
-      typing-extensions
-      sympy
-      networkx
-      jinja2
-      fsspec
-      setuptools
-    ];
+    propagatedBuildInputs =
+      (with final; [
+        filelock
+        typing-extensions
+        sympy
+        networkx
+        jinja2
+        fsspec
+        setuptools
+      ])
+      ++ lib.optionals (rocmChannel == "rocm714") [
+        final.rocmSdkRuntime
+        final.tritonRocm
+      ];
     # Don't check for ROCm at import time (requires GPU)
     pythonImportsCheck = [ ];
     doCheck = false;
 
-    # Passthru attributes expected by downstream packages (xformers, bitsandbytes, etc.)
-    # The wheel bundles ROCm 7.1 and supports all GPU architectures
+    # ROCm 7.14 uses the pinned TheRock runtime package; older channels bundle
+    # their runtime in the torch wheel.
     passthru = {
       cudaSupport = false;
       rocmSupport = true;
@@ -489,7 +508,19 @@ lib.optionalAttrs useCuda {
     dontBuild = true;
     dontConfigure = true;
     nativeBuildInputs = [ pkgs.autoPatchelfHook ];
-    buildInputs = wheelBuildInputs ++ rocmLibs ++ [ final.torch ];
+    buildInputs =
+      wheelBuildInputs
+      ++ rocmLibs
+      ++ [ final.torch ]
+      ++ lib.optionals (rocmChannel == "rocm714") [ final.rocmSdkRuntime ];
+    runtimeDependencies = lib.optionals (rocmChannel == "rocm714") [
+      "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_core"
+      "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_libraries"
+    ];
+    preFixup = lib.optionalString (rocmChannel == "rocm714") ''
+      addAutoPatchelfSearchPath "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_core/lib"
+      addAutoPatchelfSearchPath "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_libraries/lib"
+    '';
 
     # Torch libs live in a non-standard path (site-packages/torch/lib/) so
     # autoPatchelf can't find them. We ignore them during patching and add
@@ -541,7 +572,19 @@ lib.optionalAttrs useCuda {
     dontBuild = true;
     dontConfigure = true;
     nativeBuildInputs = [ pkgs.autoPatchelfHook ];
-    buildInputs = wheelBuildInputs ++ rocmLibs ++ [ final.torch ];
+    buildInputs =
+      wheelBuildInputs
+      ++ rocmLibs
+      ++ [ final.torch ]
+      ++ lib.optionals (rocmChannel == "rocm714") [ final.rocmSdkRuntime ];
+    runtimeDependencies = lib.optionals (rocmChannel == "rocm714") [
+      "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_core"
+      "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_libraries"
+    ];
+    preFixup = lib.optionalString (rocmChannel == "rocm714") ''
+      addAutoPatchelfSearchPath "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_core/lib"
+      addAutoPatchelfSearchPath "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_libraries/lib"
+    '';
     # Ignore torch libs (loaded via Python) and FFmpeg/sox libs (optional, multiple versions bundled)
     autoPatchelfIgnoreMissingDeps = [
       # Torch libs (loaded via Python import)
@@ -588,6 +631,74 @@ lib.optionalAttrs useCuda {
       description = "TorchAudio with ROCm (pre-built wheel)";
       homepage = "https://pytorch.org/audio";
       license = lib.licenses.bsd2;
+      platforms = [ "x86_64-linux" ];
+    };
+  };
+}
+// lib.optionalAttrs (useRocm && rocmChannel == "rocm714") {
+  # All SDK wheels share a site-packages prefix so their relative RPATHs and
+  # per-device kernel payload overlays resolve as designed by TheRock.
+  rocmSdkRuntime = final.buildPythonPackage {
+    pname = "rocm-sdk-runtime";
+    version = versions.rocmSdk.version;
+    format = "other";
+    srcs = rocmSdkRuntimeSources;
+    dontUnpack = true;
+    dontConfigure = true;
+    dontBuild = true;
+    nativeBuildInputs = [ pkgs.unzip ];
+    buildInputs = wheelBuildInputs ++ rocmLibs;
+    # Preserve TheRock's relative ELF paths and nonstandard segment layout.
+    dontPatchELF = true;
+    dontStrip = true;
+    installPhase = ''
+      runHook preInstall
+      sitePackages="$out/${final.python.sitePackages}"
+      mkdir -p "$sitePackages"
+      for wheel in ${lib.concatStringsSep " " (map toString rocmSdkRuntimeSources)}; do
+        ${pkgs.unzip}/bin/unzip -q -o "$wheel" -d "$sitePackages"
+      done
+      # TheRock solver libraries resolve GCC's libatomic through their $ORIGIN paths.
+      ln -s \
+        ${pkgs.stdenv.cc.cc.lib}/lib/libatomic.so.1 \
+        "$sitePackages/_rocm_sdk_core/lib/rocm_sysdeps/lib/libatomic.so.1"
+      runHook postInstall
+    '';
+    pythonImportsCheck = [ ];
+    doCheck = false;
+    meta = {
+      description = "ROCm 7.14 TheRock host libraries and GPU device payloads";
+      platforms = [ "x86_64-linux" ];
+    };
+  };
+
+  tritonRocm = final.buildPythonPackage {
+    pname = "triton-rocm";
+    version = versions.pytorchWheels.rocm714.tritonRocm.version;
+    format = "wheel";
+    src = pkgs.fetchurl {
+      inherit (versions.pytorchWheels.rocm714.tritonRocm) url hash;
+    };
+    dontBuild = true;
+    dontConfigure = true;
+    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+    buildInputs = wheelBuildInputs ++ rocmLibs ++ [ final.rocmSdkRuntime ];
+    runtimeDependencies = [
+      "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_core"
+      "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_libraries"
+    ];
+    preFixup = ''
+      addAutoPatchelfSearchPath "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_core/lib"
+      addAutoPatchelfSearchPath "${final.rocmSdkRuntime}/${final.python.sitePackages}/_rocm_sdk_libraries/lib"
+    '';
+    dontCheckRuntimeDeps = true;
+    propagatedBuildInputs = with final; [ filelock ];
+    pythonImportsCheck = [ ];
+    doCheck = false;
+    meta = {
+      description = "Triton compiler with ROCm support";
+      homepage = "https://pytorch.org";
+      license = lib.licenses.mit;
       platforms = [ "x86_64-linux" ];
     };
   };

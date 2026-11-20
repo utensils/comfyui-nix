@@ -25,9 +25,15 @@ let
     if useCuda then
       gpuPackage "cuda"
     else if useRocm then
-      # rocmChannel selects the wheel set: "rocm" (stable rocm71) or
-      # "rocm72" (stable rocm7.2 — the gfx1151 / Strix Halo path).
-      gpuPackage (if cfg.rocmChannel == "rocm72" then "rocm72" else "rocm")
+      # Keep legacy wheel selections explicit; "rocm" tracks the 7.14 default.
+      gpuPackage (
+        if cfg.rocmChannel == "rocm71" then
+          "rocm71"
+        else if cfg.rocmChannel == "rocm72" then
+          "rocm72"
+        else
+          "rocm"
+      )
     else if useXpu then
       gpuPackage "xpu"
     else
@@ -147,9 +153,9 @@ in
         Select ROCm support for AMD GPUs. This is recommended for most users
         with AMD graphics cards as it provides significant performance improvements.
 
-        When selected, uses pre-built PyTorch ROCm wheels based on 7.1. Using
-        this configuration, `gfx1100` has been tested as working, but others
-        may also work. Requires AMD drivers to be installed on the system.
+        When selected, uses pre-built PyTorch ROCm 7.14 wheels by default.
+        Legacy ROCm 7.1 and 7.2 wheels remain available via `rocmChannel`.
+        Requires AMD drivers to be installed on the system.
 
         ---
 
@@ -176,15 +182,18 @@ in
       type = lib.types.enum [
         "rocm71"
         "rocm72"
+        "rocm714"
       ];
-      default = "rocm71";
+      default = "rocm714";
       description = ''
         When `gpuSupport = "rocm"`, selects which ROCm wheel set to use.
 
-        - `rocm71` (default): the stable ROCm 7.1 wheels from pytorch.org.
-        - `rocm72`: the stable ROCm 7.2 wheels from pytorch.org (torch 2.14.x).
-          Use this for gfx1151 (Strix Halo / Ryzen AI MAX 395): it is the
-          first STABLE release whose HSA runtime (Ext 1.15) + `gfx11-generic`
+        - `rocm714` (default): PyTorch ROCm 7.14 wheels with the bundled
+          TheRock 7.14.1 SDK runtime.
+        - `rocm71`: the legacy stable ROCm 7.1 wheels from pytorch.org.
+        - `rocm72`: the legacy stable ROCm 7.2 wheels from pytorch.org (torch 2.14.x).
+          Retained for explicit gfx1151 (Strix Halo / Ryzen AI MAX 395) setups:
+          this was the first stable release whose HSA runtime (Ext 1.15) + `gfx11-generic`
           ISA target actually run on that iGPU. The rocm71 wheels ship the
           gfx1151 code objects but the 7.1 HSA runtime SEGVs in QueueCreate
           at the first kernel launch on gfx1151; 7.2 fixes it with
@@ -196,8 +205,8 @@ in
 
     rocmUsePyTorchAttention = lib.mkOption {
       type = lib.types.bool;
-      default = cfg.rocmChannel == "rocm72";
-      defaultText = lib.literalExpression ''rocmChannel == "rocm72"'';
+      default = cfg.rocmChannel != "rocm71";
+      defaultText = lib.literalExpression ''rocmChannel != "rocm71"'';
       description = ''
         When `gpuSupport = "rocm"`, pass `--use-pytorch-cross-attention` so
         ComfyUI uses PyTorch's native `scaled_dot_product_attention` instead of
@@ -206,9 +215,9 @@ in
         default xformers path raises "No operator found for
         memory_efficient_attention_forward". PyTorch SDPA ships ROCm flash /
         memory-efficient kernels that cover these GPUs. Defaults to
-        on only for `rocmChannel = "rocm72"` so existing rocm71 setups are
-        unchanged. Skipped automatically if `extraArgs` already contains an
-        attention flag (they are mutually exclusive in ComfyUI).
+        on for `rocmChannel = "rocm714"` and `"rocm72"`; explicit rocm71
+        setups retain their previous default. Skipped automatically if `extraArgs`
+        already contains an attention flag (they are mutually exclusive in ComfyUI).
 
         Has no effect unless `gpuSupport = "rocm"`.
       '';
@@ -265,6 +274,7 @@ in
         default = pkgs.comfy-ui;
         cuda = pkgs.comfy-ui-cuda;
         rocm = pkgs.comfy-ui-rocm;
+        rocm71 = pkgs.comfy-ui-rocm71;
         rocm72 = pkgs.comfy-ui-rocm72;
         xpu = pkgs.comfy-ui-xpu;
       };
@@ -499,8 +509,9 @@ in
       requires = cfg.requiresMounts;
       wantedBy = [ "multi-user.target" ];
       path =
-        lib.optionals useRocm [
-          # rocminfo suppresses a ComfyUI startup warning about missing AMD GPU info
+        lib.optionals (useRocm && cfg.rocmChannel != "rocm714") [
+          # Legacy ROCm channels need the separate nixpkgs rocminfo; 7.14's
+          # bundled SDK tool is added to PATH by the launcher.
           pkgs.rocmPackages.rocminfo
         ]
         ++ lib.optionals useXpu [
