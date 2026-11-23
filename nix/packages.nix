@@ -292,9 +292,12 @@ let
         # Linux-only packages (CUDA dependencies)
         ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && ps ? bitsandbytes) [ ps.bitsandbytes ]
         ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && ps ? xformers) [ ps.xformers ]
-        ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && ps ? triton && available ps.triton) [
-          ps.triton
-        ]
+        ++ lib.optionals (
+          pkgs.stdenv.hostPlatform.isLinux
+          && ps ? triton
+          && available ps.triton
+          && !(ps ? tritonRocm && available ps.tritonRocm)
+        ) [ ps.triton ]
         # Face analysis packages - work on all platforms (insightface override removes mxnet)
         ++ lib.optionals (ps ? insightface) [ ps.insightface ]
         ++ lib.optionals (ps ? facexlib) [ ps.facexlib ]
@@ -314,6 +317,19 @@ let
   );
 
   frontendRoot = "${pythonRuntime}/${python.sitePackages}/comfyui_frontend_package/static";
+
+  rocmSdkEnabled = useRocm && (python.pkgs ? rocmSdkRuntime);
+  rocmSdkRoot = lib.optionalString rocmSdkEnabled "${python.pkgs.rocmSdkRuntime}/${python.sitePackages}/_rocm_sdk_core";
+  rocmSdkLibDirs = lib.optionals rocmSdkEnabled [
+    "${rocmSdkRoot}/lib"
+    "${rocmSdkRoot}/lib/rocm_sysdeps/lib"
+    "${rocmSdkRoot}/lib/host-math/lib"
+    "${python.pkgs.rocmSdkRuntime}/${python.sitePackages}/_rocm_sdk_libraries/lib"
+    "${python.pkgs.rocmSdkRuntime}/${python.sitePackages}/_rocm_sdk_libraries/lib/rocm_sysdeps/lib"
+    "${python.pkgs.rocmSdkRuntime}/${python.sitePackages}/_rocm_sdk_libraries/lib/llvm/lib"
+    "${python.pkgs.rocmSdkRuntime}/${python.sitePackages}/_rocm_sdk_libraries/lib/host-math/lib"
+  ];
+  rocmSdkLibPath = lib.optionalString rocmSdkEnabled "${lib.concatStringsSep ":" rocmSdkLibDirs}:";
 
   # NOTE: Some custom nodes (and some Python wheels) dlopen GUI-related libs at runtime
   # (e.g. OpenCV highgui / Qt platform plugins). Ensure common X11 libs are discoverable.
@@ -371,17 +387,21 @@ let
         ${
           if useRocm then
             ''
-              # However this ordering breaks on AMD, due to older libraries in /run/opengl-driver/lib
-              # so torch's bundled libs must come first.
-              export LD_LIBRARY_PATH="${python.pkgs.torch}/${python.sitePackages}/torch/lib:${libPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+              # AMD runtime libs must precede potentially older host copies.
+              ${lib.optionalString rocmSdkEnabled ''
+                export ROCM_PATH="${rocmSdkRoot}"
+                export HIP_PATH="$ROCM_PATH"
+                export PATH="$ROCM_PATH/bin:$PATH"
+              ''}
+              export LD_LIBRARY_PATH="${rocmSdkLibPath}${python.pkgs.torch}/${python.sitePackages}/torch/lib:${libPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
               if [[ -d "/run/opengl-driver/lib" ]]; then
                 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/run/opengl-driver/lib"
               fi
 
-              # The rocprofiler-register bundled in torch/lib races with HIP's env
-              # init and SEGVs in hipLaunchKernel_validate under multithreaded first
-              # launches (ROCm/rocm-systems#10196). A user-set value still wins.
+              # The bundled rocprofiler-register races with HIP's env init and
+              # SEGVs in hipLaunchKernel_validate under multithreaded first launches
+              # (ROCm/rocm-systems#10196). A user-set value still wins.
               export ROCPROFILER_REGISTER_ENABLED="''${ROCPROFILER_REGISTER_ENABLED:-0}"
             ''
           else

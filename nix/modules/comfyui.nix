@@ -25,9 +25,7 @@ let
     if useCuda then
       gpuPackage "cuda"
     else if useRocm then
-      # rocmChannel selects the wheel set: "rocm" (stable rocm71) or
-      # "rocm72" (stable rocm7.2 — the gfx1151 / Strix Halo path).
-      gpuPackage (if cfg.rocmChannel == "rocm72" then "rocm72" else "rocm")
+      gpuPackage (if cfg.rocmChannel == "rocm71" then "rocm" else cfg.rocmChannel)
     else if useXpu then
       gpuPackage "xpu"
     else
@@ -176,6 +174,7 @@ in
       type = lib.types.enum [
         "rocm71"
         "rocm72"
+        "rocm714"
       ];
       default = "rocm71";
       description = ''
@@ -189,6 +188,8 @@ in
           gfx1151 code objects but the 7.1 HSA runtime SEGVs in QueueCreate
           at the first kernel launch on gfx1151; 7.2 fixes it with
           self-contained manylinux wheels.
+        - `rocm714`: opt-in PyTorch ROCm 7.14 wheels with the bundled
+          TheRock 7.14.1 SDK runtime.
 
         Has no effect unless `gpuSupport = "rocm"`.
       '';
@@ -196,8 +197,8 @@ in
 
     rocmUsePyTorchAttention = lib.mkOption {
       type = lib.types.bool;
-      default = cfg.rocmChannel == "rocm72";
-      defaultText = lib.literalExpression ''rocmChannel == "rocm72"'';
+      default = cfg.rocmChannel != "rocm71";
+      defaultText = lib.literalExpression ''rocmChannel != "rocm71"'';
       description = ''
         When `gpuSupport = "rocm"`, pass `--use-pytorch-cross-attention` so
         ComfyUI uses PyTorch's native `scaled_dot_product_attention` instead of
@@ -206,9 +207,9 @@ in
         default xformers path raises "No operator found for
         memory_efficient_attention_forward". PyTorch SDPA ships ROCm flash /
         memory-efficient kernels that cover these GPUs. Defaults to
-        on only for `rocmChannel = "rocm72"` so existing rocm71 setups are
-        unchanged. Skipped automatically if `extraArgs` already contains an
-        attention flag (they are mutually exclusive in ComfyUI).
+        on for `rocmChannel = "rocm714"` and `"rocm72"`; rocm71
+        retains its previous default. Skipped automatically if `extraArgs`
+        already contains an attention flag (they are mutually exclusive in ComfyUI).
 
         Has no effect unless `gpuSupport = "rocm"`.
       '';
@@ -266,6 +267,7 @@ in
         cuda = pkgs.comfy-ui-cuda;
         rocm = pkgs.comfy-ui-rocm;
         rocm72 = pkgs.comfy-ui-rocm72;
+        rocm714 = pkgs.comfy-ui-rocm714;
         xpu = pkgs.comfy-ui-xpu;
       };
       defaultText = lib.literalMD ''
@@ -499,8 +501,9 @@ in
       requires = cfg.requiresMounts;
       wantedBy = [ "multi-user.target" ];
       path =
-        lib.optionals useRocm [
-          # rocminfo suppresses a ComfyUI startup warning about missing AMD GPU info
+        lib.optionals (useRocm && cfg.rocmChannel != "rocm714") [
+          # Legacy ROCm channels need the separate nixpkgs rocminfo; 7.14's
+          # bundled SDK tool is added to PATH by the launcher.
           pkgs.rocmPackages.rocminfo
         ]
         ++ lib.optionals useXpu [

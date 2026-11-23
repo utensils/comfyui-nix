@@ -262,6 +262,30 @@
         hash = "sha256-4DFtk4NGz6T/BLkUBakezFC9GHgQI+yldjt58Pe5vIw=";
       };
     };
+
+    # Linux x86_64 ROCm 7.14 (TheRock pip SDK runtime)
+    rocm714 = {
+      torch = {
+        version = "2.15.0";
+        url = "https://download.pytorch.org/whl/rocm7.14/torch-2.15.0%2Brocm7.14-cp312-cp312-manylinux_2_28_x86_64.whl";
+        hash = "sha256-0CzcqmtKvQYbOpItwpYtKtvYGyTfGVVfm8RDpZh2v+U=";
+      };
+      torchvision = {
+        version = "0.29.2";
+        url = "https://download.pytorch.org/whl/rocm7.14/torchvision-0.29.2%2Brocm7.14-py3-none-manylinux_2_28_x86_64.whl";
+        hash = "sha256-5HNl/I0aLc2g1PUiJyKhbggln5xSaYd8+wLBMDXoWL4=";
+      };
+      torchaudio = {
+        version = "2.11.1";
+        url = "https://download.pytorch.org/whl/rocm7.14/torchaudio-2.11.1%2Brocm7.14-py3-none-manylinux_2_28_x86_64.whl";
+        hash = "sha256-E4rVEFTgg7y4hTHwBmNgHAsotyjCZq1WBbWHiWGLGdI=";
+      };
+      tritonRocm = {
+        version = "3.9.0";
+        url = "https://download-r2.pytorch.org/whl/triton_rocm-3.9.0-cp312-abi3-linux_x86_64.whl";
+        hash = "sha256-lOTCKOqQpNbHntxQY4Mpk9zrNdgiAtHIkejsjiv1Q8M=";
+      };
+    };
     # Linux x86_64 Intel XPU (oneAPI / SYCL)
     # In-tree PyTorch XPU — no IPEX needed. Targets Arc A/B series and
     # Core Ultra (Meteor Lake+) iGPUs. Older Xe-LP iGPUs (UHD 770) are
@@ -286,6 +310,122 @@
         version = "2.10.0";
         url = "https://download.pytorch.org/whl/xpu/torchaudio-2.10.0%2Bxpu-cp312-cp312-manylinux_2_28_x86_64.whl";
         hash = "sha256-oD/un3Hi9OZC/P8vaokN6kYwm7cGrahDr40K5CBa4p8=";
+      };
+    };
+  };
+
+  # ROCm 7.14 TheRock runtime wheels. Core and libraries are required by the
+  # libraries wheel's RPATHs; per-GFX device wheels supply kernel payloads.
+  rocmSdk = {
+    version = "7.14.1";
+    core = {
+      url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_core-7.14.1-py3-none-linux_x86_64.whl";
+      hash = "sha256-2h+clgpVpkwxNABLoTRtJCQJDMPiM2zP7JTp9iFpz4U=";
+    };
+    libraries = {
+      url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_libraries-7.14.1-py3-none-linux_x86_64.whl";
+      hash = "sha256-3+ntE3pT1HJbLigGYvOiQP6WHc5POtC5d+RKdLW6b2g=";
+    };
+    devices = {
+      gfx1010 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1010-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-WF2IiaR8ddC1exg8x6pMutjImdtEB1g4LfhXMy10B2c=";
+      };
+      gfx1011 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1011-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-4a1PWdUZW/fI5rzjiNjV8W+oZAo0/1jWUWzqyTfFBk4=";
+      };
+      gfx1012 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1012-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-+HDsMLMHvFnLsWMltL4pfBlLAUCHLSK8fr5igx9sWzs=";
+      };
+      gfx1030 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1030-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-3vNg/D9eh//HCfkFVspRjOFuC7IW6psbAt2oVIsMX+8=";
+      };
+      gfx1031 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1031-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-Hv7VbJY6TOO7o3FMxv7w6ZlSrak9TK7dJjXiGu4XGyg=";
+      };
+      gfx1032 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1032-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-gbl9FeBr4ACAsBQOGCniAuDPCFPCKFK71RGZcZDDyH4=";
+      };
+      gfx1033 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1033-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-gOCvUTIzzu9rEt/JCSO8DO74XnXFDiuH9Z87WyNNRgg=";
+      };
+      gfx1034 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1034-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-/A6GaMrRLaMsjykV+lP76jGupwPoQ9Ka3Ezh73f4DIY=";
+      };
+      gfx1035 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1035-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-FU8++PRD6YZcSm5Zaok+UzE/yan9yCR8cfWWhNWFbQY=";
+      };
+      gfx1036 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1036-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-ylWUiXN8Fp+sWVPrn8H5xOctJ3RMHyENvSODklIbDn4=";
+      };
+      gfx1100 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1100-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-D5vrn6pVpqhtq4RPbo2iRuRBCyvl0LZe8twBDdpruL8=";
+      };
+      gfx1101 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1101-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-BfFKJz3VebOOh/gGrwv09isWpLaaVAiyHIMLhdZimjw=";
+      };
+      gfx1102 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1102-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-NPm4izpTZ2uxD4uqDz1pUj8ornzBdzAsFMk/0D/Hhvw=";
+      };
+      gfx1103 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1103-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-xFpb4e8eb4WPPu/NeHeSFyywjR5s9HM2wF8uO3NHMzQ=";
+      };
+      gfx1150 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1150-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-HrcBN3SaOjOYmJysEaZo+D5MDCh3voDNhHmw2DiHO3c=";
+      };
+      gfx1151 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1151-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-ebveljSLqTo+2kKN4kyErCjVg5nhkwPMcH8kDD3kHMk=";
+      };
+      gfx1152 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1152-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-OCTv8g2zlv7bJGPWJ510yRWye4HGYqG8DrkTtDPcmnM=";
+      };
+      gfx1153 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1153-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-Qh2ky8XySlN5pQE4qc+8bTIv0GU728jNefy/dhGcF7Y=";
+      };
+      gfx1200 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1200-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-8kcj1825a8fhBgD549Xj7ut5TsUDKZBjLz/kQdCPhqo=";
+      };
+      gfx1201 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1201-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-61VNSdDNMElE3iGZ7EKN9fmdgL2Va3y3L8H5qJeDf6U=";
+      };
+      gfx1250 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx1250-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-AVBI7mu/Rw6f9dIB99vdxsLwKvCLlQop2B7YAe6EEjI=";
+      };
+      gfx908 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx908-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-gEnZo+eFLA+JvUTvvfp+1P75OCQcwLbje4xT+lTQ6U0=";
+      };
+      gfx90a = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx90a-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-IIkR0mah1aEiFtgHm5L+AerI2WHPhco/G1sekgfVw3w=";
+      };
+      gfx942 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx942-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-Rugm6ZZrG5lEsCk5PDUlWTAVInPDRGjqqvg7RJyxBFk=";
+      };
+      gfx950 = {
+        url = "https://repo.amd.com/rocm/whl-multi-arch/rocm_sdk_device_gfx950-7.14.1-py3-none-linux_x86_64.whl";
+        hash = "sha256-lrD8wkGuqpK2hkkWSWf8+TWJJv+UnqxOamGDYleT0GE=";
       };
     };
   };

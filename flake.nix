@@ -155,6 +155,11 @@
             gpuSupport = "rocm";
             rocmChannel = "rocm72";
           };
+          # Opt-in ROCm 7.14 with the bundled TheRock SDK runtime.
+          nativePackagesRocm714 = mkComfyPackages pkgs {
+            gpuSupport = "rocm";
+            rocmChannel = "rocm714";
+          };
           nativePackagesXpu = mkComfyPackages pkgs { gpuSupport = "xpu"; };
 
           pythonEnv = mkPythonEnv pkgs;
@@ -221,6 +226,7 @@
             rocm = nativePackagesRocm.default;
             # ROCm 7.2 — stable wheels; the recommended gfx1151 (Strix Halo) path.
             rocm72 = nativePackagesRocm72.default;
+            rocm714 = nativePackagesRocm714.default;
             dockerImageRocm = nativePackagesRocm.dockerImageRocm;
             # Intel XPU (oneAPI / SYCL) — pre-built wheels, Linux x86_64 only.
             # Targets Arc A/B series and Core Ultra iGPUs (Meteor Lake+).
@@ -325,6 +331,11 @@
             # interpreter for a specific backend, and `pythonRuntime.pkgs` is
             # the *unoverridden* nixpkgs set, so it cannot be used for that.
             pythonFor = mkPython pkgs;
+            pythonForRocm =
+              rocmChannel:
+              pkgs.python312.override {
+                packageOverrides = pythonOverridesFor pkgs "rocm" rocmChannel;
+              };
             vendoredPackages = nativePackages.vendoredPackages;
             nixosModule = self.nixosModules.default;
           };
@@ -359,6 +370,12 @@
               self.packages.${final.stdenv.hostPlatform.system}.rocm72
             else
               throw "comfy-ui-rocm72 is only available on x86_64 Linux";
+          # Opt-in ROCm 7.14 variant (x86_64 Linux only).
+          comfy-ui-rocm714 =
+            if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then
+              self.packages.${final.stdenv.hostPlatform.system}.rocm714
+            else
+              throw "comfy-ui-rocm714 is only available on x86_64 Linux";
           # Intel XPU variant (x86_64 Linux only) - pre-built wheels from pytorch.org/whl/xpu
           comfy-ui-xpu =
             if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then
