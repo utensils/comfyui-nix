@@ -90,6 +90,10 @@
           pkgs.stdenv.cc.cc.lib
           comfyUiPackage
         ]
+        ++ lib.optionals useRocm [
+          # rocminfo suppresses a ComfyUI startup warning about missing AMD GPU info
+          pkgs.rocmPackages.rocminfo
+        ]
         ++ lib.optionals useXpu [
           # XPU userland: Level Zero loader, Intel compute-runtime (OpenCL ICD
           # + Level Zero driver). Users still must pass `--device /dev/dri` and

@@ -5,6 +5,7 @@
   packages,
   pythonRuntime,
   pythonFor,
+  pythonForRocm,
   vendoredPackages,
   nixosModule,
 }:
@@ -203,19 +204,23 @@ let
   # by Nix packages rather than PyPI resolution. Verify the installed metadata
   # and wheel version instead of trusting the runtime dependency hook.
   #
-  # The interpreter must come from `pythonFor <backend>`: `pythonRuntime.pkgs`
-  # is the unoverridden nixpkgs package set and yields the stock CPU torch,
-  # which would make every assertion below pass vacuously.
+  # The interpreter must come from `pythonFor <backend>` or `pythonForRocm
+  # <channel>`: `pythonRuntime.pkgs` is the unoverridden nixpkgs package set and
+  # yields stock CPU torch, which would make the metadata checks pass vacuously.
   mkTorchRuntimeDeps =
     {
       backend,
+      name ? backend,
+      rocmChannel ? "rocm71",
+      expectedHipVersion ? null,
       removedRequirements,
     }:
     let
-      torchPython = (pythonFor backend).withPackages (ps: [ ps.torch ]);
+      python = if backend == "rocm" then pythonForRocm rocmChannel else pythonFor backend;
+      torchPython = python.withPackages (ps: [ ps.torch ]);
       removedTuple = pkgs.lib.concatMapStrings (r: ''"${r}", '') removedRequirements;
     in
-    pkgs.runCommand "${backend}-torch-runtime-deps" { nativeBuildInputs = [ torchPython ]; } ''
+    pkgs.runCommand "${name}-torch-runtime-deps" { nativeBuildInputs = [ torchPython ]; } ''
       ${torchPython}/bin/python - <<'PY'
       import importlib.metadata
 
@@ -230,9 +235,11 @@ let
       )
       assert setuptools.__version__
       assert torch.__version__
-      assert "${expectedTorchVersions.${backend}}" in torch.__version__, torch.__version__
-      ${pkgs.lib.optionalString (backend == "rocm") ''
-        assert torch.version.hip is not None and torch.version.hip.startswith("7.14"), torch.version.hip
+      assert "${expectedTorchVersions.${name}}" in torch.__version__, torch.__version__
+      ${pkgs.lib.optionalString (expectedHipVersion != null) ''
+        assert torch.version.hip is not None and torch.version.hip.startswith("${expectedHipVersion}."), torch.version.hip
+      ''}
+      ${pkgs.lib.optionalString (backend == "rocm" && rocmChannel == "rocm714") ''
         import triton
         assert triton.__version__ == "3.9.0", triton.__version__
       ''}
@@ -242,7 +249,8 @@ let
   # Guards against the check silently falling back to nixpkgs' CPU torch again.
   expectedTorchVersions = {
     cuda = "+cu";
-    rocm = "+rocm7.14";
+    rocm = "+rocm7.1";
+    rocm714 = "+rocm7.14";
     xpu = "+xpu";
   };
   torchRuntimeDepsChecks =
@@ -259,6 +267,19 @@ let
     // pkgs.lib.optionalAttrs (packages ? rocm) {
       rocm-torch-runtime-deps = mkTorchRuntimeDeps {
         backend = "rocm";
+        expectedHipVersion = "7.1";
+        removedRequirements = [
+          "rocm["
+          "triton-rocm"
+        ];
+      };
+    }
+    // pkgs.lib.optionalAttrs (packages ? rocm714) {
+      rocm714-torch-runtime-deps = mkTorchRuntimeDeps {
+        backend = "rocm";
+        name = "rocm714";
+        rocmChannel = "rocm714";
+        expectedHipVersion = "7.14";
         removedRequirements = [
           "rocm["
           "triton-rocm"

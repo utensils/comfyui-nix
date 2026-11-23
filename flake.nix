@@ -71,7 +71,7 @@
           # - Fast builds (download ~2GB vs compile for hours)
           # - Low memory usage (no 30-60GB RAM requirement)
           # - `gfx1100` tested (to date)
-          # - ROCm 7.14 runtime bundled in the default wheels
+          # - ROCm 7.1 runtime bundled in wheels
           # =======================================================================
 
           # Linux pkgs for cross-building Docker images from any system
@@ -107,7 +107,7 @@
           mkPython =
             pkgs: gpuSupport:
             pkgs.python312.override {
-              packageOverrides = pythonOverridesFor pkgs gpuSupport "rocm714";
+              packageOverrides = pythonOverridesFor pkgs gpuSupport "rocm71";
             };
 
           mkPythonEnv =
@@ -125,7 +125,7 @@
             pkgs:
             {
               gpuSupport ? "none",
-              rocmChannel ? "rocm714",
+              rocmChannel ? "rocm71",
             }:
             import ./nix/packages.nix {
               inherit
@@ -150,15 +150,15 @@
           # CUDA uses pre-built wheels for all supported GPU architectures
           nativePackagesCuda = mkComfyPackages pkgs { gpuSupport = "cuda"; };
           nativePackagesRocm = mkComfyPackages pkgs { gpuSupport = "rocm"; };
-          # Explicit legacy ROCm 7.1 selection.
-          nativePackagesRocm71 = mkComfyPackages pkgs {
-            gpuSupport = "rocm";
-            rocmChannel = "rocm71";
-          };
           # ROCm 7.2 — stable wheels; first stable whose HSA runtime runs gfx1151.
           nativePackagesRocm72 = mkComfyPackages pkgs {
             gpuSupport = "rocm";
             rocmChannel = "rocm72";
+          };
+          # Opt-in ROCm 7.14 with the bundled TheRock SDK runtime.
+          nativePackagesRocm714 = mkComfyPackages pkgs {
+            gpuSupport = "rocm";
+            rocmChannel = "rocm714";
           };
           nativePackagesXpu = mkComfyPackages pkgs { gpuSupport = "xpu"; };
 
@@ -224,9 +224,9 @@
             cuda = nativePackagesCuda.default;
             dockerImageCuda = nativePackagesCuda.dockerImageCuda;
             rocm = nativePackagesRocm.default;
-            rocm71 = nativePackagesRocm71.default;
-            # Explicit ROCm 7.2 selection, including gfx1151 (Strix Halo) support.
+            # ROCm 7.2 — stable wheels; the recommended gfx1151 (Strix Halo) path.
             rocm72 = nativePackagesRocm72.default;
+            rocm714 = nativePackagesRocm714.default;
             dockerImageRocm = nativePackagesRocm.dockerImageRocm;
             # Intel XPU (oneAPI / SYCL) — pre-built wheels, Linux x86_64 only.
             # Targets Arc A/B series and Core Ultra iGPUs (Meteor Lake+).
@@ -331,6 +331,11 @@
             # interpreter for a specific backend, and `pythonRuntime.pkgs` is
             # the *unoverridden* nixpkgs set, so it cannot be used for that.
             pythonFor = mkPython pkgs;
+            pythonForRocm =
+              rocmChannel:
+              pkgs.python312.override {
+                packageOverrides = pythonOverridesFor pkgs "rocm" rocmChannel;
+              };
             vendoredPackages = nativePackages.vendoredPackages;
             nixosModule = self.nixosModules.default;
           };
@@ -353,24 +358,24 @@
               self.packages.${final.stdenv.hostPlatform.system}.cuda
             else
               throw "comfy-ui-cuda is only available on x86_64 Linux";
-          # Default ROCm 7.14 variant (x86_64 Linux only).
+          # ROCm variant (x86_64 Linux only) - uses pre-built wheels supporting all GPU architectures
           comfy-ui-rocm =
             if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then
               self.packages.${final.stdenv.hostPlatform.system}.rocm
             else
               throw "comfy-ui-rocm is only available on x86_64 Linux";
-          # Legacy ROCm 7.1 variant for explicit module channel selection.
-          comfy-ui-rocm71 =
-            if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then
-              self.packages.${final.stdenv.hostPlatform.system}.rocm71
-            else
-              throw "comfy-ui-rocm71 is only available on x86_64 Linux";
           # ROCm 7.2 variant (x86_64 Linux only) - the gfx1151 (Strix Halo) path
           comfy-ui-rocm72 =
             if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then
               self.packages.${final.stdenv.hostPlatform.system}.rocm72
             else
               throw "comfy-ui-rocm72 is only available on x86_64 Linux";
+          # Opt-in ROCm 7.14 variant (x86_64 Linux only).
+          comfy-ui-rocm714 =
+            if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then
+              self.packages.${final.stdenv.hostPlatform.system}.rocm714
+            else
+              throw "comfy-ui-rocm714 is only available on x86_64 Linux";
           # Intel XPU variant (x86_64 Linux only) - pre-built wheels from pytorch.org/whl/xpu
           comfy-ui-xpu =
             if final.stdenv.hostPlatform.isLinux && final.stdenv.hostPlatform.isx86_64 then

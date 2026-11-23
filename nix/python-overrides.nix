@@ -2,7 +2,7 @@
   pkgs,
   versions,
   gpuSupport ? "none", # "none", "cuda", "rocm", "xpu"
-  rocmChannel ? "rocm714", # when gpuSupport="rocm": which pytorchWheels entry
+  rocmChannel ? "rocm71", # when gpuSupport="rocm": which pytorchWheels entry
 }:
 let
   lib = pkgs.lib;
@@ -434,7 +434,8 @@ lib.optionalAttrs useCuda {
     };
     dontBuild = true;
     dontConfigure = true;
-    dontCheckRuntimeDeps = rocmChannel == "rocm714";
+    # Wheel metadata is rewritten below and validated by rocm-torch-runtime-deps.
+    dontCheckRuntimeDeps = true;
     nativeBuildInputs = [
       pkgs.autoPatchelfHook
       pkgs.gnused

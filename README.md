@@ -83,19 +83,18 @@ CUDA 13 no longer supports pre-Turing GPUs. Pascal and Volta users must use an o
 
 ROCm builds are available for Linux with AMD GPUs. The `#rocm` package uses pre-built PyTorch wheels from pytorch.org which:
 
-- **Fast builds**: Uses pre-built PyTorch wheels instead of compiling for hours
 - **Low memory**: No 30-60GB RAM requirement for compilation
 - **Supported architectures**: To date, only `gfx1100` (7900XTX) has been tested
-- **Bundled runtime**: ROCm 7.14 TheRock host libraries and all 25 GPU-device
-  payloads are pinned in the Nix closure; no separate ROCm toolkit is needed
 
 ```bash
 nix run github:utensils/comfyui-nix#rocm
 ```
 
-The default also applies to ROCm Docker images and `services.comfyui.gpuSupport = "rocm"`.
-Python remains on 3.12. Older runtimes remain available as `#rocm71` and `#rocm72`,
-or through `services.comfyui.rocmChannel = "rocm71"` / `"rocm72"`.
+ROCm 7.1 remains the default for `#rocm`, its development shell, Docker images,
+and the NixOS service. Opt into ROCm 7.14 with `#rocm714` or
+`services.comfyui.rocmChannel = "rocm714"`; its matching TheRock SDK host
+libraries and GPU-device payloads are included in the Nix closure.
+The existing `#rocm72` package remains available.
 
 > ROCm support contributed by [@pyqlsa](https://github.com/pyqlsa) — thank you!
 
